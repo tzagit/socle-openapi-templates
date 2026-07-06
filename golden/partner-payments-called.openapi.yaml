@@ -101,7 +101,7 @@ components:
         type: string
         minLength: 3
         maxLength: 20
-      example: BANK-FR-001
+      example: '30004'
     XUserId:
       name: X-User-Id
       in: header
@@ -164,7 +164,7 @@ components:
         type: string
         minLength: 3
         maxLength: 20
-      example: BANK-FR-001
+      example: '30004'
     EchoUserId:
       description: Echoes the corresponding request header if provided in the request.
       required: false

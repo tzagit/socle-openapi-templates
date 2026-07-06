@@ -5,6 +5,11 @@ info:
   description: >-
     The purpose of this API is for the Card Management System to call the bank to retrieve cardholder data and card
     agreement owner data
+  contact:
+    name: ESTREEM API support team
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.8.xlsx
   x-socle-version: 0.1.0
   x-socle-type: called
 components:
@@ -441,7 +446,7 @@ components:
         type: string
         minLength: 3
         maxLength: 20
-      example: BANK-FR-001
+      example: '30004'
     XUserId:
       name: X-User-Id
       in: header
@@ -493,7 +498,7 @@ components:
         type: string
         minLength: 3
         maxLength: 20
-      example: BANK-FR-001
+      example: '30004'
     EchoUserId:
       description: Echoes the corresponding request header if provided in the request.
       required: false

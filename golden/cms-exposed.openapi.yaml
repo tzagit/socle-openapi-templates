@@ -5,6 +5,11 @@ info:
   description: >-
     The purpose of the Card Management System APIs is to manage the card agreements (also called card contracts) and the
     cards
+  contact:
+    name: ESTREEM API support team
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: DICO_ESTREEM__v21.14.xlsx
   x-socle-version: 0.1.0
   x-socle-type: exposed
 components:
@@ -2905,7 +2910,7 @@ components:
         type: string
         minLength: 3
         maxLength: 20
-      example: BANK-FR-001
+      example: '30004'
     XUserId:
       name: X-User-Id
       in: header
@@ -2970,7 +2975,7 @@ components:
         type: string
         minLength: 3
         maxLength: 20
-      example: BANK-FR-001
+      example: '30004'
     EchoUserId:
       description: Echoes the corresponding request header if provided in the request.
       required: false
