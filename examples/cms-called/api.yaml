@@ -1,0 +1,13 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+type: called
+info:
+  title: APIs called by the Card Management System
+  version: 1.4.0
+  description: >-
+    The purpose of this API is for the Card Management System to call the bank to retrieve cardholder data and card
+    agreement owner data
+servers:
+  - url: https://api.mon-si.fr/cms-called/v1
+tags:
+  - name: Get data
+    description: Requests sent to the bank to retrieve cardholder data and card agreement owner data

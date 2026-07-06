@@ -1,0 +1,35 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+/card-agreement-entities/{id}:
+  get:
+    operationId: getCardAgreementEntityById
+    summary: Retrieve information of an entity
+    description: The entity is in general the agency of the bank
+    parameters:
+      - name: id
+        in: path
+        description: >-
+          Identifier of the physical or logical entity linked to the card contract/agreement (entity that signed the
+          contract with the cardholder; for example, a branch).<br>This identifier is provided to the CMS during the
+          subscription by the bank.<br>Afterwards, it is used by the CMS to retrieve the entity data from the bank. (the
+          API to retrieve these data are not supported in this version and the retrieval of these data is simulated by
+          the CMS) and by the IAS in messages sent to the bank
+        required: true
+        schema:
+          description: >-
+            Card agreement entity Id<br>Identifier of the physical or logical entity linked to the card
+            contract/agreement (entity that signed the contract with the cardholder; for example, a branch).<br>This
+            identifier is provided to the CMS during the subscription by the bank.<br>Afterwards, it is used by the CMS
+            to retrieve the entity data from the bank. (the API to retrieve these data are not supported in this version
+            and the retrieval of these data is simulated by the CMS) and by the IAS in messages sent to the bank
+          type: string
+          maxLength: 36
+          minLength: 1
+    responses:
+      '200':
+        description: CardAgreementEntity OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardAgreementEntityRes'
+    tags:
+      - Get data

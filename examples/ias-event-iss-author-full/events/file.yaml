@@ -1,0 +1,5 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: file
+x-summary: Generic file fake endpoint
+x-operation-id: file
+$ref: '#/components/schemas/IssAuthorFull'

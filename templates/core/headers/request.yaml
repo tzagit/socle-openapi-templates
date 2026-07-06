@@ -6,36 +6,36 @@ components:
       name: X-Request-Id
       in: header
       required: false
-      description: Identifiant unique de la requête (traçabilité).
+      description: A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging across distributed services.
       schema: { type: string, format: uuid }
       example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
     XCorrelationId:
       name: X-Correlation-Id
       in: header
       required: false
-      description: Corrélation d'un flux multi-appels de bout en bout.
+      description: A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical operation or business transaction, enabling cross-service correlation.
       schema: { type: string, format: uuid }
       example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
     XInstitutionId:
       name: X-Institution-Id
       in: header
       required: true
-      description: Institution / entité à l'origine de la requête (toujours obligatoire).
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
       schema: { type: string }
       example: BANK-FR-001
     XUserId:
       name: X-User-Id
       in: header
       required: false
-      description: Utilisateur à l'origine de la requête.
-      schema: { type: string }
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema: { type: string, maxLength: 128 }
       example: user-42
     XUserContextId:
       name: X-UserContext-Id
       in: header
       required: false
-      description: Contexte utilisateur (session / rôle / habilitation).
-      schema: { type: string }
+      description: A unique identifier representing the user group or organizational context under which the request is being performed.
+      schema: { type: string, maxLength: 4 }
       example: ctx-8a1f9c
 
     # --- idempotence (par méthode) ---

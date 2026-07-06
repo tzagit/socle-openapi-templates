@@ -1,0 +1,376 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+CardholderRes:
+  description: ''
+  type: object
+  properties:
+    id:
+      description: >-
+        Cardholder Id<br>Technical identifier of the cardholder in the banking system.<br>This identifier is provided
+        during the subscription by the bank.<br>Afterwards, it is used by the CMS to retrieve the cardholder data from
+        the bank.
+      type: string
+      pattern: ^[0-9a-zA-Z\-]{1,36}$
+    civility:
+      description: >-
+        cardholder title<br>Civility of the cardholder<br>The data is defined as a 16 characters string but at this
+        stage the CMS service only uses the first 10 characters
+      type: string
+      maxLength: 16
+      minLength: 1
+    firstName:
+      description: >-
+        first name<br>The first name is defined as 70 characters strings but, at this stage, the CMS service only uses
+        up to the first 40 characters.
+      type: string
+      maxLength: 70
+      minLength: 1
+    lastName:
+      description: >-
+        last name<br>The last name is defined as 70 characters strings but, at this stage, the CMS service only uses up
+        to the first 40 characters.
+      type: string
+      maxLength: 70
+      minLength: 1
+    dateOfBirth:
+      description: Date of birth of cardholder
+      type: string
+      format: date
+    birthPlace:
+      description: Cardholder birth place
+      type: string
+      maxLength: 50
+      minLength: 1
+    birthCountryCode:
+      description: Cardholder birth country code<br>Birth country code of the cardholder (ISO 3166, Numeric-3 code)
+      type: string
+      pattern: ^[0-9]{3}$
+    countryCode:
+      description: country code of cardholder<br>Cardholder residence country code (ISO 3166, Numeric-3 code)
+      type: string
+      pattern: ^[0-9]{3}$
+    gender:
+      description: Cardholder Gender
+      type: string
+      maxLength: 10
+      minLength: 1
+    localLanguageCode:
+      description: >-
+        local language code <br>Language to be used for communication with the cardholder<br>This language is sent by
+        the CMS to the card manufacturer for the manufacturer to edit letters in the cardholder's language<br>The
+        language code is defined in accordance with ISO 639-1 and ISO 639-2.
+      type: string
+      example: fra
+      pattern: ^[a-z]{2,3}$
+    cellPhone:
+      description: >-
+        Cardholder cellphone number<br>Cardholder personal cellular phone number<br>Format : International phone number
+        E164 standard
+      type: string
+      example: '+14151231234'
+      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+    phoneNumber:
+      description: 'phone number<br>Cardholder personal landline phone number<br>Format : International phone number E164 standard'
+      type: string
+      example: '+14151231234'
+      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+    proPhone:
+      description: >-
+        Cardholder pro phone number<br>Cardholder professional phone number<br>Format : International phone number E164
+        standard
+      type: string
+      example: '+14151231234'
+      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+    email:
+      description: email address
+      type: string
+      format: email
+    postalAddress:
+      description: >-
+        Postal Address<br>Principal postal address of a cardholder used by default when non explicit shipping conditions
+        are provided by the bank<br>postalAddressID is the postalAddress identifier which may be provided by the bank in
+        the subscription and which will correspond to the identifier provided upon retrieval of the cardholder
+        details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set using the
+        civility/firstName/lastName data which are provided separately<br>- Line 2 is set using the room<br>- Line 3 is
+        set using the floor<br>- Line 4 is set using the streetName<br>- Line 5 is set by concatenating the postBox and
+        the townNameLocation<br>- Line 6 is set by concatenating the postCode and the townName<br>- Line 7 is set using
+        the countryCode (country name determined from the ISO3166 numeric-3 code)<br>postalAddressID, townName and
+        countryCode are required.<br>At least one of (room, floor, streetName or townNameLocation) is required.<br>The
+        room, floor, streetName, townNameLocation and townName are defined as 70 characters  strings but, at this stage,
+        the CMS service only uses up to the first 38 characters.
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          maxLength: 36
+          minLength: 1
+        room:
+          type: string
+          maxLength: 70
+          minLength: 1
+        floor:
+          type: string
+          maxLength: 70
+          minLength: 1
+        streetName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postBox:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townNameLocation:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postCode:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+    riskLevel:
+      description: >-
+        Represent the level of risk linked to the card <br>Represents the level of risk used for card manufacturing : it
+        correponds to a profile sent to the card manufacturer in order to set limits on the chip<br>The data is
+        retrieved together with the cardholder data.<br>The values to be used are defined in the parameters associated
+        to the product catalog.
+      type: string
+      pattern: ^[0-9A-Za-z]{1,10}$
+    secondaryPostalAddress:
+      description: >-
+        Cardholder secondary postal address<br>postalAddressID is the postalAddress identifier which may be provided by
+        the bank in the subscription and which will correspond to the identifier provided upon retrieval of the
+        cardholder details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set using
+        the civility/firstName/lastName data which are provided separately <br>- Line 2 is set using the room<br>- Line
+        3 is set using the floor<br>- Line 4 is set using the streetName<br>- Line 5 is set by concatenating the postBox
+        and the townNameLocation<br>- Line 6 is set by concatenating the postCode and the townName<br>- Line 7 is set
+        using the countryCode (country name determined from the ISO3166 numeric-3 code)<br>postalAddressID, townName and
+        countryCode are required.<br>At least one of (room, floor, streetName or townNameLocation) is required.<br>The
+        room, floor, streetName, townNameLocation and townName are defined as 70 characters strings but, at this stage,
+        the CMS service only uses up to the first 38 characters.
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          maxLength: 36
+          minLength: 1
+        room:
+          type: string
+          maxLength: 70
+          minLength: 1
+        floor:
+          type: string
+          maxLength: 70
+          minLength: 1
+        streetName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postBox:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townNameLocation:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postCode:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+  additionalProperties: false
+  required:
+    - id
+    - firstName
+    - lastName
+    - countryCode
+    - localLanguageCode
+    - postalAddress
+  title: CardholderRes
+CardAgreementEntityRes:
+  description: ''
+  type: object
+  properties:
+    name:
+      description: >-
+        Card agreement entity name<br>Name of the physical or logical entity linked to the card contract/agreement
+        (entity that signed the contract with the cardholder; for example, a branch).
+      type: string
+      maxLength: 256
+      minLength: 1
+    postalAddress:
+      description: >-
+        Postal address of the card agreement entity (or branch) <br>Postal address of the physical or logical entity
+        linked to the card contract/agreement (entity that signed the contract with the cardholder; for example, a
+        branch).<br>postalAddressID is the postalAddress identifier which may be provided by the bank in the
+        subscription and which will correspond to the identifier provided upon retrieval of the cardholder
+        details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set entity name
+        which is provided separately <br>- Line 2 is set using the department (professionnal address) or the room
+        (personal address)<br>- Line 3 is set using the floor<br>- Line 4 is set using the streetName<br>- Line 5 is set
+        by concatenating the postBox and the townNameLocation<br>- Line 6 is set by concatenating the postCode and the
+        townName<br>- Line 7 is set using the countryCode (country name determined from the ISO3166 numeric-3
+        code)<br>postalAddressID, townName and countryCode are required.<br>At least one of (department, room, floor,
+        streetName or townNameLocation) is required.<br>The department, room, floor, streetName, townNameLocation and
+        townName are defined as 70 characters strings but, at this stage, the CMS service only uses up to the first 38
+        characters.
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          maxLength: 36
+          minLength: 1
+        department:
+          type: string
+          maxLength: 70
+          minLength: 1
+        room:
+          type: string
+          maxLength: 70
+          minLength: 1
+        floor:
+          type: string
+          maxLength: 70
+          minLength: 1
+        streetName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postBox:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townNameLocation:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postCode:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+  additionalProperties: false
+  required:
+    - name
+    - postalAddress
+  title: CardAgreementEntityRes
+OwnerOfCardAgreementRes:
+  description: ''
+  type: object
+  properties:
+    id:
+      description: >-
+        Card agreement owner id<br>Technical identifier of the owner of the card agreement in the banking
+        system.<br>This identifier can be provided during the subscription by the bank if the owner of the card
+        agreement is different from the cardholder.<br>Afterwards, it is used by the CMS to retrieve the owner data from
+        the bank.
+      type: string
+      pattern: ^[0-9a-zA-Z\-]{1,36}$
+    civility:
+      description: >-
+        Civility of the owner<br>Civility of the owner of the card agreement if the owner is a person (otherwise this
+        field should be absent)<br>The data is defined as a 16 characters string but at this stage the CMS service only
+        uses the first 10 characters.
+      type: string
+      maxLength: 16
+      minLength: 1
+    firstName:
+      description: >-
+        First name<br>First name of the owner of the card agreement if the owner is a person (otherwise this field
+        should be absent)<br>The first name is defined as 70 characters strings but, at this stage, the CMS service only
+        uses up to the first 40 characters.
+      type: string
+      maxLength: 70
+      minLength: 1
+    lastName:
+      description: >-
+        Last name<br>Last name of the owner of the card agreement if the owner is a person (otherwise this field should
+        be absent)<br>The last name is defined as 70 characters strings but, at this stage, the CMS service only uses up
+        to the first 40 characters.
+      type: string
+      maxLength: 70
+      minLength: 1
+    companyName:
+      description: >-
+        Company Name<br>Company name of the owner of the card agreement if the owner is a company (otherwise this field
+        should be absent)
+      type: string
+      maxLength: 50
+      minLength: 1
+    postalAddress:
+      description: >-
+        Postal Address<br>postalAddressID is the postalAddress identifier which may be provided by the bank in the
+        subscription and which will correspond to the identifier provided upon retrieval of the cardholder
+        details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set using the
+        civility/firstName/lastName/companyName data which are provided separately<br>- Line 2 is set using either the
+        department (professionnal address) or the room (personal address)<br>- Line 3 is set using the floor<br>- Line 4
+        is set using the streetName<br>- Line 5 is set by concatenating the postBox and the townNameLocation<br>- Line 6
+        is set by concatenating the postCode and the townName<br>- Line 7 is set using the countryCode (country name
+        determined from the ISO3166 numeric-3 code)<br>postalAddressID, townName and countryCode are required.<br>At
+        least one of (department, room, floor, streetName or townNameLocation) is required.<br>The department, room,
+        floor, streetName, townNameLocation and townName are defined as 70 characters strings but, at this stage, the
+        CMS service only uses up to the first 38 characters.
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          maxLength: 36
+          minLength: 1
+        department:
+          type: string
+          maxLength: 70
+          minLength: 1
+        room:
+          type: string
+          maxLength: 70
+          minLength: 1
+        floor:
+          type: string
+          maxLength: 70
+          minLength: 1
+        streetName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postBox:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townNameLocation:
+          type: string
+          maxLength: 70
+          minLength: 1
+        postCode:
+          type: string
+          maxLength: 16
+          minLength: 1
+        townName:
+          type: string
+          maxLength: 70
+          minLength: 1
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+  additionalProperties: false
+  required:
+    - id
+    - postalAddress
+  title: OwnerOfCardAgreementRes

@@ -1,0 +1,8 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+type: events
+info:
+  title: Generic Fake Swagger for JSON-Schema Models
+  version: '1.0'
+  description: Generic Fake Swagger for JSON-Schema Models
+servers:
+  - url: /

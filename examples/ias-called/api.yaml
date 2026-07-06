@@ -1,0 +1,13 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+type: called
+info:
+  title: APIs called by the Issuer Authorisation System
+  version: 1.6.0
+  description: The purpose of this API is for the Issuer Authorisation System to call the bank's host
+servers:
+  - url: https://api.mon-si.fr/ias-called/v1
+tags:
+  - name: Authorisation
+    description: Requests sent to the Host during authorisation processing
+  - name: Advices
+    description: Advices sent to the Host after authorisation or reversal processing

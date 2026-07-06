@@ -1,0 +1,22 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+type: exposed
+info:
+  title: APIs exposed by the Card Management System
+  version: 2.10.0
+  description: >-
+    The purpose of the Card Management System APIs is to manage the card agreements (also called card contracts) and the
+    cards
+servers:
+  - url: https://api.estreem.eu/issuing/v1
+    description: >-
+      Generated server url. When deploying this API it is important to keep the basePath as 'issuing' like in the
+      example above.
+tags:
+  - name: Card Agreements
+    description: Card agreements management (including the card creation service)
+  - name: Cards
+    description: Cards management
+  - name: Card Holders
+    description: Card holders data updates provided by the bank
+  - name: Card Agreement Owners
+    description: Card agreement owners data updates provided by the bank

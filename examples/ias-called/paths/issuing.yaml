@@ -1,0 +1,126 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+/issuing/authorisations/action-balance-checking:
+  post:
+    operationId: checkBalance
+    summary: Request for account balance verification (Iss-OA1_001)
+    description: >-
+      Request for banking account balance verification sent to the Host system by the IAS.<br><br>The path must not have
+      any parameters. The parameters to identify the account are in the body of the request.<br>Depending of the Host
+      system processing, these parameters may be, for example, :<br>   - cardAgreementAccountId with
+      cardAgreementAccountNature<br>   - (encryptedPrimaryAccountNumber or tokenPrimaryAccountNumber) with
+      (cardSequenceNumber or productCode)
+    tags:
+      - Authorisation
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BalanceCheckingReq'
+    responses:
+      '200':
+        description: Balance checking OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceCheckingRes'
+        headers:
+          Idempotency-Key:
+            required: false
+            description: Idempotency Key, to avoid duplicate processing of the same message.
+            schema:
+              type: string
+              format: uuid
+              description: Idempotency Key, to avoid duplicate processing of the same message.
+/issuing/authorisations/action-funds-transfer-scoring:
+  post:
+    operationId: scoringFundsTransfer
+    summary: Request for funds transfert scoring (Iss-OA6_001)
+    description: >-
+      Request for Anti Money Laundering scoring on funds transfer transactions<br><br>The path must not have any
+      parameters.
+    tags:
+      - Authorisation
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FundsTransferScoringReq'
+    responses:
+      '200':
+        description: Scoring OK
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundsTransferScoringRes'
+        headers:
+          Idempotency-Key:
+            required: false
+            description: Idempotency Key, to avoid duplicate processing of the same message.
+            schema:
+              type: string
+              format: uuid
+              description: Idempotency Key, to avoid duplicate processing of the same message.
+/issuing/authorisations/advice:
+  post:
+    operationId: adviceAuth
+    summary: Authorisation advice (Iss-OA9_001)
+    description: >-
+      Authorisation advice sent to the Host system to provide the final authorisation decision taken by the
+      IAS<br><br>The path must not have any parameters. The parameters to identify the account are in the body of the
+      request.<br>Depending of the Host system processing, these parameters may be, for example, :<br>   -
+      cardAgreementAccountId with cardAgreementAccountNature<br>   - (encryptedPrimaryAccountNumber or
+      tokenPrimaryAccountNumber) with (cardSequenceNumber or productCode)<br><br>For information, all advice services
+      are standardised in the same format which precise the type of advice, the version, the bank code, the timestamp
+      and the payload (payload being specific to each type of advice)<br><br>In case of success, the HTTP response 204
+      (NO CONTENT) must be used as technical acknowledgement of the good reception of the advice.<br>In case of error
+      where the advice cannot be functionnaly processed, a HTTP response code in the range 400 must be used so that the
+      IAS won't try to resend the advice.<br>In case of error where the advice couldn't be technically processed, a HTTP
+      response code in the range 500 must be used so that the IAS can try to resend the advice.
+    tags:
+      - Advices
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AdviceAuthReq'
+    responses:
+      '204':
+        description: No Content
+        headers:
+          Idempotency-Key:
+            required: false
+            description: Idempotency Key, to avoid duplicate processing of the same message.
+            schema:
+              type: string
+              format: uuid
+              description: Idempotency Key, to avoid duplicate processing of the same message.
+/issuing/reversals/advice:
+  post:
+    operationId: adviceReversal
+    summary: Reversal advice (Iss-OA9_002)
+    description: >-
+      Reversal advice sent to the Host system by the IAS<br><br>The path must not have any parameters. The parameters to
+      identify the account are in the body of the request.<br>Depending of the Host system processing, these parameters
+      may be, for example, :<br>   - cardAgreementAccountId with cardAgreementAccountNature<br>   -
+      (encryptedPrimaryAccountNumber or tokenPrimaryAccountNumber) with (cardSequenceNumber or productCode)<br><br>For
+      information, all advice services are standardised in the same format which precise the type of advice, the
+      version, the bank code, the timestamp and the payload (payload being specific to each type of advice)<br><br>In
+      case of success, the HTTP response 204 (NO CONTENT) must be used as technical acknowledgement of the good
+      reception of the advice.<br>In case of error where the advice cannot be functionnaly processed, a HTTP response
+      code in the range 400 must be used so that the IAS won't try to resend the advice.<br>In case of error where the
+      advice couldn't be technically processed, a HTTP response code in the range 500 must be used so that the IAS can
+      try to resend the advice.
+    tags:
+      - Advices
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AdviceReversalReq'
+    responses:
+      '204':
+        description: No Content
