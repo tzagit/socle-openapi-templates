@@ -1,9 +1,9 @@
-# Template GitLab CI réutilisable pour un projet du socle @monsi/openapi-socle.
+# Template GitLab CI réutilisable pour un projet du socle @estreem/openapi-socle.
 #
 # Dans le .gitlab-ci.yml de TON projet :
 #
 #   include:
-#     - project: 'monsi/socle-openapi-templates'
+#     - project: 'estreem/socle-openapi-templates'
 #       ref: v1.0.0                       # épingle une version du socle
 #       file: '/ci-templates/api-contract.yml'
 #
@@ -12,7 +12,7 @@
 #     ARTIFACTORY_OPENAPI_URL: "https://artifactory.example.com/artifactory/openapi-local/mon-api"
 #
 # Pré-requis du projet :
-#   - @monsi/openapi-socle en devDependency (+ .npmrc pointant sur l'Artifactory npm)
+#   - @estreem/openapi-socle en devDependency (+ .npmrc pointant sur l'Artifactory npm)
 #   - variables CI/CD : ARTIFACTORY_TOKEN (masquée) pour la publication
 #
 # Jobs fournis :

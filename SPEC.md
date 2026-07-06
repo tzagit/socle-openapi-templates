@@ -66,14 +66,14 @@ contrat_final = deepMerge(core, profil[type], projet)  →  resolve($ref)  →  
 
 ## 5. Arborescence proposée
 
-Le socle est **publié en package npm** (`@monsi/openapi-socle`) : `bin/`, `tools/` et
+Le socle est **publié en package npm** (`@estreem/openapi-socle`) : `bin/`, `tools/` et
 `templates/` sont livrés dans le package ; un projet consommateur ne contient que sa couche 3
 et appelle `openapi-socle build .`. Les `examples/` ne sont pas publiés.
 
 ```
 openapi-socle/  (le package — ce dépôt)
 ├── SPEC.md
-├── package.json                 # name @monsi/openapi-socle, bin, files
+├── package.json                 # name @estreem/openapi-socle, bin, files
 ├── bin/openapi-socle.mjs        # CLI : build | import
 ├── templates/
 │   ├── core/                    # COUCHE 1 — commun à tous
@@ -92,7 +92,7 @@ openapi-socle/  (le package — ce dépôt)
     └── import.mjs               # importer OpenAPI existant → projet
 
 dépôt-projet/  (chez le consommateur)  # COUCHE 3 uniquement
-├── package.json                 # devDep @monsi/openapi-socle ; script "openapi-socle build ."
+├── package.json                 # devDep @estreem/openapi-socle ; script "openapi-socle build ."
 ├── api.yaml                     # type + info + servers + tags (le minimum)
 ├── paths/                       # 1 fichier par ressource (paths + réponses 2xx)
 ├── schemas/                     # schémas métier du projet

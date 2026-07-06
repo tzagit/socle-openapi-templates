@@ -1,4 +1,4 @@
-# CI du socle @monsi/openapi-socle.
+# CI du socle @estreem/openapi-socle.
 # - lint            : valide les contrats d'exemple générés
 # - non-regression  : régénère examples/ et échoue si un changement CASSANT des templates
 #                     n'est pas assumé (baselines figées dans golden/)
@@ -35,6 +35,6 @@ publish:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
   script:
-    - echo "@monsi:registry=${ARTIFACTORY_NPM_URL}" > .npmrc
+    - echo "@estreem:registry=${ARTIFACTORY_NPM_URL}" > .npmrc
     - echo "//${ARTIFACTORY_NPM_URL#https://}:_authToken=${NPM_AUTH_TOKEN}" >> .npmrc
     - npm publish

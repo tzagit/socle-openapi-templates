@@ -1,4 +1,4 @@
-# @monsi/openapi-socle
+# @estreem/openapi-socle
 
 Socle de templating YAML pour écrire des contrats **OpenAPI 3.1** en ne spécialisant que le
 nécessaire. Le socle factorise tout le commun (headers, codes d'erreur, format d'erreur,
@@ -47,10 +47,10 @@ une gateway, etc.
 Le socle est publié en package npm sur Artifactory. Dans le dépôt de **ton** API :
 
 ```bash
-# .npmrc — mappe le scope @monsi sur l'Artifactory interne
-echo "@monsi:registry=https://artifactory.example.com/artifactory/api/npm/npm-local/" >> .npmrc
+# .npmrc — mappe le scope @estreem sur l'Artifactory interne
+echo "@estreem:registry=https://artifactory.example.com/artifactory/api/npm/npm-local/" >> .npmrc
 
-npm install -D @monsi/openapi-socle
+npm install -D @estreem/openapi-socle
 ```
 
 Puis dans `package.json` :
@@ -307,7 +307,7 @@ openapi-socle import ./webhooks.yaml --type events --out-dir ./apis
 Le socle est une **dépendance versionnée** (SemVer). Pour intégrer une nouvelle version :
 
 ```bash
-npm install -D @monsi/openapi-socle@^2.0.0   # ou bump dans package.json
+npm install -D @estreem/openapi-socle@^2.0.0   # ou bump dans package.json
 npm run build
 git diff build/                               # relire le diff du contrat généré
 ```
@@ -339,7 +339,7 @@ de ton projet :
 
 ```yaml
 include:
-  - project: 'monsi/socle-openapi-templates'
+  - project: 'estreem/socle-openapi-templates'
     ref: v1.0.0
     file: '/ci-templates/api-contract.yml'
 variables:

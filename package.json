@@ -1,5 +1,5 @@
 {
-  "name": "@monsi/openapi-socle",
+  "name": "@estreem/openapi-socle",
   "version": "0.1.0",
   "type": "module",
   "description": "Socle de templating YAML pour OpenAPI (exposed | called | events) — build, import, CLI.",
@@ -34,6 +34,6 @@
     "@stoplight/spectral-cli": "^6.16.1"
   },
   "publishConfig": {
-    "@monsi:registry": "https://artifactory.example.com/artifactory/api/npm/npm-local/"
+    "@estreem:registry": "https://artifactory.example.com/artifactory/api/npm/npm-local/"
   }
 }
