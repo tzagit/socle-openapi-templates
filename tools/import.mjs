@@ -499,18 +499,23 @@ function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.
     for (const k of ['title', 'version', 'description']) if (doc.info[k] != null) api.info[k] = doc.info[k];
   }
   // servers / base path — pas pour les events (webhooks poussés : ni base path ni servers).
+  let defaultServer = false;
   if (!isEvents) {
     const version = versionSeg || 'v1';
-    if (Array.isArray(doc.servers) && doc.servers.length) {
+    // un server à url vide (ou "/") ne compte pas comme base path défini.
+    const realServers = (Array.isArray(doc.servers) ? doc.servers : [])
+      .filter((s) => isObj(s) && typeof s.url === 'string' && s.url.trim() && s.url.trim() !== '/');
+    if (realServers.length) {
       // conserve les servers existants ; y remonte la version si elle était dans les paths.
-      api.servers = doc.servers.map((s) => {
+      api.servers = realServers.map((s) => {
         const srv = clone(s);
-        if (versionSeg && typeof srv.url === 'string') srv.url = appendSegment(srv.url, versionSeg);
+        if (versionSeg) srv.url = appendSegment(srv.url, versionSeg);
         return srv;
       });
     } else {
-      // aucun base path : défaut déduit du nom du contrat.
+      // aucun base path exploitable : défaut déduit du nom du contrat.
       api.servers = [{ url: `${String(host).replace(/\/+$/, '')}/${name}/${version}` }];
+      defaultServer = true;
     }
   }
   if (Array.isArray(doc.tags) && doc.tags.length) api.tags = clone(doc.tags);
@@ -519,7 +524,7 @@ function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.
     api, files, eventFiles, schemas, isEvents, resolvedType, name,
     warnings: [...warnings], nullableStats, is30,
     droppedWrappers: [...droppedWrappers], prunedSchemas, stats, factoredSchemas,
-    versionSeg, defaultServer: !isEvents && !(Array.isArray(doc.servers) && doc.servers.length),
+    versionSeg, defaultServer,
   };
 }
 
