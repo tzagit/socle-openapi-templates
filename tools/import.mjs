@@ -143,7 +143,7 @@ function filterParams(params, stats) {
 function pageItemRef(schemaNode, doc) {
   if (!isObj(schemaNode)) return null;
   const hasContentItems = (n) => isObj(n) && isObj(n.properties?.content?.items) && typeof n.properties.content.items.$ref === 'string';
-  const metaKeys = ['page', 'pageable', 'totalElements', 'totalPages', 'number'];
+  const metaKeys = ['pagination', 'page', 'pageable', 'totalElements', 'totalPages', 'number'];
 
   if (Array.isArray(schemaNode.allOf)) {
     for (const member of schemaNode.allOf) {

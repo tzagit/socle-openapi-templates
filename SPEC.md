@@ -278,13 +278,15 @@ Page:
   type: object
   properties:
     content: { type: array }      # remplacé par le type d'item (macro, voir 9.2)
-    page:
+    pagination:
       type: object
       properties:
-        page:        { type: integer }
+        page:          { type: integer }   # index 0-based
         size:          { type: integer }
         totalElements: { type: integer }
         totalPages:    { type: integer }
+        hasNext:       { type: boolean }
+        hasPrevious:   { type: boolean }
 ```
 
 En complément (optionnel) : headers `Link` (RFC 8288) `first/prev/next/last`.

@@ -1,21 +1,24 @@
 # Enveloppe de pagination page-based (§8.2). Le build génère PageOf<Item> par allOf.
+# La réponse paginée porte 2 champs : `content` (array d'items) et `pagination` (métadonnées).
 components:
   schemas:
-    PageMeta:
+    Pagination:
       type: object
-      required: [page, size, totalElements, totalPages]
+      required: [page, size, totalElements, totalPages, hasNext, hasPrevious]
       properties:
         page:          { type: integer, description: "Index de la page (0-based).", minimum: 0 }
         size:          { type: integer, description: "Taille de la page." }
         totalElements: { type: integer, description: "Nombre total d'éléments." }
         totalPages:    { type: integer, description: "Nombre total de pages." }
+        hasNext:       { type: boolean, description: "Existe-t-il une page suivante ?" }
+        hasPrevious:   { type: boolean, description: "Existe-t-il une page précédente ?" }
     Page:
       type: object
-      required: [content, page]
+      required: [content, pagination]
       properties:
         content:
           type: array
           items: {}
           description: Éléments de la page (type précisé par PageOf<Item>).
-        page:
-          $ref: '#/components/schemas/PageMeta'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
