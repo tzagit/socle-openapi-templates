@@ -9,6 +9,7 @@
 import path from 'node:path';
 import { buildProjects } from '../tools/build.mjs';
 import { runImportCli } from '../tools/import.mjs';
+import { runDiffCli } from '../tools/diff.mjs';
 
 function usage() {
   console.log(`openapi-socle — socle de templating OpenAPI
@@ -24,6 +25,10 @@ function usage() {
       --out-dir <dir>   Où écrire le projet (défaut : CWD)
       --no-factor       Ne pas factoriser les schémas répétés
       --force           Écraser si le dossier existe
+
+  openapi-socle diff <baseline> <revision>   Compare deux contrats et déduit le niveau SemVer.
+      --allow-breaking  Ne pas échouer sur un changement cassant (sort quand même 'major')
+                        stdout = major|minor|patch ; exit 1 si cassant (sauf --allow-breaking).
 
   Défaut de sortie du build : ./build/<projet>.openapi.yaml`);
 }
@@ -59,6 +64,7 @@ const [cmd, ...rest] = process.argv.slice(2);
 switch (cmd) {
   case 'build': buildCli(rest); break;
   case 'import': runImportCli(rest); break;
+  case 'diff': runDiffCli(rest); break;
   case undefined: case '-h': case '--help': usage(); break;
   default: console.error(`Commande inconnue : ${cmd}`); usage(); process.exit(1);
 }

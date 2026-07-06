@@ -1,0 +1,73 @@
+# Template GitLab CI réutilisable pour un projet du socle @monsi/openapi-socle.
+#
+# Dans le .gitlab-ci.yml de TON projet :
+#
+#   include:
+#     - project: 'monsi/socle-openapi-templates'
+#       ref: v1.0.0                       # épingle une version du socle
+#       file: '/ci-templates/api-contract.yml'
+#
+#   variables:
+#     API_NAME: mon-api
+#     ARTIFACTORY_OPENAPI_URL: "https://artifactory.example.com/artifactory/openapi-local/mon-api"
+#
+# Pré-requis du projet :
+#   - @monsi/openapi-socle en devDependency (+ .npmrc pointant sur l'Artifactory npm)
+#   - variables CI/CD : ARTIFACTORY_TOKEN (masquée) pour la publication
+#
+# Jobs fournis :
+#   openapi:lint      — valide le contrat généré (Redocly)
+#   openapi:breaking  — échoue si un changement cassant n'est pas assumé par une nouvelle majeure
+#   openapi:release   — sur tag vX.Y.Z, publie le contrat sur Artifactory (versionné + latest)
+
+variables:
+  OPENAPI_DIR: "."
+  NODE_IMAGE: "node:20"
+
+stages:
+  - contract
+
+# Base : installe les deps et génère le contrat en artefact.
+.openapi-build:
+  stage: contract
+  image: $NODE_IMAGE
+  before_script:
+    - npm ci
+    - npx openapi-socle build "$OPENAPI_DIR"
+  artifacts:
+    paths: ["build/"]
+    expire_in: 1 week
+
+openapi:lint:
+  extends: .openapi-build
+  script:
+    - npx redocly lint build/*.openapi.yaml
+
+openapi:breaking:
+  extends: .openapi-build
+  script:
+    # oasdiff : détection sémantique des ruptures + niveau SemVer requis
+    - curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh
+    # baseline = dernier contrat publié ; au tout premier run il n'y en a pas → on n'échoue pas
+    - |
+      if curl -fsSL -o baseline.yaml "$ARTIFACTORY_OPENAPI_URL/latest/openapi.yaml"; then
+        LEVEL=$(npx openapi-socle diff baseline.yaml build/*.openapi.yaml) || {
+          echo "✗ Changement CASSANT détecté sans nouvelle majeure. Passe en /v(N+1) + info.version majeure, ou justifie."
+          exit 1
+        }
+        echo "Niveau SemVer requis : $LEVEL"
+      else
+        echo "Pas de baseline publiée — premier contrat, rien à comparer."
+      fi
+
+openapi:release:
+  stage: contract
+  image: $NODE_IMAGE
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - npm ci
+    - npx openapi-socle build "$OPENAPI_DIR"
+    - CONTRACT=$(ls build/*.openapi.yaml | head -1)
+    - 'curl -fsSL -H "Authorization: Bearer $ARTIFACTORY_TOKEN" -T "$CONTRACT" "$ARTIFACTORY_OPENAPI_URL/$CI_COMMIT_TAG/openapi.yaml"'
+    - 'curl -fsSL -H "Authorization: Bearer $ARTIFACTORY_TOKEN" -T "$CONTRACT" "$ARTIFACTORY_OPENAPI_URL/latest/openapi.yaml"'

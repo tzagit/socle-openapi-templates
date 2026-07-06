@@ -15,6 +15,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATES = path.join(ROOT, 'templates');
 const EXAMPLES = path.join(ROOT, 'examples'); // défaut pour le dev du socle lui-même
 const DEFAULT_OUT = path.join(ROOT, 'build');
+// Version du socle (stampée dans info.x-socle-version de chaque contrat généré).
+const SOCLE_VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 
 const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace'];
 
@@ -186,6 +188,7 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
 
   let doc = deepMerge(loadCore(), loadProfile(type));
   doc = deepMerge(doc, projectDoc);
+  doc.info = { ...(doc.info ?? {}), 'x-socle-version': SOCLE_VERSION }; // traçabilité du socle
 
   const isEvents = type === 'events';
   const container = {}; // paths ou webhooks

@@ -21,7 +21,8 @@ pagination/tri, sécurité) ; un projet ne décrit que **ce qui lui est propre**
 8. [La CLI](#8-la-cli)
 9. [Importer un OpenAPI existant](#9-importer-un-openapi-existant)
 10. [Mettre à jour le socle](#10-mettre-à-jour-le-socle)
-11. [Développer le socle (ce dépôt)](#11-développer-le-socle-ce-dépôt)
+11. [Versioning & non-régression (CI)](#11-versioning--non-régression-ci)
+12. [Développer le socle (ce dépôt)](#12-développer-le-socle-ce-dépôt)
 
 ---
 
@@ -248,6 +249,13 @@ openapi-socle build ./apis --project orders  # un seul projet du conteneur
 Un dossier qui contient un `api.yaml` est un **projet** ; sinon il est traité comme un
 **conteneur** (un sous-dossier par API).
 
+**`diff`** — compare deux contrats et déduit le niveau SemVer (via `oasdiff`) :
+```bash
+openapi-socle diff baseline.yaml build/mon-api.openapi.yaml
+# stdout : major | minor | patch   ·   exit 1 si changement cassant
+```
+Nécessite `oasdiff` sur le `PATH` ou Docker (image `tufin/oasdiff` en repli). Voir §11.
+
 ---
 
 ## 9. Importer un OpenAPI existant
@@ -288,7 +296,40 @@ projet reste sur l'ancienne majeure jusqu'à ce que tu choisisses de migrer.
 
 ---
 
-## 11. Développer le socle (ce dépôt)
+## 11. Versioning & non-régression (CI)
+
+Trois versions à ne pas confondre : la **version d'API** (`info.version`, SemVer), la **majeure
+d'URL** (`/v1`, `/v2` — la frontière de rupture), et la **version du socle** qui a généré le
+contrat, stampée automatiquement dans `info.x-socle-version`.
+
+**Détecter une rupture** : `openapi-socle diff <baseline> <revision>` classe les changements
+(via `oasdiff`) et sort le niveau SemVer requis :
+
+| Sortie | Signification | Exit |
+|--------|---------------|------|
+| `patch` | aucun changement de contrat | 0 |
+| `minor` | changement rétrocompatible (ajout) | 0 |
+| `major` | **changement cassant** | **1** |
+
+**Template GitLab CI** prêt à l'emploi : `ci-templates/api-contract.yml`. Dans le `.gitlab-ci.yml`
+de ton projet :
+
+```yaml
+include:
+  - project: 'monsi/socle-openapi-templates'
+    ref: v1.0.0
+    file: '/ci-templates/api-contract.yml'
+variables:
+  API_NAME: mon-api
+  ARTIFACTORY_OPENAPI_URL: "https://artifactory.example.com/artifactory/openapi-local/mon-api"
+```
+
+Il fournit trois jobs : **`openapi:lint`** (Redocly), **`openapi:breaking`** (échoue si une
+rupture n'est pas assumée par une nouvelle majeure, en comparant à la dernière baseline publiée),
+et **`openapi:release`** (sur tag `vX.Y.Z`, publie le contrat versionné sur Artifactory). La
+baseline stockée sur Artifactory devient la référence du prochain diff.
+
+## 12. Développer le socle (ce dépôt)
 
 ```bash
 npm install
