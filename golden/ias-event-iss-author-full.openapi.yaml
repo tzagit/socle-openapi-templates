@@ -1,0 +1,4188 @@
+openapi: 3.1.1
+info:
+  title: Generic Fake Swagger for JSON-Schema Models
+  version: '1.0'
+  description: Generic Fake Swagger for JSON-Schema Models
+  x-socle-version: 0.1.0
+components:
+  schemas:
+    StandardError:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Code d'erreur applicatif stable.
+        text:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: Message d'erreur destiné au consommateur.
+        developerText:
+          type: string
+          minLength: 1
+          maxLength: 70
+          description: Détail technique à destination des développeurs.
+        moreInfo:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Complément d'information / lien de documentation.
+    IssAuthorFull:
+      title: IssAuthorFull
+      type: object
+      description: ''
+      properties:
+        eventProcessingData:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            eventServiceCategory:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 70
+              description: >-
+                Category of the service for an event<br>Identifies the ressource associated to the action leading to an
+                event<br>For example, IAS_ONLINE_AUTH<br>The type of event within the service is detailed by the
+                eventNature
+            eventNature:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 70
+              description: >-
+                Nature/type of an event<br>Identifies the nature/type of event associated to action leading to an event
+                within a service (eventServiceCategory)<br>Example for IAS_ONLINE_AUTH : equivalent to
+                MTI<br>IAS_ONLINE_AUTH_AUTHORISATION (event 0100/0101/0110)<br>IAS_ONLINE_AUTH_ADVICE (event
+                0120/0121/0130)<br>IAS_ONLINE_AUTH_REVERSAL (event 0400/0401/0410)<br>IAS_ONLINE_AUTH_REVERSAL ADVICE
+                (event 0420/0421/0430)<br>IAS_ONLINE_AUTH_FILE_REQUEST (event
+                0300/0301/0310)<br>IAS_ONLINE_AUTH_FILE_ADVICE (event 0320/0321/0330)
+          additionalProperties: false
+        issuer:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            institutionId:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 5
+              description: Issuer institution Id<br>Identifier of the bank in the CMS and IAS
+          additionalProperties: false
+        cardholder:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            id:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9a-zA-Z\-]{1,36}$
+              description: >-
+                Cardholder Id<br>Technical identifier of the cardholder in the banking system.<br>This identifier is
+                provided during the subscription by the bank.<br>Afterwards, it is used by the CMS to retrieve the
+                cardholder data from the bank.
+            civility:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 16
+              description: cardholder title<br>Equivalent to DE117-4 in CBAE protocol
+            lastName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 70
+              description: last name<br>Equivalent to DE117-8 in CBAE protocol
+            phoneNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+              description: phone number<br>Equivalent to DE107-1 in CBAE protocol
+          additionalProperties: false
+        card:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            primaryAccountNumberId:
+              type:
+                - string
+                - 'null'
+              format: uuid
+              description: >-
+                Primary Account Number ID<br>Identifier (also called PANid) associated to the PAN of the card.<br>The
+                PANid is generated (in the form of an UUID v4) by Estreem during the processing of the subscription
+                request sent to the CMS (either when the PAN is calculated by the CMS or when the PAN is provided by the
+                bank).<br>The PANid is provided to the bank in the subscription response.<br>The PANid is used in
+                further exchanges of the CMS and the IAS.
+            encryptedPrimaryAccountNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$
+              description: >-
+                encrypted pan<br>The encryption is done using JSON Web Encryption standard.<br>Once decrypted it
+                represents a Primary Account Number (PAN), which is a 16 to 19 numeric characters string.
+            maskedPrimaryAccountNumber:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 30
+              description: Masked Primary Account Number<br>Displayable version of the PAN with masked caracters
+            sequenceNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{2,3}$
+              description: Card Sequence Number<br>Equivalent to DE23 in ISO8583 based protocols
+            expiryDate:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9]{4})-(1[0-2]|0[1-9])$
+              description: >-
+                Expiry date<br>Format (ISO8601) : YYYY-MM ; Example 2024-12<br>Equivalent to DE14 in ISO8583 based
+                protocols
+            issuerBIN:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,15}$
+              description: Issuer BIN<br>BIN represented on 8 digits
+            affectationCountryCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[A-Z]{3}$
+              minLength: 3
+              maxLength: 3
+              description: >-
+                Affectation Country Code<br>Issuer country code on the CB network<br>The country is provided as a ISO
+                3166, Text -3 code
+            mastercardIssuerCountry:
+              type:
+                - string
+                - 'null'
+              pattern: ^[A-Z]{3}$
+              minLength: 3
+              maxLength: 3
+              description: >-
+                mastercard issuer country code<br>Issuer country code on the Mastercard network<br>The country is
+                provided as a ISO 3166, Text -3 code
+            visaCommercialCountry:
+              type:
+                - string
+                - 'null'
+              pattern: ^[A-Z]{3}$
+              minLength: 3
+              maxLength: 3
+              description: >-
+                visa commercial  country code<br>Issuer country code on the Visa network<br>The country is provided as a
+                ISO 3166, Text -3 code
+            accountId:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9a-zA-Z\-]{1,36}$
+              description: >-
+                Account Id linked to the card<br>Technical identifier of the banking account associated to the card
+                contract/agreement<br>This identifier is provided to the CMS during the subscription by the bank.<br>It
+                will be sent by the CMS to the IAS so that the IAS can use this identifier during the authorisation
+                process to contact the banking Host (for balance check) or for standin purposes.
+            accountNature:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CHAC
+                - CRAC
+                - DEAC
+                - DECL
+                - DEDA
+                - INAC
+                - INLA
+                - LOAC
+                - PRAC
+                - PWNF
+                - RELA
+                - SAAC
+                - UNAC
+              x-enumDescriptions:
+                CHAC: 'CBAE 1.5 Value : 36  Charge account'
+                CRAC: 'CBAE 1.5 Value : 30  Credit account'
+                DEAC: 'CBAE 1.5 Value : 20  Debit account'
+                DECL: 'CBAE 1.5 Value : 33  Deferred clearing'
+                DEDA: 'CBAE 1.5 Value : 35  Deferred debit account'
+                INAC: "50 MCD\_: Investment Account"
+                INLA: "90 MCD\_: Loan Account"
+                LOAC: "91 MCD\_: Installment Loan Account"
+                PRAC: 'CBAE 1.5 Value : 60  Prepaid account'
+                PWNF: 'CBAE 1.5 Value : 00  Payment or Transaction with no special features'
+                RELA: "92 MCD\_: Real Estate Loan Account"
+                SAAC: 'CBAE 1.5 Value : 10  Saving account'
+                UNAC: "40 VISA & MCD\_: “Universal” Account"
+              description: >-
+                Nature of the account linked to the card<br>This nature is provided to the CMS during the subscription
+                by the bank.<br>Note : in the current version of the CMS the nature of the account is not defined in the
+                subscription API of the CMS and a default account nature (PWNF-00) will be used.<br><br>It will be sent
+                by the CMS to the IAS so that the IAS can use this nature during the authorisation process to contact
+                the banking Host (for balance check) or for standin purposes.<br><br>In most cases, PWNF-00 (default),
+                DEAC-20 (debit) or CRAC-30 (credit) will be used for debit and credit accounts but for completeness the
+                following values are available.<br>Value : Label (ISO8583 based protocols
+                value)<br>---------------------------------------------------------------------<br>CRAC : CBAE 1.5 Value
+                : 30  Credit account <br>CHAC : CBAE 1.5 Value : 36  Charge account <br>DEAC : CBAE 1.5 Value : 20 
+                Debit account <br>DECL : CBAE 1.5 Value : 33  Deferred clearing <br>DEDA : CBAE 1.5 Value : 35  Deferred
+                debit account <br>PRAC : CBAE 1.5 Value : 60  Prepaid account <br>PWNF : CBAE 1.5 Value : 00  Payment or
+                Transaction with no special features <br>SAAC : CBAE 1.5 Value : 10  Saving account <br>INAC : 50 MCD :
+                Investment Account<br>INLA : 90 MCD : Loan Account<br>LOAC : 91 MCD : Installment Loan Account<br>RELA :
+                92 MCD : Real Estate Loan Account<br>UNAC : 40 VISA & MCD : “Universal” Account
+            agreementEntityId:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 36
+              description: >-
+                Card agreement entity Id<br>Identifier of the physical or logical entity linked to the card contract
+                (entity that signed the contract with the cardholder; for example, a branch).<br>This identifier is
+                provided to the CMS during the subscription by the bank.<br>Afterward, it is used by the CMS to retrieve
+                the entity data from the bank. (the API to retrieve these data are not supported in this version and the
+                retrieval of these data is simulated by the CMS) and by the IAS in messages sent to the bank
+            application:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CBLK
+                - CLST
+              x-enumDescriptions:
+                CBLK: EMV
+                CLST: Contactless integrated circuit - magstripe context
+              description: >-
+                Card Application Type<br>Equivalent to DE055-DF81 in CBAE protocol<br>Value :
+                Label<br>---------------------------------------------------------------------<br>CBLK : EMV<br>CLST :
+                Contactless integrated circuit - magstripe context
+            applicationId:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){5,16}$
+              description: Application Identifier<br>Equivalent to DE055-9F06 in CBAE protocol
+            applicationInterchangeProfile:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){2}$
+              description: Application Interchange Profile<br>Equivalent to DE055-0082 in CBAE protocol
+            brand:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CBFR
+                - MACD
+                - VISA
+              x-enumDescriptions:
+                CBFR: CB
+                MACD: Mastercard
+                VISA: VISA
+              description: >-
+                Brand of the card (Scheme)<br>Equivalent to DE47.98 part 1 (network source) in CBAE protocol (domestic
+                french data)<br>Value :
+                Label<br>---------------------------------------------------------------------<br>CBFR  : CB<br>VISA  :
+                VISA<br>MACD  : Mastercard
+            contactlessDevice:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){1,35}$
+              description: Contactless Device<br>Equivalent to DE055-DF86 in CBAE protocol
+            cardContext:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                blockingDate:
+                  type:
+                    - string
+                    - 'null'
+                  format: date
+                  description: >-
+                    Blocking date<br>The date is specified in the following form <YYYY-MM-DD> (ISO 8601 date
+                    format)<br>Equivalent to DE117-2 in CBAE protocol
+                blockingRegulatoryReasonCode:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ABUS
+                    - FRAU
+                    - LOST
+                    - NDLC
+                    - STLN
+                  x-enumDescriptions:
+                    ABUS: Abusive
+                    FRAU: Fraudulent
+                    LOST: Lost card
+                    NDLC: Not delivered card
+                    STLN: Stolen card
+                  description: >-
+                    BlockingRegulatoryReasonCodeset<br>Equivalent to DE117-1 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>ABUS :
+                    Abusive<br>FRAU : Fraudulent<br>LOST : Lost card<br>NDLC : Not delivered card<br>STLN : Stolen card
+                compromisedSecretCodeIndicator:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: >-
+                    Indicator of compromission of the secret code<br>Indicates if the secret code has been compromised
+                    (known by an illegitimate holder of the card).<br>Equivalent to DE117-9 in CBAE protocol
+                forcingFlagAndOrigin:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1}$
+                  description: Forcing flag and origin<br>Equivalent to DE117-10 in CBAE protocol
+                lossTheftCountryCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1,3}$
+                  description: Loss theft country code<br>Equivalent to DE117-11 in CBAE protocol
+                lossTheftDepartmentCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1,3}$
+                  description: Loss theft department code<br>Equivalent to DE117-12 in CBAE protocol
+              additionalProperties: false
+            emvImplementationCode:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CPCE
+                - MC10
+                - V518
+                - V522
+              x-enumDescriptions:
+                CPCE: CPACE
+                MC10: M/CHIP 4 CVN 10
+                V518: VIS 1.5 CVN18
+                V522: VIS 1.5 CVN 22
+              description: >-
+                Code identifying the EMV chip implementation<br>The code identifies the EMV chip implementation for
+                which EMV scripts will be applied.<br>Value :
+                Label<br>---------------------------------------------------------------------<br>CPCE : CPACE<br>MC10 :
+                M/CHIP 4 CVN 10<br>VS18 : VIS 1.5 CVN18 or VIS 1.6 CVN 18 with VIS 1.5 retro-compatibility<br>VS22 : VIS
+                1.5 CVN 22
+            encryptedVirtualCardPrimaryAccountNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$
+              description: Encrypted virtual card primary account number<br>Equivalent to DE59-302 in CBAE protocol
+            issuerScriptId:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){4}$
+              description: Issuer EMV script identifier<br>Identifies the script received from the SAE during a script campaign
+            lostOrStolenDate:
+              type:
+                - string
+                - 'null'
+              format: date
+              description: >-
+                Card lost or stolen date<br>Date when the card was lost or stolen (also called initial blocking date).
+                This data is provided to the CMS.<br>The date is specified in the following form <YYYY-MM-DD> (ISO 8601
+                date format)<br>Equivalent to DE117-6 in CBAE protocol
+            oppositionDateTime:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: >-
+                Opposition date and time<br>Equivalent to DE117-7 to CBAE protocol<br>The date and time are specified in
+                the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            paymentAccountReference:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,29}$
+              description: Payment account reference<br>(PAR)<br>Equivalent to DE57.0056 in CBAE protocol (domestic french data)
+            productCode:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 50
+              description: >-
+                Product Code<br>Product code of the card contract/agreement<br>The values to be used during the
+                subscription with the CMS are defined in the parameters associated to the product catalog.
+            schemeProductCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,9}$
+              description: >-
+                Card Product (Scheme)<br>Equivalent to DE47.98 part 2 (product code) in CBAE protocol (domestic french
+                data)<br>The value depends on the brand of the card (cardBrand)
+            securityCodeIndicator:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CVDC
+                - CVDG
+                - CVST
+              x-enumDescriptions:
+                CVDC: Card with dynamic card security code (CVD)
+                CVDG: Card with digitalcard security code
+                CVST: Card with static card security code
+              description: >-
+                Card type indicator<br>Indicates the type of CVV2 check. <br>Value : Label
+                <br>---------------------------------------------------------------------<br>CVDC : Card with dynamic
+                card security code (CVD)  (DE057-0018)<br>CVDG : Card with digital card security code<br>CVST  : Card
+                with static card security code
+            serviceCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,3}$
+              description: Service Code<br>Equivalent to DE40 in CBAE protocol
+            usageCurrentValueList:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                description: ''
+                properties:
+                  code:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - PDOM
+                      - PINT
+                      - PTOT
+                      - WGRD
+                      - WGRI
+                      - WNGD
+                      - WNGI
+                      - WTOT
+                    x-enumDescriptions:
+                      PDOM: Purchase DOMestic
+                      PINT: Purchase INTernational
+                      PTOT: Purchase TOTal
+                      WGRD: Withdrawal GRoup Domestic
+                      WGRI: Withdrawal GRoup International
+                      WNGD: Withdrawal Not Group Domestic
+                      WNGI: Withdrawal Not Group International
+                      WTOT: Withdrawal TOTal
+                    description: >-
+                      Card current usage code<br>Code defining the context of use of the usage limit<br>Value :
+                      Label<br>---------------------------------------------------------------------<br>PDOM : Purchase
+                      DOMestic<br>PINT : Purchase INTernational<br>PTOT : Purchase TOTal<br>WGRD : Withdrawal GRoup
+                      Domestic<br>WGRI : Withdrawal GRoup International<br>WNGD : Withdrawal Not Group Domestic<br>WNGI
+                      : Withdrawal Not Group International<br>WTOT : Withdrawal TOTal
+                  category:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - AMNT
+                      - NUBR
+                    x-enumDescriptions:
+                      AMNT: Amount
+                      NUBR: Number
+                    description: >-
+                      Card current usage category<br>Category defining whether the usage limit is an amount or a
+                      number<br>Value :
+                      Label<br>---------------------------------------------------------------------<br>AMNT  :
+                      Amount<br>NUBR  : Number
+                  amount:
+                    type:
+                      - object
+                      - 'null'
+                    properties:
+                      amount:
+                        type:
+                          - string
+                          - 'null'
+                        pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                      currency:
+                        type:
+                          - string
+                          - 'null'
+                        pattern: ^[0-9]{3}$
+                    description: >-
+                      Amount of the current usage value<br>Amount and currency of the current usage managed by the
+                      authorization server after the processing of the transaction.<br>This amount is significant if the
+                      usageCurrentValueCategory is set as AMNT.<br>The curency is provided as a ISO 4217, Numeric-3
+                      code.<br>The amount is provided as a number of monetary units specified in a currency where the
+                      unit of currency is implied by the context and compliant with ISO 4217. The decimal separator is a
+                      dot.
+                  limitAmount:
+                    type:
+                      - object
+                      - 'null'
+                    properties:
+                      amount:
+                        type:
+                          - string
+                          - 'null'
+                        pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                      currency:
+                        type:
+                          - string
+                          - 'null'
+                        pattern: ^[0-9]{3}$
+                    description: >-
+                      Current amount active for the usage limit<br>Amount and currency of the current active limit
+                      <br>This amount is significant if the usageCurrentValueCategory is set as AMNT<br>The curency is
+                      provided as a ISO 4217, Numeric-3 code.<br>The amount is provided as a number of monetary units
+                      specified in a currency where the unit of currency is implied by the context and compliant with
+                      ISO 4217. The decimal separator is a dot.
+                  limitNumber:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9A-Za-z]{1,20}$
+                    description: >-
+                      Currrent number active for the usage limit<br>Number of the current limit set at the product level
+                      <br>This number is significant if the usageCurrentValueCategory is set as NUBR
+                  number:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9A-Za-z]{1,20}$
+                    description: >-
+                      Number of the current usage value<br>Number of the current usage managed by the authorization
+                      server before the processing of the transaction.<br>This number is significant if the
+                      usageCurrentValueCategory is set as NUBR
+                additionalProperties: false
+          additionalProperties: false
+        paymentToken:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            value:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,19}$
+              description: Payment token value<br>Equivalent to DE105-1 in CBAE protocol
+            address:
+              type:
+                - object
+                - 'null'
+              properties:
+                streetName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                postCode:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 16
+              description: Token address<br>Equivalent to DE107-26 & 107-27 in CBAE protocol
+            cardholderAccountScore:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,2}$
+              description: Cardholder account score<br>Equivalent to DE107-8 in CBAE protocol
+            cardholderDeviceScore:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,2}$
+              description: Cardholder device score<br>Equivalent to DE107-7 in CBAE protocol
+            cardholderVerificationMethodPos:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,8}$
+              description: Cardholder verification method POS<br>Equivalent to DE105-24 in CBAE protocol
+            deviceOperatingSystem:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 1
+              description: Token OS designation<br>Equivalent to DE106-05
+            deviceType:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,2}$
+              description: Device type<br>Equivalent to DE106-18 in CBAE protocol
+            expiryDate:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9]{4})-(1[0-2]|0[1-9])$
+              description: Token expiry date<br>Equivalent to DE105-2 in CBAE protocol
+            location:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,2}$
+              description: Token location<br>Equivalent to DE105-7 in CBAE protocol
+            panReferenceId:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,32}$
+              description: Pan reference ID<br>Equivalent to DE105-14 in CBAE protocol
+            panSource:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CPDP
+                - CTST
+                - MAIN
+                - MOBA
+                - PCFS
+                - TOKN
+              x-enumDescriptions:
+                CPDP: '05 : Chip dip'
+                CTST: '06 : Contactless tap'
+                MAIN: '01 : Manual input'
+                MOBA: '03 : Mobile bank application'
+                PCFS: '02 : Provided by a card-on-file server'
+                TOKN: '04 : Token'
+              description: >-
+                Pan source<br>Equivalent to DE107-10 in CBAE protocol<br>Value :
+                Label<br>---------------------------------------------------------------------<br>CPDP : 05 : Chip
+                dip<br>CTST : 06 : Contactless tap<br>MAIN : 01 : Manual input<br>MOBA : 03 : Mobile bank
+                application<br>PCFS : 02 : Provided by a card-on-file server<br>TOKN : 04 : Token
+            protectionMethod:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,2}$
+              description: Token protection method<br>Equivalent to DE106-8 in CBAE protocol
+            referenceId:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,32}$
+              description: Token reference ID<br>Equivalent to DE105-15 in CBAE protocol
+            requestorIdentification:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Identifier of a token provider requestor<br>Equivalent to DE105-03 in CBAE protocol
+            secureElementIdentifier:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,48}$
+              description: Secure element identifier<br>Equivalent to DE106-20 in CBAE protocol
+            serviceProviderId:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,11}$
+              description: Token service provider ID<br>Equivalent to DE108-0143 in CBAE protocol
+            status:
+              type:
+                - string
+                - 'null'
+              enum:
+                - ACFP
+                - DEAP
+                - INAP
+                - SUSP
+              x-enumDescriptions:
+                ACFP: 'A : Active for payment'
+                DEAP: 'D : Deactivated permanently'
+                INAP: 'I  : Inactive for payment (not yet active)'
+                SUSP: 'S  : Suspended'
+              description: >-
+                Token status<br>Equivalent to DE105-8 in CBAE protocol<br>Value :
+                Label<br>---------------------------------------------------------------------<br>ACFP : A : Active for
+                payment<br>DEAP : D : Deactivated permanently<br>INAP : I  : Inactive for payment (not yet
+                active)<br>SUSP : S  : Suspended
+            transactionIdentifier:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,64}$
+              description: Token transaction identifier<br>Equivalent to DE48 SE30 in Mastercard protocol
+            trustedMerchantExemptionIndicator:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: Trusted merchant exemption indicator<br>Equivalent to DE119-0002 in CBAE protocol
+            tspVerificationResult:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,48}$
+              description: Tsp verification result<br>Equivalent to DE105-16 in CBAE protocol
+            verificationResult:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: Token verification result<br>Equivalent to DE107-19 in CBAE protocol
+            walletAccountEmailAddress:
+              type:
+                - string
+                - 'null'
+              format: email
+              description: Wallet account email address<br>Equivalent to DE107-12 in CBAE protocol
+            walletAccountEmailAge:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1,4}$
+              description: Wallet account email age<br>Equivalent to DE107-16 in CBAE protocol
+            walletProviderReasonCodes:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,30}$
+              description: Wallet provider reason codes<br>Equivalent to DE107-9 in CBAE protocol
+            walletProviderRiskAssessmentResult:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: wallet provider risk assessment result<br>Equivalent to DE107-5 in CBAE protocol
+          additionalProperties: false
+        wallet:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            name:
+              type:
+                - string
+                - 'null'
+              enum:
+                - MPAS
+                - PAYL
+                - PEPS
+                - VPME
+              x-enumDescriptions:
+                MPAS: 03 Masterpass (ex PPOL, jusqu'a 1.6.3 et plus apres)
+                PAYL: 04 PAYL (CB2AF 1.6.4 & 1.6.5 et plus apres)
+                PEPS: 04 PEPS
+                VPME: 02 V.ME (CB2AF 1.5.0 et plus a partir de 1.6.0)
+              description: >-
+                digital wallet name<br>Equivalent to DE59-415 in CBAE protocol<br>Value :
+                Label<br>----------------------------------------------------------------<br>PEPS
+          additionalProperties: false
+        acquirer:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            referenceIdentification:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 6
+              description: Acquirer Reference Identification<br>Equivalent to DE32 part 1 in ISO8583 based protocols
+            institutionId:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 5
+              description: Bank Institution Identifier<br>Equivalent to DE32 part 2 in ISO8583 based protocols
+            postalAddress:
+              type:
+                - object
+                - 'null'
+              properties:
+                countryCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Acquiring institution postal address<br>Acquirer country code (ISO 3166, Numeric-3 code)<br>Equivalent
+                to DE19 in ISO8583 based protocols<br>The country code is set in the attribute countryCode of the
+                structure
+            serviceSupportedPartialApprovalIndicator:
+              type:
+                - boolean
+                - 'null'
+              description: 'Acquirer Service supported : Partial Authorisation<br>Equivalent to DE059-0805-b1 in CBAE protocol'
+            serviceSupportedPurchaseApprovalIndicator:
+              type:
+                - boolean
+                - 'null'
+              description: >-
+                Acquirer Service supported : Partial Autorisation, partial with Cashback <br>Equivalent to DE059-0805-b2
+                in CBAE protocol
+            serviceSupportedReversalIndicator:
+              type:
+                - boolean
+                - 'null'
+              description: 'Acquirer Service supported : Reversal<br>Equivalent to DE059-0805-b3 in CBAE protocol'
+            serviceSupportedSingleTapIndicator:
+              type:
+                - boolean
+                - 'null'
+              description: 'Acquirer Service supported : SingleTap<br>Equivalent to DE059-0805-b4 in CBAE protocol'
+          additionalProperties: false
+        merchant:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            posAgreementId:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,40}$
+              description: >-
+                Point Of Sale agreement's Identifier (bank code + SIRET for France or TVA for Europe …)<br>Card acceptor
+                identification code<br>Equivalent to DE42 in ISO8583 based protocols
+            contractNumber:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 15
+              description: >-
+                Execution Contract Number<br>Acceptor contract number<br>Equivalent to DE59.0202 in CBAE protocol
+                (domestic french data)
+            processingName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 70
+              description: >-
+                Merchant Name used by all acquisition services.<br>Card acceptor name<br>Equivalent to the acceptor name
+                extracted from DE43 in ISO8583 based protocols
+            cbId:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 15
+              description: Merchant CB Identification<br>Equivalent to DE119-0009 in CBAE protocol
+            categoryCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{4}$
+              description: Merchant Category Code<br>Equivalent to DE18 in ISO8583 based protocols
+            posOfficialPostalAddress:
+              type:
+                - object
+                - 'null'
+              properties:
+                streetName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                postCode:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 16
+                townName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                countrySubdivisionMajorCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[A-Z]{2,3}$
+                countryCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Official, main administrative Postal Address<br>Card acceptor city, postal code, country, state and
+                street address<br>Equivalent to the city, postal code, country and street address extracted from DE43
+                and to the state from DE59.806 in ISO8583 based protocols<br>The country is provided as a ISO 3166,
+                Numeric-3 code
+            posRegistrationNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,35}$
+              description: >-
+                Point Of Sale Registration Number<br>Company registration number (SIRET)<br>Equivalent to DE47.96 in
+                CBAE protocol (domestic french data)
+          additionalProperties: false
+        sponsoredMerchant:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            finalMerchantId:
+              type:
+                - string
+                - 'null'
+              minLength: 15
+              maxLength: 15
+              description: >-
+                Identifier of final Merchant<br>Equivalent to DE57.0027 in CBAE protocol and to DE104.DS56.Tag02 in
+                BASEI protocol
+            independantSalesOrganisationId:
+              type:
+                - string
+                - 'null'
+              minLength: 15
+              maxLength: 15
+              description: id of independant sales organisation <br>Equivalent to DE57.0024 in CBAE protocol (domestic french data)
+            marketPlaceId:
+              type:
+                - string
+                - 'null'
+              minLength: 15
+              maxLength: 15
+              description: >-
+                Identification of Market Place<br>Equivalent to DE57.0026 in CBAE protocol and to DE104.DS56.Tag01 in
+                BASEI protocol
+            paymentFacilitatorId:
+              type:
+                - string
+                - 'null'
+              minLength: 15
+              maxLength: 15
+              description: >-
+                Identifier of Payment Facilitator<br>Equivalent to DE57.0025 in CBAE protocol and to DE104.DS56.Tag01 in
+                BASEI protocol
+          additionalProperties: false
+        pointOfServiceContext:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            pinEntryCapability:
+              type:
+                - string
+                - 'null'
+              enum:
+                - MPPI
+                - NOTS
+                - TACP
+                - TNOP
+              x-enumDescriptions:
+                MPPI: mPOS solution can accept PIN (incoming only)
+                NOTS: Not specified (incoming only)
+                TACP: Terminal can accept PIN
+                TNOP: Terminal cannot accept PIN
+              description: >-
+                Pin Entry Capability<br>Equivalent to DE22 part 2  in ISO8583 based protocols<br>Value :
+                Label<br>---------------------------------------------------------------------<br>MPPI : mPOS solution
+                can accept PIN (incoming only) <br>NOTS : Not specified (incoming only) <br>TACP : Terminal can accept
+                PIN <br>TNOP : Terminal cannot accept PIN
+          additionalProperties: false
+        terminal:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            id:
+              type:
+                - string
+                - 'null'
+              minLength: 8
+              maxLength: 8
+              description: >-
+                Terminal identifier<br>Card acceptor terminal identification<br>Equivalent to DE41 in ISO8583 based
+                protocols
+            iTpta:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{12}$
+              description: >-
+                Identifier of the point of acceptance terminal application<br>Point Of Interaction (POI) components
+                identifier (ITP PA - ITP TA)<br>Equivalent to DE59.0215 in CBAE protocol (domestic french data)
+            poiInformation:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CPOC
+                - MPOC
+                - MPOS
+                - SPOC
+              x-enumDescriptions:
+                CPOC: >-
+                  smartphone/tablet without dongle, when the card is read in contactless mode using the NFC device and
+                  there is no PIN entry
+                MPOC: >-
+                  smartphone/tablet without dongle, when the card is read in contactless mode with PIN entry on the
+                  device screen
+                MPOS: smartphone/tablet with a PCI PTS dongle to read the card with PIN entry on the dongle
+                SPOC: smartphone/tablet with a PCI PTS dongle to read the card with PIN entry on the device screen
+              description: >-
+                point of interaction information<br>(POI)<br>Equivalent to DE47.31 in CBAE protocol (domestic french
+                data)<br>Value : Label (ISO8583 based protocols
+                value)<br>---------------------------------------------------------------------<br>CPOC  :
+                Smartphone/tablet without dongle, when the card is read in contactless mode using the NFC device and
+                there is no PIN entry (3)<br>MPOC  : Smartphone/tablet without dongle, when the card is read in
+                contactless mode with PIN entry on the device screen (4)<br>MPOS  : Smartphone/tablet with a PCI PTS
+                dongle to read the card with PIN entry on the dongle (1)<br>SPOC  : Smartphone/tablet with a PCI PTS
+                dongle to read the card with PIN entry on the device screen (2)
+            poiLogicalNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{3}$
+              description: >-
+                Logical number<br>Point Of Interaction (POI) logical number<br>Equivalent to DE59.0204 in CBAE protocol
+                (domestic french data)
+            acceptanceSysComponent:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                idInterbankAppSoftVersion:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 3
+                  maxLength: 3
+                  description: ' Acceptance System Components Identifier (ex ITP SA) - Interbank Application Software Version<br>Equivalent to DE59.0201.p4 in CBAE protocol (domestic french data)'
+                idManufacturerCode:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 3
+                  maxLength: 3
+                  description: ' Acceptance System Components Identifier (ex ITP SA) - Manufacturer Code<br>Equivalent to DE59.0201.p1 in CBAE protocol (domestic french data)'
+                idRefSpecVersion:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 3
+                  maxLength: 3
+                  description: ' Acceptance System Components Identifier (ex ITP SA) - Reference specification Version<br>Equivalent to DE59.0201.p2 in CBAE protocol (domestic french data)'
+                idTerminalModelReference:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 3
+                  maxLength: 3
+                  description: ' Acceptance System Components Identifier (ex ITP SA) - Terminal Model Reference<br>Equivalent to DE59.0201.p3 in CBAE protocol (domestic french data)'
+              additionalProperties: false
+            capabilities:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){3}$
+              description: Terminal Capabilities<br>Equivalent to DE055-9F33 in CBAE protocol
+            cardReadingCapabilities:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CCCR
+                - CCEC
+                - CCMC
+                - ICCR
+                - KEYI
+                - MAGS
+                - MANU
+                - NCEC
+                - PBAS
+                - REPV
+                - UNKW
+              x-enumDescriptions:
+                CCCR: Contactless chip card reader
+                CCEC: Contactless chip card reader - EMV chip context
+                CCMC: Contactless chip card reader - magnetic stripe context
+                ICCR: Integrated circuit card reader
+                KEYI: Keypad input
+                MAGS: Magstripe reader
+                MANU: Manual, no terminal
+                NCEC: No card entry Capability
+                PBAS: Provided by a server
+                REPV: Reserved for private use
+                UNKW: Unknown
+              description: >-
+                Card Reading Capabilities<br>Card entry capability from the point of service data code<br>Equivalent to
+                DE47.03 part 1 in CBAE protocol (domestic french data)<br>Value : Label (ISO8583 based protocols
+                value)<br>---------------------------------------------------------------------<br>UNKW  : Unknown
+                (0)<br>MANU  : Manual, no terminal (1)<br>MAGS  : Magstripe reader (2)<br>CCEC  : Contactless chip card
+                reader - EMV chip context (3)<br>CCMC  : Contactless chip card reader - magnetic stripe context
+                (4)<br>ICCR  : Integrated circuit card reader (5)<br>KEYI  : Keypad input (6)<br>CCCR  : Contactless
+                chip card reader (8)<br>REPV  : Reserved for private use (9)<br>NCEC  : No card entry Capability
+            countryCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{3}$
+              description: >-
+                Acceptance System Country Code<br>Acceptance system country code (ISO 3166, Numeric-3
+                code)<br>Equivalent to DE59.0205 in CBAE protocol (domestic french data)
+            ipAddress:
+              type:
+                - string
+                - 'null'
+              minLength: 4
+              maxLength: 45
+              description: IP Address<br>Equivalent to DE057-0010 in CBAE protocol
+            visaAcceptanceCharacteristics:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{1}$
+              description: >-
+                VISA terminal type.<br>Acceptance characteristics<br>Equivalent to DE59.0605 in CBAE protocol and to
+                DE60.1 in BASEI protocol
+          additionalProperties: false
+        transaction:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            identification:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                endToEndTransId:
+                  type:
+                    - string
+                    - 'null'
+                  format: uuid
+                  description: >-
+                    End to End transaction Id<br>Unique identifier generated by the IAS to identify the
+                    transaction.<br>On transactions received by the IAS :<br>- For authorisation and for authorisation
+                    advice, this identifier is equivalent to the internal operation reference identifier
+                    (operationReferenceId).<br>- For reversal transactions, this identifier is the identifier of the
+                    original transaction.
+                ecommerceTransactionId:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){4,40}$
+                  description: >-
+                    Transaction identifier or cryptogram supplied by the acceptor<br>Unique reference number to identify
+                    a secured electronic commerce transaction. This identifier is used in some electronic commerce
+                    cryptogram calculation methods or is a cryptogram generated by the acceptance
+                    solution.<br>Equivalent to DE59.0400 in CBAE protocol (domestic french data)
+                localDateTime:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+                  description: >-
+                    Date Time in local region<br>Equivalent to DE12, DE13 and DE59.102 in ISO8583 based protocols<br>The
+                    date and time are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                reference:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 35
+                  description: >-
+                    Transaction Reference<br>Also called transaction audit number<br>Equivalent to DE11 in ISO8583 based
+                    protocols
+                transmissionGmtDateTime:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+                  description: >-
+                    Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The date and time
+                    are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+              additionalProperties: false
+            msgReceivedDateTime:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: >-
+                Date Time the processor has received a question<br>The date and time are specified in the following form
+                <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            msgSentDateTime:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: >-
+                Date Time the processor has sent a response<br>The date and time are specified in the following form
+                <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            accountBalance:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: Account balance (all cards)<br>Equivalent to DE054-02 in CBAE protocol
+            accountFromUsage:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CHAC
+                - CRAC
+                - DEAC
+                - DECL
+                - DEDA
+                - INAC
+                - INLA
+                - LOAC
+                - PRAC
+                - PWNF
+                - RELA
+                - SAAC
+                - UNAC
+              x-enumDescriptions:
+                CHAC: 'CBAE 1.5 Value : 36  Charge account'
+                CRAC: 'CBAE 1.5 Value : 30  Credit account'
+                DEAC: 'CBAE 1.5 Value : 20  Debit account'
+                DECL: 'CBAE 1.5 Value : 33  Deferred clearing'
+                DEDA: 'CBAE 1.5 Value : 35  Deferred debit account'
+                INAC: "50 MCD\_: Investment Account"
+                INLA: "90 MCD\_: Loan Account"
+                LOAC: "91 MCD\_: Installment Loan Account"
+                PRAC: 'CBAE 1.5 Value : 60  Prepaid account'
+                PWNF: 'CBAE 1.5 Value : 00  Payment or Transaction with no special features'
+                RELA: "92 MCD\_: Real Estate Loan Account"
+                SAAC: 'CBAE 1.5 Value : 10  Saving account'
+                UNAC: "40 VISA & MCD\_: “Universal” Account"
+              description: >-
+                Account From - Usage<br>Equivalent to DE003-p2 in CBAE protocol<br>Value : Label (ISO8583 based
+                protocols value)<br>---------------------------------------------------------------------<br>CRAC : CBAE
+                1.5 Value : 30  Credit account <br>CHAC : CBAE 1.5 Value : 36  Charge account <br>DEAC : CBAE 1.5 Value
+                : 20  Debit account <br>DECL : CBAE 1.5 Value : 33  Deferred clearing <br>DEDA : CBAE 1.5 Value : 35 
+                Deferred debit account <br>PRAC : CBAE 1.5 Value : 60  Prepaid account <br>PWNF : CBAE 1.5 Value : 00 
+                Payment or Transaction with no special features <br>SAAC : CBAE 1.5 Value : 10  Saving account <br>INAC
+                : 50 MCD : Investment Account<br>INLA : 90 MCD : Loan Account<br>LOAC : 91 MCD : Installment Loan
+                Account<br>RELA : 92 MCD : Real Estate Loan Account<br>UNAC : 40 VISA & MCD : 'Universal' Account
+            accountToUsage:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CHAC
+                - CRAC
+                - DEAC
+                - DECL
+                - DEDA
+                - INAC
+                - INLA
+                - LOAC
+                - PRAC
+                - PWNF
+                - RELA
+                - SAAC
+                - UNAC
+              x-enumDescriptions:
+                CHAC: 'CBAE 1.5 Value : 36  Charge account'
+                CRAC: 'CBAE 1.5 Value : 30  Credit account'
+                DEAC: 'CBAE 1.5 Value : 20  Debit account'
+                DECL: 'CBAE 1.5 Value : 33  Deferred clearing'
+                DEDA: 'CBAE 1.5 Value : 35  Deferred debit account'
+                INAC: "50 MCD\_: Investment Account"
+                INLA: "90 MCD\_: Loan Account"
+                LOAC: "91 MCD\_: Installment Loan Account"
+                PRAC: 'CBAE 1.5 Value : 60  Prepaid account'
+                PWNF: 'CBAE 1.5 Value : 00  Payment or Transaction with no special features'
+                RELA: "92 MCD\_: Real Estate Loan Account"
+                SAAC: 'CBAE 1.5 Value : 10  Saving account'
+                UNAC: "40 VISA & MCD\_: “Universal” Account"
+              description: >-
+                Account To - Usage<br>Equivalent to DE003-p3 in CBAE protocol<br>Value : Label (ISO8583 based protocols
+                value)<br>---------------------------------------------------------------------<br>CRAC : CBAE 1.5 Value
+                : 30  Credit account <br>CHAC : CBAE 1.5 Value : 36  Charge account <br>DEAC : CBAE 1.5 Value : 20 
+                Debit account <br>DECL : CBAE 1.5 Value : 33  Deferred clearing <br>DEDA : CBAE 1.5 Value : 35  Deferred
+                debit account <br>PRAC : CBAE 1.5 Value : 60  Prepaid account <br>PWNF : CBAE 1.5 Value : 00  Payment or
+                Transaction with no special features <br>SAAC : CBAE 1.5 Value : 10  Saving account <br>INAC : 50 MCD :
+                Investment Account<br>INLA : 90 MCD : Loan Account<br>LOAC : 91 MCD : Installment Loan Account<br>RELA :
+                92 MCD : Real Estate Loan Account<br>UNAC : 40 VISA & MCD : 'Universal' Account
+            additionalElectronicCommerceDataElementsList:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                description: ''
+                properties:
+                  nomenclature:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - CBFR
+                      - MCRD
+                      - VISA
+                    x-enumDescriptions:
+                      CBFR: 3 (CB)
+                      MCRD: 2 Mastercard
+                      VISA: 1 Visa
+                    description: >-
+                      Nomenclature<br>Indicates the encoding of the 'additional data type'<br>Equivalent to DE59.0414
+                      part 1 in CBAE protocol (domestic french data)<br>Value : Label (ISO8583 bases protocols
+                      value)<br>----------------------------------------------------------------<br>CBFR  : CB
+                      (3)<br>VISA  : VISA (1)<br>MCRD  : Mastercard (2)
+                  typeOfAdditionalData:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - PAYL
+                    x-enumDescriptions:
+                      PAYL: Paylib
+                    description: >-
+                      Type of additional data<br>Equivalent to DE59.0414 part 2 in CBAE protocol (domestic french
+                      data)<br>Value : Label (ISO8583 bases protocols
+                      value)<br>----------------------------------------------------------------<br>PAYL  : Paylib  (02
+                      for CB nomenclature)
+                  authenticationMethod:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - NAUT
+                      - OSHE
+                      - OSSE
+                      - OTPT
+                      - REPA
+                    x-enumDescriptions:
+                      NAUT: No authentication
+                      OSHE: OTP on secured hardware element (e.g. CAP, SIM)
+                      OSSE: OTP on secured software element (e.g. SEA)
+                      OTPT: OTP on telephone (e.g. SMS, SVI, token)
+                      REPA: Repeatable password (e.g. date of birth, password, postal code)
+                    description: >-
+                      Additional Authentication Method<br>Additional authentication method used to authenticate the
+                      electronic commerce transaction<br>Equivalent to DE59.0414 part 4 in CBAE protocol (domestic
+                      french data)<br>Value : Label (ISO8583 bases protocols
+                      value)<br>----------------------------------------------------------------<br>NAUT : No additional
+                      authentication (00)<br>REPA : Repeatable password (e.g. date of birth, password, postal code)
+                      (01)<br>OTPT : OTP via telephone (e.g. SMS, SVI, token) (02)<br>OSSE : OTP via secured software
+                      element (e.g. SEA) (03)<br>OSHE : OTP via secured hardware element (e.g. CAP, SIM) (04)
+                  authenticationReasonCode:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - IRME
+                      - IUNA
+                      - IURM
+                      - NAAR
+                      - RMEU
+                      - RMRA
+                    x-enumDescriptions:
+                      IRME: 03 Initial use, Risk management engine unavailable
+                      IUNA: 01 Initial use, No additional authentication requested
+                      IURM: 02 Initial use, Risk management engine requests additional strong authentication
+                      NAAR: 11 No additional authentication requested
+                      RMEU: 13 Risk management engine unavailable
+                      RMRA: 12 Risk management engine requests additional strong authentication
+                    description: >-
+                      Additional Authentication Reason Code<br>Equivalent to DE59.0414 part 5 in CBAE protocol (domestic
+                      french data)<br>Value : Label (ISO8583 bases protocols
+                      value)<br>----------------------------------------------------------------<br>IUNA :  Initial use,
+                      No additional authentication requested (01)<br>IURM : Initial use, Risk management engine requests
+                      additional strong authentication (02)<br>IRME :  Initial use, Risk management engine unavailable
+                      (03)<br>NAAR :  No additional authentication requested (11)<br>RMRA :  Risk management engine
+                      requests additional strong authentication (12)<br>RMEU :  Risk management engine unavailable (13)
+                additionalProperties: false
+            authorisedAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: Authorised Amount<br>Equivalent to DE55-9F02 & 55-5F2A in CBAE protocol
+            billingAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+                exchangeRate:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,25}(\.?[0-9]{0,13})?$
+              description: >-
+                Billing amount<br>Amount, currency and exchange rate of the cardholder billing <br>Equivalent to DE6,
+                DE51 and DE10 in ISO8583 based protocols<br>This data element is used only in messages where both
+                amounts (transaction and cardholder amounts) are supported. As a consequence, it is not used in
+                checkBalance message where totalAmount is used to exchange one single amount.<br>The curency is provided
+                as a ISO 4217, Numeric-3 code.<br>The amount is provided as a number of monetary units specified in a
+                currency where the unit of currency is implied by the context and compliant with ISO 4217. The decimal
+                separator is a dot.<br>The exchange rate is expressed as a decimal
+            cardAuthenticationResultCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: Card authentication result code<br>Equivalent to DE55-DFD0 in CBAE protocol
+            cardholderTotalAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+              description: >-
+                Cardholder total amount<br>Total amount of the current transaction and of completed financial
+                transactions that a terminal has performed for a cardholder<br>Equivalent to DE59.0207 in CBAE protocol
+                (domestic french data)
+            cardSecurityCodeVerificationResultsOrigin:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CISS
+                - STIN
+              x-enumDescriptions:
+                CISS: Card issuer
+                STIN: Stand-in
+              description: >-
+                Response origin<br>Equivalent to DE059-0301-p1 in CBAE protocol<br>Value :
+                Label<br>---------------------------------------------------------------------<br>CISS : Card
+                issuer<br>STIN : Stand-in
+            cardSecurityCodeVerificationResultsText:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){1}$
+              description: Text of response<br>Equivalent to DE059-0301-p2 in CBAE protocol
+            cashAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: Cash amount<br>Equivalent to DE054-40 in CBAE protocol
+            transactionContext:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                acceptanceSystemLogicalNumber:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,3}$
+                  description: >-
+                    Logical Number of POS<br>Acceptance system logical number<br>Equivalent to DE59.0203 in CBAE
+                    protocol (domestic french data)
+                acsTransactionId:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 36
+                  maxLength: 36
+                  description: ACS Transaction ID<br>Equivalent to DE057-0023-p2 for an ACS ID in CBAE protocol
+                authenticationAmount:
+                  type:
+                    - object
+                    - 'null'
+                  properties:
+                    amount:
+                      type:
+                        - string
+                        - 'null'
+                      pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  description: Authentication amount<br>Equivalent to DE057-0038 in CBAE protocol
+                authenticationDateTime:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+                  description: >-
+                    Authentication date<br>Equivalent to DE057-0037 in CBAE protocol<br>The date and time are specified
+                    in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                cardDataEntryMode:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - BRCD
+                    - CCEC
+                    - CCMD
+                    - COFT
+                    - EDGR
+                    - EDRP
+                    - ICCR
+                    - MAAR
+                    - MAGS
+                    - MANE
+                    - MFLB
+                    - NOTS
+                    - OCRD
+                    - PVBS
+                  x-enumDescriptions:
+                    BRCD: Bar code
+                    CCEC: Contactless chip transaction using EMV chip data
+                    CCMD: Contactless chip transaction using magstripe data
+                    COFT: Card-on-File
+                    EDGR: EMV downgraded
+                    EDRP: Digital Secure Remote Payment using EMV
+                    ICCR: Integrated circuit card reader
+                    MAAR: Magstripe, after attempt to read chip
+                    MAGS: Magstripe
+                    MANE: Manual entry
+                    MFLB: Manual fallback from an EMV capable terminal
+                    NOTS: Not specified
+                    OCRD: OCR
+                    PVBS: Provided by a server
+                  description: >-
+                    Card entry mode<br>Card data entry technology used at Point-Of-Service. <br>It is determined by the
+                    IAS from transaction data such as the POS entry mode, EMV cryptogram presence, wallet information,
+                    etc.<br>It is providing more accurate information than the card data entry mode
+                    (panEntryMode).<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>NOTS  : Not
+                    specified<br>MAGS  : Magstripe<br>CCEC  : Contactless chip transaction using EMV chip data<br>CCMD 
+                    : Contactless chip transaction using magstripe data<br>ICCR  : Integrated circuit card reader
+                    <br>MANE  : Manual entry<br>MAAR  : Magstripe, after attempt to read chip<br>PVBS  : Provided by a
+                    server<br>COFT  : Card-on-File<br>BRCD  : Bar code<br>EDRP  : Digital Secure Remote Payment using
+                    EMV<br>EDGR  : EMV downgraded<br>MFLB  : Manual fallback from an EMV capable terminal<br>OCRD  : OCR
+                cardholderAuthenticationValue:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){4,40}$
+                  description: >-
+                    Cardholder authentication value<br>The cardholder authentication value contains the cryptogram
+                    generated when a secure remote payment transaction is authenticated<br>Equivalent to DE59.0401 in
+                    CBAE protocol (domestic french data)
+                cardholderAuthenticationValueCalculationMethod:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1}$
+                  description: >-
+                    Cardholder authentication value calculation method<br>Identifies the calculation method used by the
+                    issuer to generate the electronic commerce cryptogram<br>Equivalent to DE59.0411 in CBAE protocol
+                    (domestic french data)
+                cardholderAuthenticationValueProcessingInfo:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 1
+                  description: Cardholder authentication value processing information<br>Equivalent to DE059-0409 in CBAE protocol
+                cardOnFileAction:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ADDC
+                    - KEEP
+                  x-enumDescriptions:
+                    ADDC: Add card
+                    KEEP: Keep card
+                  description: >-
+                    CARD-ON-FILE Action<br>Equivalent to DE057-0029 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>ADDC : Add
+                    card<br>KEEP : Keep card
+                cardSecurityCodePresence:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CSCP
+                    - CSNI
+                    - CSPI
+                    - DCVF
+                    - DCVP
+                    - NSTM
+                  x-enumDescriptions:
+                    CSCP: Card security code present
+                    CSNI: Cardholder has informed merchant that no card security code is printed on his card.
+                    CSPI: Card security code present on cardholder's card, but illegible (therefore not sent)
+                    DCVF: dCVV2 checked and failed; CVV2 validation performed (for Visa incoming only)
+                    DCVP: dCVV2 validation performed (for Visa incoming only)
+                    NSTM: Card security code is not sent by the merchant
+                  description: >-
+                    Information on card security code presence<br>Equivalent to DE59.0300 part 1 in CBAE protocol
+                    (domestic french data)<br>Value : Label (ISO8583 based protocols
+                    value)<br>---------------------------------------------------------------------<br>NSTM  : Card
+                    security code is not sent by the merchant (0)<br>CSCP  : Card security code present (1)<br>CSPI  :
+                    Card security code present on cardholder's card, but illegible (therefore not sent) (2)<br>DCVP  :
+                    dCVV2 validation performed (for Visa incoming only) (3)<br>DCVF  : dCVV2 checked and failed; CVV2
+                    validation performed (for Visa incoming only) (4)<br>CSNI  : Cardholder has informed merchant that
+                    no card security code is printed on his card (9)
+                cardSecurityCodeVerificationInformation:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - VRCR
+                    - VRVR
+                  x-enumDescriptions:
+                    VRCR: Card security code verification response code requested
+                    VRVR: >-
+                      Card security code verification response code requested and 'Card security code verification
+                      results' requested
+                  description: >-
+                    Information on card security code verification<br>Equivalent to DE59.0300 part 3 in CBAE protocol
+                    (domestic french data)<br>Value : Label (ISO8583 based protocols
+                    value)<br>---------------------------------------------------------------------<br>VRCR  : Card
+                    security code verification response code requested (0)<br>VRVR  : Card security code verification
+                    response code requested and 'Card security code verification results' requested (1)
+                debitCreditIndicator:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CRDT
+                    - DEBT
+                  x-enumDescriptions:
+                    CRDT: Credit
+                    DEBT: Debit
+                  description: >-
+                    Debit or Credit Indicator<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>CRDT  :
+                    Credit<br>DEBT  : Debit
+                dsTransactionId:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 36
+                  maxLength: 36
+                  description: DS Transaction ID<br>Equivalent to DE057-0023-p2 for a DS ID in CBAE protocol
+                ecommerceIndicator:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{2}$
+                  description: >-
+                    Electronic commerce indicator (VISA)<br>Equivalent to DE59.0416 in CBAE protocol (domestic french
+                    data)
+                electronicCommerceAuthenticationNature:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ACMO
+                    - ACNO
+                    - ACNS
+                    - ACXX
+                  x-enumDescriptions:
+                    ACMO: Authentication cryptogram issued from a mobile  (CB2A 21)
+                    ACNO: No authentication cryptogram  (CB2A 09)
+                    ACNS: Legacy – Non-secured electronic commerce transaction (CB2A 08)
+                    ACXX: Authentication cryptogram issued from a server (CB2A 20)
+                  description: >-
+                    Electronic commerce transaction authentication type<br>Equivalent to DE59.0407 in CBAE protocol
+                    (domestic french data)<br>Value : Label (ISO8583 bases protocols
+                    value)<br>----------------------------------------------------------------<br>ACNS   : Legacy –
+                    Non-secured electronic commerce transaction (08)<br>ACNO  : No authentication cryptogram
+                    (09)<br>ACXX   : Authentication cryptogram (20)<br>ACMO : Authentication cryptogram issued from a
+                    mobile (21)
+                extendedEcommerceIndicator:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+                  description: >-
+                    Extended electronic commerce indicator (SLI - Mastercard)<br>Equivalent to DE57.0015 in CBAE
+                    protocol (domestic french data)
+                forwardingId:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,11}$
+                  description: >-
+                    Transmitter ID or original Sender Id (for an advice)<br>Equivalent to DE33 in ISO8583 based
+                    protocols
+                functionCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+                  description: >-
+                    Function code<br>Specifies the purpose of a message within its message class<br>Equivalent to
+                    DE59.0100 in CBAE protocol (domestic french data)
+                fundsTransferApplicationNature:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1,3}$
+                  description: type of application which initiate fund transfer<br>Equivalent to DE118-1001 in CBAE protocol
+                fundTransferReason:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 40
+                  description: Reason of fund transfer<br>Equivalent to DE118-1003 in CBAE protocol
+                geographicalOrigin:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - INTR
+                    - NTNL
+                  x-enumDescriptions:
+                    INTR: International
+                    NTNL: National
+                  description: >-
+                    Geographical origin of the transaction<br>Determine whether the transaction is domestic or
+                    international<br>The IAS determines the geographical location of the transaction (ie : 'national' or
+                    'international') according to the country code of the acceptor or, if not available in the
+                    transaction, to the country code of the acquirer and a list of countries considered as national for
+                    the issuer bank<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>INTR :
+                    International<br>NTNL : National
+                internationalAuthorisationNetwork:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){1}$
+                  description: >-
+                    International authorisation network identifier<br>Equivalent to DE59.0803 in CBAE protocol (domestic
+                    french data)<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>1     :
+                    Visa<br>2     : Mastercard
+                issuerAcquirerRelation:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - IASB
+                    - IASG
+                    - NFUS
+                  x-enumDescriptions:
+                    IASB: Issuer and acquirer are the same bank
+                    IASG: Issuer and acquirer belongs to the same group
+                    NFUS: Not from us
+                  description: >-
+                    Relation between issuer and acquirer<br>Type of relation between the issuer and acquirer<br>The IAS
+                    determines the relation with a given acquirer based on :<br>- when the acquiring institution is the
+                    cardholder's bank then the acquirer is considered as a 'Same Bank'<br>- when the leading institution
+                    of the acquiring institution is also the leading institution of the cardholder's bank then the
+                    acquirer is considered as a 'Same group'<br>- Otherwise the acquirer is considered as 'not
+                    US'<br><br>Value :
+                    Label<br>---------------------------------------------------------------------<br>IASB : Issuer and
+                    acquirer are the same bank<br>IASG : Issuer and acquirer belongs to the same group<br>NFUS : Not
+                    from us
+                issuerAuthenticationData:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){8,16}$
+                  description: Issuer Authentication Data<br>Equivalent to DE055-0091 in CBAE protocol
+                messageReasonCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{4}$
+                  description: Message reason code<br>Equivalent to DE59.0101 in CBAE protocol (domestic french data)
+                nominalRouteId:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,11}$
+                  description: Nominal Route Identifier<br>Equivalent to DE100-1 in CBAE protocol
+                operationReferenceId:
+                  type:
+                    - string
+                    - 'null'
+                  format: uuid
+                  description: >-
+                    Operation reference Internal to IAS<br>Unique identifier generated by the IAS to identify the
+                    operation (request/response messages)
+                panEntryMode:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - BARC
+                    - CHFG
+                    - CHFM
+                    - CHON
+                    - CUCD
+                    - CUMD
+                    - DSRP
+                    - FILE
+                    - MAGO
+                    - MAGS
+                    - MANU
+                    - NOTS
+                    - OPTI
+                    - SERV
+                  x-enumDescriptions:
+                    BARC: Barcode
+                    CHFG: Chip mode with fallback to magstripe mode
+                    CHFM: Chip mode with fallback to manual mode (incoming only)
+                    CHON: Chip only
+                    CUCD: Contactless using chip data
+                    CUMD: Contactless using magstripe data
+                    DSRP: PAN/Token entry via ECOM containing DSRP cryptogram
+                    FILE: Card-on-file
+                    MAGO: Magstripe only (incoming only)
+                    MAGS: Magstripe only
+                    MANU: Manual
+                    NOTS: Not specified (incoming only)
+                    OPTI: Optical code (incoming only)
+                    SERV: Provided by a server (wallet)
+                  description: >-
+                    Pan Entry Mode (CBAE)<br>Card data entry mode used at the point of service<br>Equivalent to DE22
+                    part 1 in ISO8583 based protocols<br>Value : Label (ISO8583 based protocols
+                    value)<br>---------------------------------------------------------------------<br>NOTS  : Not
+                    specified (00) <br>MANU  : Manual (01)<br>MAGS  : Magstripe only (02)<br>OPTI  : Optical code
+                    (04)<br>BARC  : Barcode (03)<br>CHON  : Chip only (05)<br>CUCD  : Contactless using chip data
+                    (07)<br>FILE  : Card-on-file (10)<br>CHFM  : Chip mode with fallback to manual mode (79)<br>CHFG  :
+                    Chip mode with fallback to magstripe mode (90)<br>SERV  : Provided by a server (wallet)
+                    (82)<br>MAGO  : Magstripe only (61)<br>CUMD  : Contactless using magstripe data (91)<br>DSRP  :
+                    PAN/Token entry via ECOM containing DSRP cryptogram (09)
+                paymentUseCase:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - DERS
+                    - FTPM
+                    - INST
+                    - NPVC
+                    - PREA
+                    - PTRL
+                    - QCPM
+                    - RCFX
+                    - RCOT
+                    - RERE
+                    - SHIP
+                    - SNGL
+                  x-enumDescriptions:
+                    DERS: Deposit-refund system
+                    FTPM: Funds transfer
+                    INST: Instalment
+                    NPVC: Non payment card validity check
+                    PREA: Pre-authorisation (Other than Reservation and Rental)
+                    PTRL: Indoor Petrol station pre-authorisation
+                    QCPM: Quasi cah payment
+                    RCFX: Recurring subscription - Fixed Amount and limited duration subscription
+                    RCOT: Recurring subscription - Other subscription
+                    RERE: Reservation and rental payment
+                    SHIP: Shipment payment
+                    SNGL: Single payment
+                  description: >-
+                    Identification of remote payment cases<br>Equivalent to DE57.028 in CBAE protocol (domestic french
+                    data)<br>Value : Label (ISO8583 bases protocols
+                    value)<br>----------------------------------------------------------------<br>SNGL : Single payment
+                    (01)<br>RCFX :Recurring subscription - Fixed Amount and limited duration subscription (02)<br>INST
+                    :Instalment (03)<br>SHIP :Shipment payment (04)<br>RCOT :Recurring subscription - Other subscription
+                    (05)<br>RERE :Reservation and rental payment (06)<br>PREA :Pre-authorisation (Other than Reservation
+                    and Rental) (07)<br>PTRL :Indoor Petrol station pre-authorisation (10)<br>DERS :Deposit-refund
+                    system <br>QCPM :Quasi cah payment<br>FTPM :Funds transfer<br>NPVC :Non payment card validity check
+                    (90)
+                pointOfServiceConditionCode:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CPCA
+                    - CUIV
+                    - CUNP
+                    - CUTE
+                    - FLCO
+                    - MAOR
+                    - MESU
+                    - MTOR
+                    - SERE
+                    - STDR
+                    - SUFR
+                    - TLDR
+                    - TLOR
+                    - UTAR
+                    - UTUR
+                  x-enumDescriptions:
+                    CPCA: 'CBAE 1.5 Value : 05  Customer present, card not present (1)'
+                    CUIV: 'CBAE 1.5 Value : 10  Customer identity verified'
+                    CUNP: 'CBAE 1.5 Value : 01  Customer not present'
+                    CUTE: 'CBAE 1.5 Value : 15  Customer terminal (home terminal)'
+                    FLCO: 'CBAE 1.5 Value : 51  Flow control (memory card) (2)'
+                    MAOR: 'CBAE 1.5 Value : 52  Mail order'
+                    MESU: 'CBAE 1.5 Value : 03  Merchant suspicious'
+                    MTOR: 'CBAE 1.5 Value : 08  Mail/telephone order'
+                    SERE: 'CBAE 1.5 Value : 12  Security reasons'
+                    STDR: 'CBAE 1.5 Value : 00  Normal conditions'
+                    SUFR: 'CBAE 1.5 Value : 11  Suspected fraud'
+                    TLDR: 'CBAE 1.5 Value : 07  Telephone device request (via call centre)'
+                    TLOR: 'CBAE 1.5 Value : 53  Telephone order'
+                    UTAR: 'CBAE 1.5 Value : 02  Unattended terminal able to retain card'
+                    UTUR: 'CBAE 1.5 Value : 27  Unattended terminal unable to retain card'
+                  description: >-
+                    Conditions of the transaction<br>Equivalent to DE25 in CBAE protocol (domestic french data)<br>Value
+                    : Label (ISO8583 bases protocols
+                    value)<br>----------------------------------------------------------------<br>STDR  :  Normal
+                    conditions (00)<br>CUNP : Customer not present (01)<br>UTAR  :  Unattended terminal able to retain
+                    card (02)<br>MESU : Merchant suspicious (03)<br>CPCA  :  Customer present, card not present
+                    (05)<br>TLDR   :  Telephone device request (via call centre) (07)<br>MTOR :  Mail/telephone order
+                    (08)<br>CUIV   :   Customer identity verified (10)<br>SUFR   :   Suspected fraud (11)<br>SERE    : 
+                    Security reasons (12)<br>CUTE   :  Customer terminal (home terminal) (15)<br>UTUR  : Unattended
+                    terminal unable to retain card (27)<br>FLCO   :  Flow control (memory card) (51)<br>MAOR : Mail
+                    order (52)<br>TLOR   :   Telephone order (53)
+                preauthorisationTimeLimit:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,2}$
+                  description: >-
+                    Pre authorisation duration<br>Indicates how many days a pre-authorised invoice is
+                    valid.<br>Equivalent to DE59.0208 in CBAE protocol (domestic french data)
+                reasonForNotHonouringExemptionList:
+                  type:
+                    - array
+                    - 'null'
+                  items:
+                    type: string
+                    pattern: ^[0-9A-Za-z]{4}$
+                    description: Reasons for not honouring exemptions<br>Equivalent to DE119-0004 in CBAE protocol
+                regulatoryAndTechnicalEnvironment:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{2}$
+                  description: Regulatory and technical environment<br>Equivalent to DE59.0200 in CBAE protocol
+                schemeNature:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CBFR
+                    - MACD
+                    - VISA
+                  x-enumDescriptions:
+                    CBFR: CB
+                    MACD: MasterCard
+                    VISA: VISA
+                  description: >-
+                    Scheme nature<br>Using the schemeNature to determine the file name in the message (3xx).
+                    <br>Equivalent to DE101<br>----------------------------------------------------------------<br>CBFR
+                    : CB (0) = "OPPOSIT"<br>VISA  : VISA (1)<br>MACD  : Mastercard (2) = "MCC102"
+                serviceAttribute:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ADCH
+                    - AGRE
+                    - AITC
+                    - AITF
+                    - AITI
+                    - AITP
+                    - ARES
+                    - CCPU
+                    - CCUP
+                    - CDSM
+                    - CHDS
+                    - DBTR
+                    - DREC
+                    - FREC
+                    - GUAR
+                    - INST
+                    - IRES
+                    - MPFP
+                    - NOSH
+                    - PAUT
+                    - PRES
+                    - RPUN
+                    - UNSN
+                  x-enumDescriptions:
+                    ADCH: Additional charges
+                    AGRE: Aggregation
+                    AITC: Acceptor Initiated Transaction following an internet CIT
+                    AITF: Acceptor Initiated Transaction following a face-to-face or an unattended CIT
+                    AITI: Acceptor Initiated Transaction following an internet CIT
+                    AITP: Acceptor Initiated Transaction following a face-to-face or an unattended CIT
+                    ARES: Additionnal Payment or charges
+                    CCPU: Crypto-currency purchase
+                    CCUP: Crypto Currency Purchase
+                    CDSM: Cardholder data storage on merchant file
+                    CHDS: Cardholder data storage on merchant file
+                    DBTR: Debt recovery
+                    DREC: Debt Recovery
+                    FREC: First Recurring
+                    GUAR: Guarantee
+                    INST: Instalment
+                    IRES: Initial Reservation or Pre-authorisation
+                    MPFP: Multiple payment, first payment
+                    NOSH: No-show
+                    PAUT: Pre-authorisation
+                    PRES: Payment after Reservation or Aggregation
+                    RPUN: Recurring payment, unknown sequence number
+                    UNSN: Recurring payment, unknown sequence number (reserved for international incoming flow)
+                  description: "Service attribute<br>Service attribute in the case of recurring payment transactions and pre-autorisation in the context of rentals<br>Equivalent to DE59.0800 in CBAE protocol (domestic french data<br>Value : Label (ISO8583 bases protocols value)<br>----------------------------------------------------------------<br>NOSH : No-show<br>PAUT  :Pre-authorisation (2)<br>ADCH :Additional charges (3)<br>AITP   :Acceptor Initiated Transaction following a face-to-face or an unattended CIT (4)<br>AGRE  :Aggregation (5)<br>MPFP :Multiple payment, first payment (6)<br>AITC   :Acceptor Initiated Transaction following an internet  (7)<br>GUAR :Guarantee<br>DREC  :Debt Recovery (11)<br>CCUP  :Crypto Currency Purchase (8)<br>INST   :Instalment (9)<br>CDSM :Cardholder data storage on merchant file\_<br>UNSN  :Recurring payment, unknown sequence number (reserved for international incoming flow) (0)"
+                serviceIndicator:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: Service Indicator <br>Equivalent to DE119-0008 in CBAE protocol
+                transactionNature:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ATMW
+                    - AVFI
+                    - CACP
+                    - CARE
+                    - CRED
+                    - FTCR
+                    - FTDE
+                    - MACA
+                    - PCSB
+                    - PUGS
+                    - QCAR
+                    - QUCA
+                  x-enumDescriptions:
+                    ATMW: 'ATM withdrawal  -  cf CBAE 1.5 Value : 01'
+                    AVFI: 'Available funds inquiry  - cf CBAE 1.5 Value : 30'
+                    CACP: 'Card capture - cf CBAE 1.5 Value : 14'
+                    CARE: 'Card return - cf CBAE 1.5 Value : 37'
+                    CRED: 'Credit - CBAE 1.5 Value : 20'
+                    FTCR: 'Funds transfer, credit - cf CBAE 1.5 Value : 42'
+                    FTDE: 'Funds transfer, debit  - cf CBAE 1.5 Value : 41'
+                    MACA: 'Manual cash - CBAE 1.5 Value : 17'
+                    PCSB: Purchase with cashback
+                    PUGS: 'Purchase of goods or  services : Cf CBAE 1.5 Value : 00'
+                    QCAR: 'Quasi-cash refund - cf CBAE 1.5 Value : 28'
+                    QUCA: 'Quasi-cash - cf CBAE 1.5 Value : 11'
+                  description: >-
+                    Nature of transaction<br>Equivalent to DE3 in ISO8583 based protocols<br>Value : Label (ISO8583
+                    based protocols
+                    value)<br>---------------------------------------------------------------------<br>PUGS  : Purchase
+                    of goods or services (00)<br>ATMW  : ATM withdrawal (01)<br>PCSB  : Purchase with cash-back
+                    (09)<br>QUCA  : Quasi-cash (11)<br>CACP : Card capture (14)<br>MACA  : Manual cash or cash-advance
+                    (17)<br>CRED  : Credit (20)<br>QCAR  : Quasi-cash refund (28)<br>AVFI : Available funds inquiry
+                    (30)<br>CARE : Card return (37)<br>FTDE  : Funds transfer, debit (41)<br>FTCR  : Funds transfer,
+                    credit (42)
+              additionalProperties: false
+            exchangeRateInformationList:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                description: >-
+                  Exchange rate information
+
+                  Equivalent to 114-33
+
+                  The information associated to the exchange rate depends on the network.
+
+                  If the network is VISA, two occurrencies of exchange rate can be present with :
+
+                  - the exchange rate origin to identify if the rate is from the scheme or from the European Central
+                  Bank (ECB)
+
+                  - the exchange rate
+
+                  - the exchange rate provider
+
+                  - the rate table id
+
+                  - the persistent fx eligible indicator
+
+                  If the network is Mastercard, one occurence of exchange rate can be present with :
+
+                  - the exchange rate origin (always European Central Bank)
+
+                  - the exchange rate
+
+                  - the rate differential sign indicator
+
+                  - the rate percent differential
+                properties:
+                  network:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - MACD
+                      - VISA
+                    x-enumDescriptions:
+                      MACD: MasterCard
+                      VISA: VISA
+                    description: >-
+                      Exchange rate information<br>Network providing the exchange rate<br>Value :
+                      Label<br>---------------------------------------------------------------------<br>VISA  :
+                      VISA<br>MACD  : Mastercard
+                  exchangeRateOrigin:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - ECBR
+                      - SCHR
+                    x-enumDescriptions:
+                      ECBR: ECB Rate
+                      SCHR: Scheme Rate
+                    description: >-
+                      Exchange rate information<br>Origin of the exchange rate<br>For VISA, determined from the exchange
+                      rate provider<br>For Mastercard, always European Central Bank<br>Value :
+                      Label<br>---------------------------------------------------------------------<br>ECBR : European
+                      Central Bank Rate<br>SCHR : Scheme Rate
+                  exchangeRate:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9]{1,25}(\.?[0-9]{0,13})?$
+                    description: Exchange rate information<br>Exchange rate value<br>The exchange rate is expressed as a decimal
+                  exchangeRateProvider:
+                    type:
+                      - string
+                      - 'null'
+                    minLength: 1
+                    maxLength: 70
+                    description: >-
+                      Exchange rate information<br>Exchange rate provider (VISA only)<br>Label identifying the source of
+                      the rate which allows to determine the origin of the exchange rate : contains "ECB" if the rate is
+                      provided by the European Central Bank
+                  persistentFxEligibleIndicator:
+                    type:
+                      - boolean
+                      - 'null'
+                    description: >-
+                      Exchange rate information<br>Persistent fx service eligibility indicator (VISA
+                      only).<br>Applicable on authorisation-only transactions.
+                  rateDiffPercent:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9]{6}$
+                    description: >-
+                      Exchange rate information<br>Rate percent differential (Mastercard only)<br>Ratio between billing
+                      amount conversion rate and ECB conversion rate (effective currency conversion markup of the
+                      transaction), expressed with an implied 2 digits decimal. Eg : "12345" for a 123.45 ratio
+                  rateDiffSign:
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - CRDT
+                      - DEBT
+                    x-enumDescriptions:
+                      CRDT: Credit
+                      DEBT: Debit
+                    description: >-
+                      Exchange rate information<br>Rate differential sign indicator (Mastercard only)<br>Value :
+                      Label<br>---------------------------------------------------------------------<br>CRDT : Crédit:
+                      indicates that billing amount conversion rate is larger than or equal to ECB conversion
+                      rate.<br>DEBT : Debit: indicates that billing amount conversion rate is smaller than ECB
+                      conversion rate.
+                  rateTableId:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9A-Za-z]{1,5}$
+                    description: >-
+                      Exchange rate information<br>Rate table id of the foreign exchange rate table used for currency
+                      conversion (VISA only)
+                additionalProperties: false
+            cumulativeTotalAuthorisedAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: Total Amount cumulative authorised<br>Equivalent to DE054-43 in CBAE protocol
+            eMV:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                applicationCryptogram:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){8}$
+                  description: >-
+                    Certificate returned in response to a cryptogram generation<br>Equivalent to DE055-9F26 in CBAE
+                    protocol
+                applicationTransactionCounter:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){2}$
+                  description: Application Transaction Counter<br>Equivalent to DE055-9F36 in CBAE protocol
+                cryptogramInformationData:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){1}$
+                  description: Code indicating which type of certificate is returned<br>Equivalent to DE055-9F27 in CBAE protocol
+                issuerApplicationData:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){1,32}$
+                  description: ' data that the issuer wants to return in authorisation messages<br>Equivalent to DE055-9F10 in CBAE protocol'
+                randomNumber:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){4}$
+                  description: Unpredictable number used for security<br>Equivalent to DE055-9F37 in CBAE protocol
+                terminalTransactionDate:
+                  type:
+                    - string
+                    - 'null'
+                  format: date
+                  description: ' Terminal''s local date of the autorisation<br>Equivalent to DE055-009A in CBAE protocol'
+                terminalVerificationResult:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^([0-9A-F][0-9A-F]){5}$
+                  description: >-
+                    Results of the different checks performed by the termina<br>Equivalent to DE055-0095 in CBAE
+                    protocol
+              additionalProperties: false
+            emvAquisitionMode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,2}$
+              description: EMV aquisition mode<br>Equivalent to DE55-DFC0 in CBAE protocol
+            feeAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+              description: Transaction fee amount<br>Equivalent to DE28
+            fileNumber:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 12
+              description: >-
+                File number<br>File number (used as a reference for a pre-authorisation invoice)<br>Equivalent to
+                DE47.24 in CBAE protocol (domestic french data)
+            iccOtherAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+              description: Transaction other amount<br>Equivalent to DE55-9F03 in CBAE protocol
+            issuerControlList:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                description: ''
+                properties:
+                  code:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9A-Za-z]{1,10}$
+                    description: >-
+                      IAS (Issuer Authorisation Server) control code<br>Code to identify a control performed by the
+                      issuer authorization server on the transaction.<br>Each control implemented in the authorization
+                      server has a code and each control performed is provided in the event (by repeating the data
+                      element and its corresponding response code)
+                  responseCode:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9]{1,8}$
+                    description: >-
+                      IAS (Issuer Authorisation Server) control response code<br>Response code of the control identified
+                      by the controlCode attribute<br>Each control implemented in the authorization server has a
+                      response code and each control performed is provided in the event (by repeating the data element
+                      and its corresponding code)
+                additionalProperties: false
+            issuerProcessingData:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                amlResponseCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,8}$
+                  description: Response code from the AML system
+                cardAvailableAmount:
+                  type:
+                    - object
+                    - 'null'
+                  properties:
+                    amount:
+                      type:
+                        - string
+                        - 'null'
+                      pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                    currency:
+                      type:
+                        - string
+                        - 'null'
+                      pattern: ^[0-9]{3}$
+                  description: >-
+                    Card available amount<br>Amount and currency available for the card after the processing of the
+                    transaction<br>The curency is provided as a ISO 4217, Numeric-3 code.<br>The amount is provided as a
+                    number of monetary units specified in a currency where the unit of currency is implied by the
+                    context and compliant with ISO 4217. The decimal separator is a dot.
+                fraudResponseCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{1,8}$
+                  description: Response code from the fraud system
+                fraudScore:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 48
+                  description: Score provided by the fraud system
+              additionalProperties: false
+            reversalReason:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,5}$
+              description: >-
+                Reason of reversal transported<br>Response code received in a reversal message also know as reversal
+                reason code<br>Equivalent to DE39 inbound<br>The reason code is provided as a 2 digit numeric code.
+            locationCategoryCode:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 8
+              description: Location Category Code <br>Equivalent to DE47-08 in CBAE protocol
+            mastercardPointOfServiceChangeStatusCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: Mastercard POS change status code<br>Equivalent to DE47-71 in CBAE protocol
+            merchantProgram:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,10}$
+              description: Merchan program<br>Equivalent to DE114-30-0 in CBAE protocol
+            microchipProcessingResult:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{2}$
+              description: Microchip Processing Result<br>Equivalent to DE055-DF80 in CBAE protocol
+            multiplePaymentValidityDate:
+              type:
+                - string
+                - 'null'
+              format: date
+              description: Validity date for a multiple payment<br>Equivalent to DE057-0045 in CBAE protocol
+            originalUniqueIdNetwork:
+              type:
+                - string
+                - 'null'
+              enum:
+                - CBFR
+                - MACD
+                - VISA
+              x-enumDescriptions:
+                CBFR: CB
+                MACD: MasterCard
+                VISA: VISA
+              description: >-
+                Original unique transaction identifier Network<br>Entity responsible for encoding the original unique
+                identifier <br>Equivalent to DE47.99 part 1 (nomenclature) in CBAE protocol (domestic french
+                data)<br><br>Value :
+                Label<br>------------------------------------------------------------------------<br>CBFR  : CB<br>VISA 
+                : VISA<br>MACD  : Mastercard
+            originalUniqueIdValue:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 49
+              description: >-
+                Original unique transaction identifier Value<br>Value of the original unique identifier of the Customer
+                Initiated Transaction used as reference for linking.<br>Equivalent to DE47.99 part 2 in CBAE protocol
+                (domestic french data)
+            partialAuthorisedAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Authorised amount (partial authorisation)<br>Amount and currency authorised either by the Host in its
+                response or by the IAS in the notification (the authorised amount can be different from the requested
+                amount in case of partial authorisation)<br>The curency is provided as a ISO 4217, Numeric-3
+                code.<br>The amount is provided as a number of monetary units specified in a currency where the unit of
+                currency is implied by the context and compliant with ISO 4217. The decimal separator is a dot.
+            partialAuthorisedOriginalAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Original amount (partial authorisation)<br>Partial amount and currency authorised on the original
+                transaction<br>The curency is provided as a ISO 4217, Numeric-3 code.<br>The amount is provided as a
+                number of monetary units specified in a currency where the unit of currency is implied by the context
+                and compliant with ISO 4217. The decimal separator is a dot.
+            replacementAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Replacement amount<br>Amount and currency of the replacement amount in a reversal<br>Used to indicate
+                the amount actually granted to the cardholder in a reversal transaction. If this field is missing, the
+                entire transaction was cancelled.<br>The curency is provided as a ISO 4217, Numeric-3 code.<br>The
+                amount is provided as a number of monetary units specified in a currency where the unit of currency is
+                implied by the context and compliant with ISO 4217. The decimal separator is a dot.
+            replacementBillingAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                New amount, cardholder billing<br>Amount and currency of the cardholder billing replacement amount in a
+                reversal<br>The curency is provided as a ISO 4217, Numeric-3 code.<br>The amount is provided as a number
+                of monetary units specified in a currency where the unit of currency is implied by the context and
+                compliant with ISO 4217. The decimal separator is a dot.
+            saleReference:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: >-
+                Sale Reference Number<br>Sale/Retrieval reference number<br>Equivalent to DE37 in ISO8583 based
+                protocols
+            selectedCardBrand:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{2}$
+              description: Brand selected by the cardholder<br>Equivalent to DE057-0003 in CBAE protocol
+            sessionId:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,32}$
+              description: Session ID<br>Equivalent to DE119-0006 in CBAE protocol
+            sicbMovementIndicator:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,5}$
+              description: SICB movement indicator<br>Equivalent to DE116-1 in CBAE protocol
+            splitPaymentNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{2}$
+              description: Split Payment Number <br>Equivalent to DE057-0031 in CBAE protocol
+            splitPaymentTotalNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9]{2}$
+              description: Split Total Payment Number<br>Equivalent to DE057-0032 in CBAE protocol
+            threeDs:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                authenticationCategory:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - 3DCH
+                    - 3DFR
+                  x-enumDescriptions:
+                    3DCH: Challenge
+                    3DFR: Frictionless
+                  description: >-
+                    3DS authentication type<br>Equivalent to DE59.0419 part 1 in CBAE protocol (domestic french
+                    data)<br>Value : Label (ISO8583 bases protocols
+                    value)<br>----------------------------------------------------------------<br>3DCH : Challenge
+                    (CH)<br>3DFR : Frictionless (FR)
+                componentsAvailability:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1}$
+                  description: 3DS components availability<br>Equivalent to DE119-0013 in CBAE protocol
+                merchantRequestAuthentication:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - AUTD
+                    - AUTQ
+                    - AUTR
+                    - NAAP
+                    - NADS
+                    - NATR
+                    - NAUT
+                    - NAUW
+                    - NPDV
+                  x-enumDescriptions:
+                    AUTD: 04-Authentication required
+                    AUTQ: Authentication requested
+                    AUTR: 09-Authentication required
+                    NAAP: 'No authentication: SCA already performed'
+                    NADS: 'No authentication: data share only'
+                    NATR: 'No authentication: transaction risk analysis already performed'
+                    NAUT: No authentication
+                    NAUW: 'No authentication: whitelist'
+                    NPDV: No preference – default value if the data element is absent or not set to a value
+                  description: ' Merchant request for authentication<br>Merchant request for authentication corresponds to the 3DS requestor challenge indicator data element in the EMVCo 3DS specification.<br>Equivalent to DE59.0419 part 2 in CBAE protocol (domestic french data)<br>Value : Label (ISO8583 bases protocols value)<br>----------------------------------------------------------------<br>AUTD : Authentication required (04)<br>AUTQ : Authentication requested (03)<br>AUTR : Authentication required (09)<br>NAAP : No authentication: SCA already performed (07)<br>NADS : No authentication: data share only (06)<br>NATR : No authentication: transaction risk analysis already performed (05)<br>NAUT : No authentication (02)<br>NAUW : No authentication: whitelist (08)<br>NPDV : No preference – default value if the data element is absent or not set to a value (01)'
+                protocolVersion:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - 3DS1
+                    - 3DS2
+                    - UNKW
+                  x-enumDescriptions:
+                    3DS1: 3DS version v1
+                    3DS2: 3DS version v2
+                    UNKW: Unknown
+                  description: >-
+                    3DS Protocol Version<br>Equivalent to DE57.0022 part 1 in CBAE protocol (domestic french
+                    data)<br>Value : Label (ISO8583 bases protocols
+                    value)<br>----------------------------------------------------------------<br>UNKW   : Unknow
+                    (0)<br>3DS1     : 3DS v1 version (1)<br>3DS2     : 3DS v2 version (2)
+                protocolVersionSchemeSpecific:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1,7}$
+                  description: >-
+                    3DS Protocol Version Scheme Specific<br>Equivalent to DE57.0022 part 2 in CBAE protocol (domestic
+                    french data)
+                resultsCardHolderAuthentication:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 1
+                  description: >-
+                    Cardholder authentication<br>Information on cardholder authentication for 3DS transactions. The
+                    values depend on the 3DS results nomenclature<br>Equivalent to DE59.0412 part 2 in CBAE protocol
+                    (domestic french data)
+                resultsNomenclature:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CBFR
+                    - MACD
+                    - VISA
+                  x-enumDescriptions:
+                    CBFR: CB
+                    MACD: MasterCard
+                    VISA: VISA
+                  description: >-
+                    Three DS Results Nomenclature<br>The 3DS results nomenclature indicates the type of coding used for
+                    the results of the secure remote payment architecture's use<br>Equivalent to DE59.0412 part 1 in
+                    CBAE protocol (domestic french data)<br>Value : Label (ISO8583 bases protocols
+                    value)<br>----------------------------------------------------------------<br>CBFR  : CB
+                    (0)<br>VISA  : VISA (1)<br>MACD  : Mastercard (2)
+                score:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 2
+                  description: CB 3DS score<br>Equivalent to DE59.0419 part 5 in CBAE protocol (domestic french data)
+                transactionCancellationIndicator:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{2}$
+                  description: >-
+                    Transaction cancellation indicator<br>Corresponds to the challenge cancellation indicator data
+                    element of the EMVCo 3DS V2 specification<br>Equivalent to DE59.0419 part 4 in CBAE protocol
+                    (domestic french data)
+                transactionStatusReason:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{2}$
+                  description: >-
+                    Transaction status reason<br>Corresponds to the Transaction Status Reason data element of the EMVCo
+                    3DS V2 specification<br>Equivalent to DE59.0419 part 3 in CBAE protocol (domestic french data)
+                visaIndicator:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1}$
+                  description: 3D-Secure indicator <br>Equivalent to DE119-0007 in CBAE protocol
+              additionalProperties: false
+            totalAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+                accountUsage:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CHAC
+                    - CRAC
+                    - DEAC
+                    - DECL
+                    - DEDA
+                    - INAC
+                    - INLA
+                    - LOAC
+                    - PRAC
+                    - PWNF
+                    - RELA
+                    - SAAC
+                    - UNAC
+                  x-enumDescriptions:
+                    CHAC: 'CBAE 1.5 Value : 36  Charge account'
+                    CRAC: 'CBAE 1.5 Value : 30  Credit account'
+                    DEAC: 'CBAE 1.5 Value : 20  Debit account'
+                    DECL: 'CBAE 1.5 Value : 33  Deferred clearing'
+                    DEDA: 'CBAE 1.5 Value : 35  Deferred debit account'
+                    INAC: "50 MCD\_: Investment Account"
+                    INLA: "90 MCD\_: Loan Account"
+                    LOAC: "91 MCD\_: Installment Loan Account"
+                    PRAC: 'CBAE 1.5 Value : 60  Prepaid account'
+                    PWNF: 'CBAE 1.5 Value : 00  Payment or Transaction with no special features'
+                    RELA: "92 MCD\_: Real Estate Loan Account"
+                    SAAC: 'CBAE 1.5 Value : 10  Saving account'
+                    UNAC: "40 VISA & MCD\_: “Universal” Account"
+              description: >-
+                Total Amount<br>Amount, currency of the transaction + account usage of the account <br>In the
+                checkBalance :<br> - If DE6 present, equivalent to DE6 and DE51 in ISO8583 based protocols (cardholder
+                billing amount and currency)<br> - Otherwise, equivalent to DE4 and DE49 in ISO8583 based protocols
+                (transaction amount and currency)<br>In other messages :<br> - Equivalent to DE4 and DE49 in ISO8583
+                based protocols<br>The curency is provided as a ISO 4217, Numeric-3 code.<br>The amount is provided as a
+                number of monetary units specified in a currency where the unit of currency is implied by the context
+                and compliant with ISO 4217. The decimal separator is a dot.<br><br>For totalAmount.accountUsage : Type
+                of usage indicator to identify whether the debit is immediate or deferred<br>Value :
+                Label<br>---------------------------------------------------------------------<br>DEAC  : Debit account
+                (Immediate)<br>DEDA  : Deferred debit account
+            validationCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,4}$
+              description: Validation code<br>Equivalent to DE59-602 in CBAE protocol
+            visaProgramQualification:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){1}$
+              description: Program qualification<br>Equivalent to DE59-600 in CBAE protocol
+            walletIdentifier:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,6}$
+              description: >-
+                Wallet identifier<br>Wallet identifier assigned when the wallet is approved.<br>Equivalent to DE59.0418
+                in CBAE protocol (domestic french data)
+            response:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                authorisationCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1,6}$
+                  description: >-
+                    authorisation identification response<br>Authorisation response identification (also called
+                    autorisation number)<br>Equivalent to DE38 in ISO8583 based protocols<br>The authorisation
+                    identification response can be provided by the Host in its reponse. In this case it is also used by
+                    the IAS in its response to the authorisation request.<br>Or the authorisation identification
+                    response is calculated by the IAS.
+                code:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9A-Za-z]{1,6}$
+                  description: >-
+                    Response Code<br>Determined by IAS and provided in its reponse<br>Equivalent to DE39 in ISO8583
+                    based protocols<br>The response code is provided as a 2 digit numeric code.
+              additionalProperties: false
+            additionalResponseData:
+              type:
+                - object
+                - 'null'
+              description: ''
+              properties:
+                addServiceReportData:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - NPCE
+                    - NPFO
+                    - NPMN
+                    - NPMO
+                    - NPUS
+                    - NSPR
+                  x-enumDescriptions:
+                    NPCE: >-
+                      Service not Provided, acquirer identifier not found in the service data (Configuration Error) :
+                      001
+                    NPFO: 'Service not provided, Field length Over size : 004'
+                    NPMN: 'Service not Provided, field 33 and/or Main services optional criteria  Not verified : 002'
+                    NPMO: 'Service not Provided, Message length Over size : 003'
+                    NPUS: Service not provided, Unavailable Service
+                    NSPR: 'Normal Service Provided : 000'
+                  description: >-
+                    Additional service report sent to the acquirer by the network - Data<br>Equivalent to DE044-AE-p2 in
+                    CBAE protocolk<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>NPCE : Service not
+                    Provided, acquirer identifier not found in the service data (Configuration Error) : 001<br>NPFO :
+                    Service not provided, Field length Over size : 004<br>NPMN : Service not Provided, field 33 and/or
+                    Main services optional criteria  Not verified : 002<br>NPMO : Service not Provided, Message length
+                    Over size : 003<br>NPUS : Service not provided, Unavailable Service<br>NSPR : Normal Service
+                    Provided : 000
+                addServiceReportId:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - IDAR
+                    - IDNR
+                    - IDSC
+                    - IDTK
+                  x-enumDescriptions:
+                    IDAR: Acquirer Routing service
+                    IDNR: Network Rerouting
+                    IDSC: Scoring
+                    IDTK: Tokenization service
+                  description: >-
+                    Additional service report sent to the acquirer by the network - ID<br>Equivalent to DE044-AE-p1 in
+                    CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>IDAR : Acquirer
+                    Routing service<br>IDNR : Network Rerouting<br>IDSC : Scoring<br>IDTK : Tokenization service
+                applicationCryptogramProcessingInformation:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ICAC
+                    - NSBI
+                    - UCAC
+                    - VAAC
+                    - VCAC
+                  x-enumDescriptions:
+                    ICAC: Invalid checked Application Cryptogram
+                    NSBI: Not sent by issuer (used only by international gateways)
+                    UCAC: Unchecked Application Cryptogram
+                    VAAC: Valid application cryptogram; ATC replay
+                    VCAC: Valid checked Application Cryptogram
+                  description: >-
+                    Appication cryptogram verification results<br>Equivalent to DE044-CB in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>ICAC : Invalid
+                    checked Application Cryptogram<br>NSBI : Not sent by issuer (used only by international
+                    gateways)<br>UCAC : Unchecked Application Cryptogram<br>VAAC : Valid application cryptogram; ATC
+                    replay<br>VCAC : Valid checked Application Cryptogram
+                cardholderAddressCheckingInformation:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - NPAD
+                    - PAFM
+                    - PANM
+                    - PAPM
+                    - RTRY
+                  x-enumDescriptions:
+                    NPAD: Control was not performed or was not performed for all data elements
+                    PAFM: Postcode and address fully match
+                    PANM: Postcode and address do not match
+                    PAPM: Postcode and address partially match
+                    RTRY: Retry (indeterminate outcome)
+                  description: >-
+                    Cardholder address checking information<br>Equivalent to DE044-CC in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>NPAD : Control was
+                    not performed or was not performed for all data elements<br>PAFM : Postcode and address fully
+                    match<br>PANM : Postcode and address do not match<br>PAPM : Postcode and address partially
+                    match<br>RTRY : Retry (indeterminate outcome)
+                cryptogramProcessingInformation:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CVCC
+                    - CVCI
+                    - CVNC
+                    - CVUN
+                  x-enumDescriptions:
+                    CVCC: CVx checked and correct
+                    CVCI: CVx checked and incorrect
+                    CVNC: CVx not checked
+                    CVUN: CVx checked and incorrect – invalid unpredictable number length
+                  description: >-
+                    Track or equivalent data cryptogram processing information<br>Equivalent to DE044-CA in CBAE
+                    protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>CVCC : CVx checked
+                    and correct<br>CVCI : CVx checked and incorrect<br>CVNC : CVx not checked<br>CVUN : CVx checked and
+                    incorrect – invalid unpredictable number length
+                expenseThreshold:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 1
+                  description: >-
+                    Visa Spend Qualification Indicator<br>Equivalent to DE59.0604 in CBAE protocol (domestic french
+                    data)
+                fastFundIndicator:
+                  type:
+                    - boolean
+                    - 'null'
+                  description: >-
+                    Indicate if and how recipient issuer participates in fast funds transfer<br>Equivalent to DE118-4005
+                    in CBAE protocol
+                fieldConversionEntitySource:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - DISC
+                    - JCB0
+                    - MACD
+                    - NTWK
+                    - OTHR
+                    - UPIC
+                    - VISA
+                  x-enumDescriptions:
+                    DISC: Discover gateway
+                    JCB0: JCB gateway
+                    MACD: MasterCard gateway
+                    NTWK: Authorisation network
+                    OTHR: Other
+                    UPIC: UPI gateway
+                    VISA: Visa gateway
+                  description: >-
+                    Entity responsible for the conversion<br>Equivalent to DE044-AC-p1 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>DISC : Discover
+                    gateway<br>JCB0 : JCB gateway<br>MACD : MasterCard gateway<br>NTWK : Authorisation network<br>OTHR :
+                    Other<br>UPIC : UPI gateway<br>VISA : Visa gateway
+                fieldConversionFieldNumber:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 3
+                  maxLength: 3
+                  description: Field number<br>Equivalent to DE044-AC-p2 in CBAE protocol
+                fieldConversionResponsibleValue:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 17
+                  description: Initial value or the value used on an approved network<br>Equivalent to DE044-AC-p3 in CBAE protocol
+                incorrectFieldErrorCode:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - FRER
+                    - FRMT
+                    - MMFI
+                    - VAER
+                    - WRPF
+                  x-enumDescriptions:
+                    FRER: Format error
+                    FRMT: Format or match error detected by remote network
+                    MMFI: Missing mandatory field
+                    VAER: Value error
+                    WRPF: Wrongly present in forbidden field
+                  description: >-
+                    Error code<br>Equivalent to DE044-AA-p3 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>FRER : Format
+                    error<br>FRMT : Format or match error detected by remote network<br>MMFI : Missing mandatory
+                    field<br>VAER : Value error<br>WRPF : Wrongly present in forbidden field
+                incorrectFieldNumber:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 3
+                  maxLength: 3
+                  description: Incorrect field number<br>Equivalent to DE044-AA-p1 in CBAE protocol
+                incorrectSubfield:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 4
+                  description: Incorrect field type<br>Equivalent to DE044-AA-p2 in CBAE protocol
+                mastercardMagstripeErrorCategory:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 1
+                  description: Magstripe integrity control information<br>Equivalent to DE047-72 in CBAE protocol
+                maximumAmountAuthorisable:
+                  type:
+                    - object
+                    - 'null'
+                  properties:
+                    amount:
+                      type:
+                        - string
+                        - 'null'
+                      pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  description: Maximum amount for which an authorisation can be granted<br>Equivalent to DE044-BA in CBAE protocol
+                messageToTransactionInitiatorCtrlCharacter:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - DFAO
+                    - DIAC
+                    - DSCO
+                    - DSPL
+                    - PDAC
+                    - PDAO
+                    - PDCO
+                    - PFAO
+                    - PRAC
+                    - PRCO
+                    - PRDS
+                    - PRNT
+                    - REPV
+                    - RSVD
+                  x-enumDescriptions:
+                    DFAO: Display for acceptor only
+                    DIAC: Display for the acceptor and the cardholder
+                    DSCO: Display for cardholder only
+                    DSPL: Display
+                    PDAC: Print and display for the acceptor and the cardholder
+                    PDAO: Print and display for the acceptor only
+                    PDCO: Print and display for the cardholder only
+                    PFAO: Print for acceptor only
+                    PRAC: Print for the acceptor and the cardholder
+                    PRCO: Print for cardholder only
+                    PRDS: Print and display
+                    PRNT: Print
+                    REPV: Reserved for private use
+                    RSVD: Reserved
+                  description: >-
+                    Control character<br>Equivalent to DE044-BC-p1 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>DFAO : Display for
+                    acceptor only<br>DIAC : Display for the acceptor and the cardholder<br>DSCO : Display for cardholder
+                    only<br>DSPL : Display<br>PDAC : Print and display for the acceptor and the cardholder<br>PDAO :
+                    Print and display for the acceptor only<br>PDCO : Print and display for the cardholder only<br>PFAO
+                    : Print for acceptor only<br>PRAC : Print for the acceptor and the cardholder<br>PRCO : Print for
+                    cardholder only<br>PRDS : Print and display<br>PRNT : Print<br>REPV : Reserved for private
+                    use<br>RSVD : Reserved
+                messageToTransactionInitiatorMessage:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 20
+                  description: Response message<br>Equivalent to DE044-BC-p2 in CBAE protocol
+                minimumAmountAuthorisable:
+                  type:
+                    - object
+                    - 'null'
+                  properties:
+                    amount:
+                      type:
+                        - string
+                        - 'null'
+                      pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  description: Minimum amount authorisable<br>Equivalent to DE44-BF in CBAE protocol
+                modifiedElectronicCommerceAuthentification:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ACIM
+                    - AUTC
+                    - NOAC
+                  x-enumDescriptions:
+                    ACIM: Authentication cryptogram issued from a mobile
+                    AUTC: Authentication cryptogram
+                    NOAC: No authentication cryptogram
+                  description: >-
+                    Modified electronic commerce authentication type<br>Equivalent to DE059-0413 in CBAE
+                    protocol<br>Value :
+                    Label<br>----------------------------------------------------------------<br>ACIM : Authentication
+                    cryptogram issued from a mobile<br>AUTC : Authentication cryptogram<br>NOAC : No authentication
+                    cryptogram
+                reasonInformationCode:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 4
+                  description: Refusal or acceptance code<br>Equivalent to DE044-AD-p2 in CBAE protocol
+                reasonInformationEntitySource:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ACQU
+                    - DISC
+                    - JCB0
+                    - MACD
+                    - NTWK
+                    - OTHR
+                    - SICB
+                    - UPIC
+                    - VISA
+                  x-enumDescriptions:
+                    ACQU: Acquirer
+                    DISC: Reserved for Discover
+                    JCB0: JCB gateway
+                    MACD: MasterCard gateway
+                    NTWK: Authorisation network
+                    OTHR: Other
+                    SICB: SICB
+                    UPIC: UPI gateway
+                    VISA: Visa gateway
+                  description: >-
+                    Entity responsible for the response<br>Equivalent to DE044-AD-p1 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>ACQU :
+                    Acquirer<br>DISC : Reserved for Discover<br>JCB0 : JCB gateway<br>MACD : MasterCard gateway<br>NTWK
+                    : Authorisation network<br>OTHR : Other<br>SICB : SICB<br>UPIC : UPI gateway<br>VISA : Visa gateway
+                respondingMachineId:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 255
+                  description: Responding machine identification code<br>Equivalent to DE058 in CBAE protocol
+                securityErrorField:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+                  description: Security error field<br>Equivalent to DE44-AB p1 in CBAE protocol
+                securityErrorNature:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ECIE
+                    - ECKE
+                    - ECKN
+                    - ECRE
+                    - ECSD
+                    - ECUL
+                  x-enumDescriptions:
+                    ECIE: 'Integrity error (incorrect field 64 or 128) : 02'
+                    ECKE: 'Key already exists : 04'
+                    ECKN: 'Key does not exist : 01'
+                    ECRE: 'Reasonableness check error following decryption (due to an incorrect key) : 06'
+                    ECSD: 'Security error in server domain (for use by the Network only) : 05'
+                    ECUL: 'Unable to load key – maximum number of keys already loaded : 03'
+                  description: >-
+                    Security error nature<br>Equivalent to DE44-AB p2 in CBAE protocol<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>ECIE : Integrity
+                    error (incorrect field 64 or 128) : 02<br>ECKE : Key already exists : 04<br>ECKN : Key does not
+                    exist : 01<br>ECRE : Reasonableness check error following decryption (due to an incorrect key) :
+                    06<br>ECSD : Security error in server domain (for use by the Network only) : 05<br>ECUL : Unable to
+                    load key – maximum number of keys already loaded : 03
+                uniqueTransactionIdNetwork:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - CBFR
+                    - MACD
+                    - VISA
+                  x-enumDescriptions:
+                    CBFR: CB
+                    MACD: MasterCard
+                    VISA: VISA
+                  description: >-
+                    Transaction Id network<br>Entity responsible for encoding the unique transaction
+                    identifier<br>Equivalent to DE47.95 part 1 (nomenclature) in CBAE protocol (domestic french
+                    data)<br>Value :
+                    Label<br>---------------------------------------------------------------------<br>CBFR  :
+                    CB<br>VISA  : VISA<br>MACD  : Mastercard
+                uniqueTransactionIdValue:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 49
+                  description: >-
+                    Unique transaction Id value<br>Value of the unique transaction identifier generated by the entity
+                    responsible (uniqueTransactionNetworkSource)<br>Equivalent to DE47.95 part 2 (unique transaction
+                    identifier) in CBAE protocol and to DE62.2 in BASEI protocol
+              additionalProperties: false
+          additionalProperties: false
+        originalTransaction:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            acsTransactionId:
+              type:
+                - string
+                - 'null'
+              minLength: 36
+              maxLength: 36
+              description: ACS Transaction ID<br>Equivalent to DE119-0046-p2 in CBAE protocol
+            authenticationAmount:
+              type:
+                - object
+                - 'null'
+              properties:
+                amount:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+              description: Authentication Amount<br>Equivalent to DE119-0046-p6 in CBAE protocol
+            authenticationDateTime:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: >-
+                Authentication Date<br>Equivalent to DE119-0046-p5 in CBAE protocol<br>The date and time are specified
+                in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            authorisationCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,6}$
+              description: >-
+                authorisation code from original transaction stored<br>Authorisation identification code (also called
+                autorisation number) from the original transaction<br>Equivalent to DE38 (from the original transaction)
+                in ISO8583 based protocols
+            cardholderAuthenticationValue:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){4,40}$
+              description: Cardholder Authentication value<br>Equivalent to DE119-0420-p6 in CBAE protocol
+            cardholderAuthenticationValueCalculationMethod:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: Cardholder authentication value calculation method<br>Equivalent to DE119-0420-p3 in CBAE protocol
+            cardholderWalletAuthenticationMethod:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 2
+              description: Cardholder authenticationMethod for a wallet<br>Equivalent to DE119-0420-p2 in CBAE protocol
+            dsTransactionId:
+              type:
+                - string
+                - 'null'
+              minLength: 36
+              maxLength: 36
+              description: DS Transaction ID<br>Equivalent to DE119-0046-p3 in CBAE protocol
+            electronicCommerceAuthenticationNature:
+              type:
+                - string
+                - 'null'
+              enum:
+                - ACMO
+                - ACNO
+                - ACNS
+                - ACXX
+              x-enumDescriptions:
+                ACMO: Authentication cryptogram issued from a mobile  (CB2A 21)
+                ACNO: No authentication cryptogram  (CB2A 09)
+                ACNS: Legacy – Non-secured electronic commerce transaction (CB2A 08)
+                ACXX: Authentication cryptogram issued from a server (CB2A 20)
+              description: >-
+                Electronic commerce transaction authentication type<br>Equivalent to DE119-0420-p1 in CBAE
+                protocol<br>Value :
+                Label<br>---------------------------------------------------------------------<br>ACMO : Authentication
+                cryptogram issued from a mobile : CBAE 21<br>ACNO : No authentication cryptogram : CBAE 09<br>ACNS :
+                Legacy – Non-secured electronic commerce transaction : CBAE 08<br>ACXX : Authentication cryptogram :
+                CBAE 20
+            localDateTime:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: >-
+                local transaction date time in original message<br>Equivalent to DE12, DE13 and DE59.102 (from the
+                original transaction) in ISO8583 based protocols<br>The date and time are specified in the following
+                form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            reference:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: >-
+                reference of initial transaction<br>Transaction reference/audit number of the original
+                transaction<br>Equivalent to DE90 part 2 in ISO8583 based protocols
+            responseCode:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,6}$
+              description: >-
+                Response Code from Original Transaction<br>Response code from the original transaction<br>In
+                authorisation advices, this corresponds to DE39 received in the advice.<br>In reversals, this
+                corresponds to DE39 from the original transaction stored in IAS (if the reversal has been matched with
+                the original transaction)<br>The response code is provided as a 2 digit numeric code.
+            securedRemotePaymentArchitectureResult:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){1,4}$
+              description: Result of using a secured remote payment architecture<br>Equivalent to DE119-0420-p4 in CBAE protocol
+            securedRemotePaymentArchitectureResultExtension:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){1,10}$
+              description: >-
+                Extension of result of using a secured payment architecture<br>Equivalent to DE119-0420-p5 in CBAE
+                protocol
+            threeDsProtocolVersion:
+              type:
+                - string
+                - 'null'
+              enum:
+                - 3DS1
+                - 3DS2
+                - UNKW
+              x-enumDescriptions:
+                3DS1: 3DS version v1
+                3DS2: 3DS version v2
+                UNKW: Unknown
+              description: >-
+                3DS protocol major version<br>Equivalent to DE119-0046-p1 in CBAE protocol<br>Value :
+                Label<br>---------------------------------------------------------------------<br>3DS1 : 3DS version
+                v1<br>3DS2 : 3DS version v2<br>UNKW : Unknown
+            transmissionGmtDateTime:
+              type:
+                - string
+                - 'null'
+              format: date-time
+              description: >-
+                initial transmission gmt date time<br>Transmission date and time of the original
+                transaction<br>Equivalent to DE90 part 3 in ISO8583 based protocols<br>The date and time are specified
+                in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+          additionalProperties: false
+        payer:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            accountNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,50}$
+              description: Account Number of Payer<br>Equivalent to DE118-2014 in CBAE protocol
+            birthDate:
+              type:
+                - string
+                - 'null'
+              format: date
+              description: Payer birth date<br>Equivalent to DE118-2011
+            firstName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payer firstName<br>Equivalent to DE118-2002 in CBAE protocol
+            identityDocument:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 4
+              description: Payer identity document<br>Equivalent to DE118-2015
+            idNumber:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payer Id number<br>Equivalent to DE118-2016
+            lastName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payer lastName<br>Equivalent to DE118-2004 in CBAE protocol
+            middleName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payer middleName<br>Equivalent to DE118-2003 in CBAE protocol
+            nationality:
+              type:
+                - string
+                - 'null'
+              pattern: ^[A-Z]{3}$
+              minLength: 3
+              maxLength: 3
+              description: Payer nationality<br>Equivalent to DE118-2018
+            postalAddress:
+              type:
+                - object
+                - 'null'
+              properties:
+                streetName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                postCode:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 16
+                townName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                countrySubdivisionMajorCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[A-Z]{2,3}$
+                countryCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Payer address<br>Address, postal code, city, state or province, and country code of the payer.<br>Set in
+                the attributes streetname, postCode,townName, countrySubdivisionMajorCode and countryCode of the
+                structure postalAddressType<br>Equivalent to DE118-2005, DE118-2006, DE118-2007, DE118-2008 and
+                DE118-2009
+          additionalProperties: false
+        payee:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            accountNumber:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1,50}$
+              description: Account Number of Payee<br>Equivalent to DE118-3014 in CBAE protocol
+            firstName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payee firstName<br>Equivalent to DE118-3002 in CBAE protocol
+            identityDocument:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 4
+              description: Payee identity document <br>Equivalent to DE118-3015
+            lastName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payee lastName<br>Equivalent to DE118-3004 in CBAE protocol
+            middleName:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 35
+              description: Payee middleName<br>Equivalent to DE118-3003 in CBAE protocol
+            postalAddress:
+              type:
+                - object
+                - 'null'
+              properties:
+                streetName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                postCode:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 16
+                townName:
+                  type:
+                    - string
+                    - 'null'
+                  minLength: 1
+                  maxLength: 70
+                countrySubdivisionMajorCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[A-Z]{2,3}$
+                countryCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+              description: >-
+                Payee address<br>Address, postal code, city, state or province, and country code of the payee<br>Set in
+                the attributes streetname, postCode,townName, countrySubdivisionMajorCode and countryCode of the
+                structure postalAddressType<br>Equivalent to DE118-3005, DE118-3006, DE118-3007, DE118-3008 and
+                DE118-3009
+          additionalProperties: false
+        riskContext:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            merchantNamePresentedForAuthentication:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 40
+              description: Name of the merchant presented for authentication. <br>Equivalent to DE57-36 in CBAE protocol
+            multiFactorAuthenticationExemptionIndicator:
+              type:
+                - string
+                - 'null'
+              pattern: ^([0-9A-F][0-9A-F]){2,3}$
+              description: Multi factor Exemption indicator<br>Equivalent to DE057-0033 in CBAE protocol
+            traExemptionIndicator:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: TRA exemption indicator<br>Equivalent to DE119-0003 in CBAE protocol
+            traScore:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{2}$
+              description: TRA exemption indicator<br>Equivalent to DE119-0005 in CBAE protocol
+          additionalProperties: false
+        riskScoringList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: ''
+            properties:
+              serviceId:
+                type:
+                  - string
+                  - 'null'
+                pattern: ^([0-9A-F][0-9A-F]){1}$
+                description: Service identifier<br>Equivalent to DE059-0802-p1 in CBAE protocol
+              serviceData:
+                type:
+                  - string
+                  - 'null'
+                pattern: ^([0-9A-F][0-9A-F]){1,24}$
+                description: Service data<br>Equivalent to DE059-0802-p2 in CBAE protocol
+            additionalProperties: false
+        verification:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            cardholderWalletAuthenticationMethod:
+              type:
+                - string
+                - 'null'
+              minLength: 1
+              maxLength: 2
+              description: >-
+                Cardholder authenticationMethod for a wallet<br>Equivalent to DE59.0410 in CBAE protocol (domestic
+                french data)
+          additionalProperties: false
+        verificationValue:
+          type:
+            - object
+            - 'null'
+          description: ''
+          properties:
+            authenticationIndicator:
+              type:
+                - string
+                - 'null'
+              pattern: ^[0-9A-Za-z]{1}$
+              description: Authentication indicator<br>Equivalent to DE57-39 in CBAE protocol
+          additionalProperties: false
+      additionalProperties: false
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: BANK-FR-001
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Unique identifier of the event. Used to identify technical duplicates.
+      schema:
+        type: string
+        format: uuid
+      example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: >-
+        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+        schema evolution gracefully.
+      schema:
+        type: string
+      example: '1.0'
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
+  headers:
+    EchoRequestId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    EchoCorrelationId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    EchoInstitutionId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: BANK-FR-001
+    EchoUserId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    EchoUserContextId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    ProcessingRouteId:
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      required: false
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+  responses:
+    Error400:
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error401:
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error403:
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error405:
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error406:
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error409:
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error422:
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error429:
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error500:
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error502:
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error503:
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error504:
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+webhooks:
+  file:
+    post:
+      operationId: file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssAuthorFull'
+      responses:
+        '204':
+          description: Event acquitté par le partenaire (No Content).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      summary: Generic file fake endpoint (file)
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/XEventId'
+        - name: X-Event-Type
+          in: header
+          required: true
+          description: The type of the event.
+          schema:
+            type: string
+            maxLength: 36
+          example: file
+        - $ref: '#/components/parameters/XEventVersion'
+        - $ref: '#/components/parameters/XOriginalRequestId'
+        - $ref: '#/components/parameters/XOriginalCorrelationId'
+        - $ref: '#/components/parameters/OriginalIdempotencyKey'
+servers:
+  - url: /

@@ -26,7 +26,7 @@ components:
       description: Echoes the corresponding request header if provided in the request.
       required: false
       schema: { type: string, maxLength: 4 }
-      example: ctx-8a1f9c
+      example: u42
     ProcessingRouteId:
       description: An identifier indicating the processing route selected by the infrastructure for this message.
       required: false

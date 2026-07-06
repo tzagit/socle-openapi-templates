@@ -36,7 +36,7 @@ components:
       required: false
       description: A unique identifier representing the user group or organizational context under which the request is being performed.
       schema: { type: string, maxLength: 4 }
-      example: ctx-8a1f9c
+      example: u42
 
     # --- idempotence (par méthode) ---
     IdempotencyKeyRequired:
@@ -84,7 +84,7 @@ components:
       required: true
       description: Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle schema evolution gracefully.
       schema: { type: string }
-      example: 1.0
+      example: "1.0"
 
     # --- spécifique events : traçabilité de la requête d'origine (optionnels) ---
     XOriginalRequestId:

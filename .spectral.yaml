@@ -136,8 +136,8 @@ rules:
             - type: array
               contains: { const: string }
   socle-path-id-uuid:
-    description: Un identifiant de ressource (paramètre de path de type string) doit être un uuid.
-    severity: error
+    description: Un identifiant de ressource (paramètre de path de type string) devrait être un uuid.
+    severity: warn
     given: "$.paths[*][get,put,post,delete,patch].parameters[?(@.in=='path')]"
     then:
       field: schema

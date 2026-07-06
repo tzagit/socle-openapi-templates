@@ -63,7 +63,9 @@ components:
       name: X-Request-Id
       in: header
       required: false
-      description: Identifiant unique de la requête (traçabilité).
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
       schema:
         type: string
         format: uuid
@@ -72,7 +74,9 @@ components:
       name: X-Correlation-Id
       in: header
       required: false
-      description: Corrélation d'un flux multi-appels de bout en bout.
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
       schema:
         type: string
         format: uuid
@@ -81,39 +85,46 @@ components:
       name: X-Institution-Id
       in: header
       required: true
-      description: Institution / entité à l'origine de la requête (toujours obligatoire).
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
       schema:
         type: string
+        minLength: 3
+        maxLength: 20
       example: BANK-FR-001
     XUserId:
       name: X-User-Id
       in: header
       required: false
-      description: Utilisateur à l'origine de la requête.
+      description: A unique identifier representing the authenticated user who initiated the action.
       schema:
         type: string
+        maxLength: 128
       example: user-42
     XUserContextId:
       name: X-UserContext-Id
       in: header
       required: false
-      description: Contexte utilisateur (session / rôle / habilitation).
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
       schema:
         type: string
-      example: ctx-8a1f9c
+        maxLength: 4
+      example: u42
     XProcessingRouteId:
       name: X-Processing-Route-Id
       in: header
       required: false
-      description: Route de traitement (dispatch / orchestration interne).
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
       schema:
         type: string
-      example: orders-v1
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
     XEventId:
       name: X-Event-Id
       in: header
       required: true
-      description: Identifiant unique de l'event.
+      description: Unique identifier of the event. Used to identify technical duplicates.
       schema:
         type: string
         format: uuid
@@ -122,7 +133,7 @@ components:
       name: X-Original-Request-Id
       in: header
       required: false
-      description: X-Request-Id de la requête à l'origine de l'event.
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
       schema:
         type: string
         format: uuid
@@ -131,7 +142,7 @@ components:
       name: X-Original-Correlation-Id
       in: header
       required: false
-      description: X-Correlation-Id de la requête à l'origine de l'event.
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
       schema:
         type: string
         format: uuid
@@ -140,53 +151,60 @@ components:
       name: Original-Idempotency-Key
       in: header
       required: false
-      description: Idempotency-Key de la requête à l'origine de l'event.
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
       schema:
         type: string
         format: uuid
       example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
   headers:
     EchoRequestId:
-      description: Écho de l'identifiant de requête.
+      description: Echoes the corresponding request header if provided in the request.
       required: false
       schema:
         type: string
         format: uuid
       example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
     EchoCorrelationId:
-      description: Écho de la corrélation.
+      description: Echoes the corresponding request header if provided in the request.
       required: false
       schema:
         type: string
         format: uuid
       example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
     EchoInstitutionId:
-      description: Écho de l'institution.
+      description: Echoes the corresponding request header if provided in the request.
       required: false
       schema:
         type: string
+        minLength: 3
+        maxLength: 20
       example: BANK-FR-001
     EchoUserId:
-      description: Écho de l'utilisateur.
+      description: Echoes the corresponding request header if provided in the request.
       required: false
       schema:
         type: string
+        maxLength: 128
       example: user-42
     EchoUserContextId:
-      description: Écho du contexte utilisateur.
+      description: Echoes the corresponding request header if provided in the request.
       required: false
       schema:
         type: string
-      example: ctx-8a1f9c
+        maxLength: 4
+      example: u42
     ProcessingRouteId:
-      description: Route de traitement ayant produit la réponse.
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
       required: false
       schema:
         type: string
-      example: orders-v1
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
   responses:
     Error400:
-      description: Requête invalide.
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -205,7 +223,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error401:
-      description: Non authentifié.
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -224,7 +244,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error403:
-      description: Accès refusé.
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -243,7 +265,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error405:
-      description: Méthode non autorisée.
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -262,7 +286,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error406:
-      description: Non acceptable.
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -281,7 +307,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error409:
-      description: Conflit.
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -300,7 +328,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error422:
-      description: Entité non traitable (validation métier).
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -319,7 +349,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error429:
-      description: Trop de requêtes.
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -338,7 +370,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error500:
-      description: Erreur interne.
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -357,7 +391,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error502:
-      description: Passerelle défaillante.
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -376,7 +412,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error503:
-      description: Service indisponible.
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -395,7 +433,9 @@ components:
           schema:
             $ref: '#/components/schemas/StandardError'
     Error504:
-      description: Délai de passerelle dépassé.
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
       headers:
         X-Request-Id:
           $ref: '#/components/headers/EchoRequestId'
@@ -484,14 +524,17 @@ webhooks:
         - name: X-Event-Type
           in: header
           required: true
-          description: Type d'event (routing / dispatch côté partenaire).
+          description: The type of the event.
           schema:
             type: string
+            maxLength: 36
           example: order.cancelled
         - name: X-Event-Version
           in: header
           required: true
-          description: Version du contrat de l'event (évolution du payload).
+          description: >-
+            Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+            schema evolution gracefully.
           schema:
             type: string
           example: 1.0.0
@@ -561,14 +604,17 @@ webhooks:
         - name: X-Event-Type
           in: header
           required: true
-          description: Type d'event (routing / dispatch côté partenaire).
+          description: The type of the event.
           schema:
             type: string
+            maxLength: 36
           example: order.created
         - name: X-Event-Version
           in: header
           required: true
-          description: Version du contrat de l'event (évolution du payload).
+          description: >-
+            Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+            schema evolution gracefully.
           schema:
             type: string
           example: 1.0.0
