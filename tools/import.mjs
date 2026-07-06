@@ -506,6 +506,10 @@ function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.
     for (const k of ['title', 'version', 'description', 'termsOfService', 'contact', 'license']) {
       if (doc.info[k] != null) api.info[k] = clone(doc.info[k]);
     }
+    // extensions custom de info (ex. x-dictionary-version) : conservées telles quelles.
+    for (const k of Object.keys(doc.info)) {
+      if (k.startsWith('x-') && doc.info[k] != null) api.info[k] = clone(doc.info[k]);
+    }
   }
   // servers / base path — pas pour les events (webhooks poussés : ni base path ni servers).
   let defaultServer = false;
