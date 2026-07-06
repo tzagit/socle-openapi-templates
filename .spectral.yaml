@@ -3,9 +3,6 @@
 extends: ["spectral:oas"]
 
 rules:
-  # Le socle livre un sur-ensemble de composants ; chaque projet n'en utilise qu'une partie
-  # (comme no-unused-components: off côté Redocly).
-  oas3-unused-component: "off"
 
   # --- Sécurité ---
   socle-no-api-key:

@@ -370,9 +370,12 @@ expansées par le build).
 4. **Expansion des macros** (`x-paginated`, `x-event`, `x-errors`…).
 5. **Champs optionnels → nullable** — toute propriété absente de `required` devient
    `type: [<type>, "null"]` (OpenAPI 3.1) : un champ optionnel peut être absent **ou** `null`.
-6. **Résolution/bundling des `$ref`** en un seul fichier.
-7. **Validation** (lint OpenAPI) — échoue si contrat non conforme.
-8. **Sortie** → `build/<mon-api>.openapi.yaml`.
+6. **Tree-shaking** — retire les composants du socle **non référencés** (le core fournit un
+   sur-ensemble ; un contrat sans pagination ne porte ni `Page`/`Pagination` ni `page/size/sort`,
+   un `exposed` ne porte pas les headers d'event, etc.), quel que soit le type d'API.
+7. **Résolution/bundling des `$ref`** en un seul fichier.
+8. **Validation** (lint OpenAPI) — échoue si contrat non conforme.
+9. **Sortie** → `build/<mon-api>.openapi.yaml`.
 
 ## 11. Choix techniques proposés
 

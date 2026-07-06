@@ -317,7 +317,8 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
   if (isEvents) doc.webhooks = deepMerge(doc.webhooks ?? {}, container);
   else doc.paths = deepMerge(doc.paths ?? {}, container);
 
-  nullableOptionals(doc); // champs optionnels → nullable (3.1)
+  nullableOptionals(doc);      // champs optionnels → nullable (3.1)
+  pruneUnusedComponents(doc);  // n'émet que les composants réellement référencés (pas de pagination si non utilisée, etc.)
 
   validateRefs(doc, name);
 
@@ -332,6 +333,55 @@ function normalizeEventAck(op) {
   op.responses ??= {};
   for (const key of Object.keys(op.responses)) if (/^2/.test(key)) delete op.responses[key];
   op.responses['204'] = { description: 'Event acquitté par le partenaire (No Content).' };
+}
+
+// ------------------------------------------------------------------ tree-shaking des composants
+// Ne conserve que les composants (schemas/parameters/headers/responses/securitySchemes)
+// réellement atteignables depuis paths/webhooks/security. Le socle fournit un sur-ensemble ;
+// le contrat final ne porte que ce qu'il utilise (pagination, headers d'event, etc.).
+function collectSecuritySchemeNames(node, set) {
+  if (Array.isArray(node)) { node.forEach((n) => collectSecuritySchemeNames(n, set)); return; }
+  if (!isObj(node)) return;
+  for (const [k, v] of Object.entries(node)) {
+    if (k === 'security' && Array.isArray(v)) { for (const req of v) if (isObj(req)) Object.keys(req).forEach((s) => set.add(s)); }
+    else collectSecuritySchemeNames(v, set);
+  }
+}
+
+function resolveComponent(doc, ref) {
+  let cur = doc;
+  for (const seg of ref.slice(2).split('/')) {
+    const key = seg.replace(/~1/g, '/').replace(/~0/g, '~');
+    if (!isObj(cur)) return undefined;
+    cur = cur[key];
+  }
+  return cur;
+}
+
+function pruneUnusedComponents(doc) {
+  if (!isObj(doc.components)) return;
+  const { components, ...outside } = doc; // racines : refs hors de components
+
+  const reachable = new Set(collectRefs(outside, []).filter((r) => r.startsWith('#/components/')));
+  const queue = [...reachable];
+  while (queue.length) {
+    const node = resolveComponent(doc, queue.pop());
+    for (const r of collectRefs(node, [])) {
+      if (r.startsWith('#/components/') && !reachable.has(r)) { reachable.add(r); queue.push(r); }
+    }
+  }
+
+  const usedSchemes = new Set();
+  collectSecuritySchemeNames(outside, usedSchemes);
+
+  for (const [kind, group] of Object.entries(components)) {
+    if (!isObj(group)) continue;
+    for (const name of Object.keys(group)) {
+      const keep = kind === 'securitySchemes' ? usedSchemes.has(name) : reachable.has(`#/components/${kind}/${name}`);
+      if (!keep) delete group[name];
+    }
+    if (!Object.keys(group).length) delete components[kind];
+  }
 }
 
 // ------------------------------------------------------------------ validation légère des $ref internes

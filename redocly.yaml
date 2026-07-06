@@ -4,9 +4,9 @@
 extends:
   - recommended
 rules:
-  # Le socle (core) fournit un sur-ensemble de composants ; chaque projet n'en
-  # utilise qu'une partie (ex. pas de pagination pour un webhook).
-  no-unused-components: off
+  # Le build tree-shake les composants : le contrat ne porte que ce qu'il utilise.
+  # On peut donc exiger l'absence de composant inutilisé.
+  no-unused-components: error
   # Sécurité gérée au niveau gateway ; signature des webhooks reportée (SPEC §12).
   security-defined: off
   # Un profil "events" (webhooks) n'a pas de servers : c'est le partenaire qui héberge.
