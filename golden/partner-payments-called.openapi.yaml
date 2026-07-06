@@ -1,0 +1,663 @@
+openapi: 3.1.0
+info:
+  title: Partner Payments API
+  version: 1.0.0
+  description: API de paiement définie par mon SI et exposée par le partenaire.
+  x-socle-version: 0.1.0
+components:
+  schemas:
+    StandardErrorObject:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          type: string
+          description: Code d'erreur applicatif stable.
+        message:
+          type: string
+          description: Message d'erreur destiné au consommateur.
+        moreInfo:
+          type: string
+          description: Complément d'information / lien de documentation.
+        developerText:
+          type: string
+          description: Détail technique à destination des développeurs.
+    Pagination:
+      type: object
+      required:
+        - page
+        - size
+        - totalElements
+        - totalPages
+        - hasNext
+        - hasPrevious
+      properties:
+        page:
+          type: integer
+          description: Index de la page (0-based).
+          minimum: 0
+        size:
+          type: integer
+          description: Taille de la page.
+        totalElements:
+          type: integer
+          description: Nombre total d'éléments.
+        totalPages:
+          type: integer
+          description: Nombre total de pages.
+        hasNext:
+          type: boolean
+          description: Existe-t-il une page suivante ?
+        hasPrevious:
+          type: boolean
+          description: Existe-t-il une page précédente ?
+    Page:
+      type: object
+      required:
+        - content
+        - pagination
+      properties:
+        content:
+          type: array
+          items: {}
+          description: Éléments de la page (type précisé par PageOf<Item>).
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Payment:
+      type: object
+      required:
+        - id
+        - status
+        - amount
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - INITIATED
+            - AUTHORIZED
+            - CAPTURED
+            - FAILED
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          default: EUR
+    PaymentInput:
+      type: object
+      required:
+        - amount
+        - creditorIban
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          default: EUR
+        creditorIban:
+          type: string
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: Identifiant unique de la requête (traçabilité).
+      schema:
+        type: string
+        format: uuid
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: Corrélation d'un flux multi-appels de bout en bout.
+      schema:
+        type: string
+        format: uuid
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: Institution / entité à l'origine de la requête (toujours obligatoire).
+      schema:
+        type: string
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: Utilisateur à l'origine de la requête.
+      schema:
+        type: string
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: Contexte utilisateur (session / rôle / habilitation).
+      schema:
+        type: string
+    IdempotencyKeyRequired:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Clé d'idempotence (rejeu sûr). Obligatoire sur POST/PATCH.
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKeyOptional:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Clé d'idempotence (rejeu sûr). Optionnelle sur PUT/DELETE.
+      schema:
+        type: string
+        format: uuid
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: Route de traitement (dispatch / orchestration interne).
+      schema:
+        type: string
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Identifiant unique de l'event.
+      schema:
+        type: string
+        format: uuid
+    XEventType:
+      name: X-Event-Type
+      in: header
+      required: true
+      description: Type d'event (routing / dispatch côté partenaire).
+      schema:
+        type: string
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: Version du contrat de l'event (évolution du payload).
+      schema:
+        type: string
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: X-Request-Id de la requête à l'origine de l'event.
+      schema:
+        type: string
+        format: uuid
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: X-Correlation-Id de la requête à l'origine de l'event.
+      schema:
+        type: string
+        format: uuid
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Idempotency-Key de la requête à l'origine de l'event.
+      schema:
+        type: string
+        format: uuid
+    PageParam:
+      name: page
+      in: query
+      required: false
+      description: Index de page (0-based).
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      required: false
+      description: Taille de page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      description: >-
+        Tri multi-critères. Répétable. Format `champ,asc|desc` (direction par défaut : asc). Ex.
+        `?sort=createdAt,desc&sort=id,asc`.
+      style: form
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+          pattern: ^[A-Za-z0-9_.]+(,(asc|desc))?$
+  headers:
+    EchoRequestId:
+      description: Écho de l'identifiant de requête.
+      required: false
+      schema:
+        type: string
+        format: uuid
+    EchoCorrelationId:
+      description: Écho de la corrélation.
+      required: false
+      schema:
+        type: string
+        format: uuid
+    EchoInstitutionId:
+      description: Écho de l'institution.
+      required: false
+      schema:
+        type: string
+    EchoUserId:
+      description: Écho de l'utilisateur.
+      required: false
+      schema:
+        type: string
+    EchoUserContextId:
+      description: Écho du contexte utilisateur.
+      required: false
+      schema:
+        type: string
+    ProcessingRouteId:
+      description: Route de traitement ayant produit la réponse (présent pour tous les types).
+      required: true
+      schema:
+        type: string
+  responses:
+    Error400:
+      description: Requête invalide.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error401:
+      description: Non authentifié.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error403:
+      description: Accès refusé.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error404:
+      description: Ressource introuvable.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error405:
+      description: Méthode non autorisée.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error406:
+      description: Non acceptable.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error409:
+      description: Conflit.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error422:
+      description: Entité non traitable (validation métier).
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error429:
+      description: Trop de requêtes.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error500:
+      description: Erreur interne.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error502:
+      description: Passerelle défaillante.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error503:
+      description: Service indisponible.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+    Error504:
+      description: Délai de passerelle dépassé.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardErrorObject'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+servers:
+  - url: https://partner.example.com/payments/v1
+tags:
+  - name: payments
+    description: Paiements.
+paths:
+  /payments:
+    post:
+      tags:
+        - payments
+      operationId: createPayment
+      summary: Initie un paiement chez le partenaire
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInput'
+      responses:
+        '201':
+          description: Paiement initié.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+  /payments/{paymentId}:
+    get:
+      tags:
+        - payments
+      operationId: getPayment
+      summary: Statut d'un paiement
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+      responses:
+        '200':
+          description: Paiement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'

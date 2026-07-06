@@ -20,7 +20,9 @@
     "build": "node tools/build.mjs",
     "build:one": "node tools/build.mjs --project",
     "import": "node tools/import.mjs",
-    "lint": "redocly lint build/*.openapi.yaml"
+    "lint": "redocly lint build/*.openapi.yaml",
+    "check:regression": "node tools/check-regression.mjs",
+    "golden:update": "node tools/build.mjs && cp build/*.openapi.yaml golden/"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

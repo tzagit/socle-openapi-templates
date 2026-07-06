@@ -335,8 +335,15 @@ baseline stockée sur Artifactory devient la référence du prochain diff.
 npm install
 npm run build            # construit examples/ → build/
 npm run lint             # valide les sorties (Redocly)
+npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture)
+npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
 npm pack --dry-run       # aperçu du package publié
 ```
+
+**Non-régression du socle** — `golden/` contient les contrats de référence des `examples/`.
+Le job CI `non-regression` (`.gitlab-ci.yml`) régénère les exemples et échoue si un changement
+des templates est **cassant** (via `oasdiff`), forçant à l'assumer par une **MAJOR** du socle et
+à régénérer les baselines (`npm run golden:update`).
 
 Arborescence :
 ```

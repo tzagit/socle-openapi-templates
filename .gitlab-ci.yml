@@ -1,0 +1,39 @@
+# CI du socle @monsi/openapi-socle.
+# - lint            : valide les contrats d'exemple générés
+# - non-regression  : régénère examples/ et échoue si un changement CASSANT des templates
+#                     n'est pas assumé (baselines figées dans golden/)
+# - publish         : sur tag vX.Y.Z, publie le package npm sur Artifactory
+
+stages: [check, publish]
+
+variables:
+  NODE_IMAGE: "node:20"
+
+lint:
+  stage: check
+  image: $NODE_IMAGE
+  script:
+    - npm ci
+    - npm run build
+    - npx redocly lint build/*.openapi.yaml
+
+non-regression:
+  stage: check
+  image: $NODE_IMAGE
+  script:
+    # oasdiff (binaire libre) pour la détection sémantique des ruptures
+    - curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh
+    - npm ci
+    - npm run check:regression
+
+# Publie le package sur l'Artifactory npm à chaque tag SemVer.
+# Pré-requis : variable CI/CD NPM_AUTH_TOKEN (masquée) + $ARTIFACTORY_NPM_URL.
+publish:
+  stage: publish
+  image: $NODE_IMAGE
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - echo "@monsi:registry=${ARTIFACTORY_NPM_URL}" > .npmrc
+    - echo "//${ARTIFACTORY_NPM_URL#https://}:_authToken=${NPM_AUTH_TOKEN}" >> .npmrc
+    - npm publish
