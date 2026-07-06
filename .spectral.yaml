@@ -80,12 +80,19 @@ rules:
 
   # --- Schémas ---
   socle-array-items:
-    description: Un schéma de type array doit définir le type de ses items.
+    description: Un schéma de type array (même nullable) doit définir le type de ses items.
     severity: error
-    given: "$..[?(@.type=='array')]"
+    given: "$..[?(@.type)]"
     then:
-      field: items
-      function: truthy
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            anyOf:
+              - properties: { type: { const: array } }
+              - properties: { type: { type: array, contains: { const: array } } }
+          then:
+            required: [items]
 
   # --- Format d'erreur commun ---
   socle-standard-error:
