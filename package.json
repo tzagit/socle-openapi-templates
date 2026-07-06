@@ -1,9 +1,21 @@
 {
-  "name": "openapi-templates",
+  "name": "@monsi/openapi-socle",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
-  "description": "Système de templating YAML pour OpenAPI (exposed | called | events)",
+  "description": "Socle de templating YAML pour OpenAPI (exposed | called | events) — build, import, CLI.",
+  "bin": {
+    "openapi-socle": "bin/openapi-socle.mjs"
+  },
+  "files": [
+    "bin",
+    "tools",
+    "templates",
+    "redocly.yaml",
+    "SPEC.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "node tools/build.mjs",
     "build:one": "node tools/build.mjs --project",
@@ -15,5 +27,8 @@
   },
   "devDependencies": {
     "@redocly/cli": "^1.25.0"
+  },
+  "publishConfig": {
+    "@monsi:registry": "https://artifactory.example.com/artifactory/api/npm/npm-local/"
   }
 }

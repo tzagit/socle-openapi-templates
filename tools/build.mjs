@@ -6,13 +6,15 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
 
+// ROOT/TEMPLATES sont résolus depuis le PACKAGE (le socle est livré avec ses templates).
+// Les projets et la sortie sont fournis par l'appelant (le dépôt consommateur).
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEMPLATES = path.join(ROOT, 'templates');
-const PROJECTS = path.join(ROOT, 'projects');
-const OUT = path.join(ROOT, 'build');
+const EXAMPLES = path.join(ROOT, 'examples'); // défaut pour le dev du socle lui-même
+const DEFAULT_OUT = path.join(ROOT, 'build');
 
 const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace'];
 
@@ -178,8 +180,8 @@ function expandPagination(op, doc) {
 }
 
 // ------------------------------------------------------------------ assemblage d'un projet
-function buildProject(dir) {
-  const name = path.basename(dir);
+export function buildProject(dir, outDir = DEFAULT_OUT) {
+  const name = path.basename(path.resolve(dir));
   const { type, operations, doc: projectDoc } = loadProject(dir);
 
   let doc = deepMerge(loadCore(), loadProfile(type));
@@ -219,8 +221,8 @@ function buildProject(dir) {
 
   validateRefs(doc, name);
 
-  fs.mkdirSync(OUT, { recursive: true });
-  const outFile = path.join(OUT, `${name}.openapi.yaml`);
+  fs.mkdirSync(outDir, { recursive: true });
+  const outFile = path.join(outDir, `${name}.openapi.yaml`);
   fs.writeFileSync(outFile, yaml.dump(doc, { lineWidth: 120, noRefs: true, sortKeys: false }));
   return { name, type, outFile, operations: Object.keys(operations).length };
 }
@@ -261,35 +263,45 @@ function validateRefs(doc, name) {
   if (missing.length) throw new Error(`[${name}] $ref non résolus :\n  - ${missing.join('\n  - ')}`);
 }
 
-// ------------------------------------------------------------------ main
-function projectDirs(filter) {
-  if (!fs.existsSync(PROJECTS)) return [];
-  return fs.readdirSync(PROJECTS)
-    .map((d) => path.join(PROJECTS, d))
-    .filter((d) => fs.statSync(d).isDirectory() && fs.existsSync(path.join(d, 'api.yaml')))
+// ------------------------------------------------------------------ découverte des projets
+const isProjectDir = (dir) => fs.existsSync(path.join(dir, 'api.yaml'));
+
+function projectDirs(root, filter) {
+  if (isProjectDir(root)) return [root]; // le dossier fourni EST un projet
+  if (!fs.existsSync(root)) return [];
+  return fs.readdirSync(root)              // sinon : conteneur de projets (un sous-dossier par API)
+    .map((d) => path.join(root, d))
+    .filter((d) => fs.statSync(d).isDirectory() && isProjectDir(d))
     .filter((d) => !filter || path.basename(d) === filter);
 }
 
+// API : construit un ou plusieurs projets. `root` peut être un projet ou un conteneur de projets.
+export function buildProjects({ root = EXAMPLES, outDir = DEFAULT_OUT, filter = null } = {}) {
+  const dirs = projectDirs(root, filter);
+  const results = [];
+  for (const dir of dirs) {
+    try { results.push({ ok: true, ...buildProject(dir, outDir) }); }
+    catch (e) { results.push({ ok: false, name: path.basename(dir), error: e.message }); }
+  }
+  return { dirs, results };
+}
+
+// CLI de dev du socle : `node tools/build.mjs [--project <nom>]` construit examples/ → build/.
 function main() {
   const idx = process.argv.indexOf('--project');
   const filter = idx !== -1 ? process.argv[idx + 1] : null;
-  const dirs = projectDirs(filter);
+  const { dirs, results } = buildProjects({ root: EXAMPLES, outDir: DEFAULT_OUT, filter });
   if (!dirs.length) {
-    console.error(filter ? `Projet "${filter}" introuvable.` : 'Aucun projet dans projects/.');
+    console.error(filter ? `Projet "${filter}" introuvable.` : 'Aucun projet dans examples/.');
     process.exit(1);
   }
   let ok = 0;
-  for (const dir of dirs) {
-    try {
-      const r = buildProject(dir);
-      console.log(`✓ ${r.name.padEnd(28)} [${r.type}]  ${r.operations} route(s)  → build/${r.name}.openapi.yaml`);
-      ok++;
-    } catch (e) {
-      console.error(`✗ ${path.basename(dir)} : ${e.message}`);
-    }
+  for (const r of results) {
+    if (r.ok) { console.log(`✓ ${r.name.padEnd(28)} [${r.type}]  ${r.operations} route(s)  → build/${r.name}.openapi.yaml`); ok++; }
+    else console.error(`✗ ${r.name} : ${r.error}`);
   }
   console.log(`\n${ok}/${dirs.length} projet(s) construit(s).`);
   if (ok !== dirs.length) process.exit(1);
 }
 
-main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) main();

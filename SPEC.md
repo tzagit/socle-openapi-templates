@@ -66,37 +66,37 @@ contrat_final = deepMerge(core, profil[type], projet)  →  resolve($ref)  →  
 
 ## 5. Arborescence proposée
 
+Le socle est **publié en package npm** (`@monsi/openapi-socle`) : `bin/`, `tools/` et
+`templates/` sont livrés dans le package ; un projet consommateur ne contient que sa couche 3
+et appelle `openapi-socle build .`. Les `examples/` ne sont pas publiés.
+
 ```
-openapi-templates/
+openapi-socle/  (le package — ce dépôt)
 ├── SPEC.md
-├── package.json                 # scripts de build/lint/bundle
+├── package.json                 # name @monsi/openapi-socle, bin, files
+├── bin/openapi-socle.mjs        # CLI : build | import
 ├── templates/
 │   ├── core/                    # COUCHE 1 — commun à tous
-│   │   ├── base.yaml            # squelette OpenAPI (version, security schemes de base)
-│   │   ├── headers/
-│   │   │   ├── request.yaml     # headers de requête communs
-│   │   │   └── response.yaml    # headers de réponse communs
-│   │   ├── responses/
-│   │   │   └── errors.yaml      # 400,401,403,404,409,422,429,500,502,503,504…
-│   │   ├── schemas/
-│   │   │   ├── error.yaml       # StandardErrorObject
-│   │   │   └── page.yaml        # enveloppe de pagination + PageMeta
-│   │   └── parameters/
-│   │       ├── pagination.yaml  # page, size
-│   │       └── sorting.yaml     # sort
-│   ├── profiles/                # COUCHE 2
-│   │   ├── exposed.yaml
-│   │   ├── called.yaml
-│   │   └── events.yaml
+│   │   ├── base.yaml            # squelette OpenAPI
+│   │   ├── headers/{request,response}.yaml
+│   │   ├── responses/errors.yaml
+│   │   ├── schemas/{error,page}.yaml   # StandardErrorObject ; Page + Pagination
+│   │   └── parameters/{pagination,sorting}.yaml
+│   ├── profiles/                # COUCHE 2 — exposed | called | events
 │   └── README.md
-├── projects/                    # COUCHE 3 — un dossier par API
-│   └── <mon-api>/
-│       ├── api.yaml             # type + info + servers + tags (le minimum)
-│       ├── paths/               # 1 fichier par ressource (paths + réponses 2xx)
-│       └── schemas/             # schémas métier du projet
+├── examples/                    # projets de démonstration (NON publiés)
+│   └── <api>/{api.yaml, paths/, schemas/}
 ├── build/                       # sortie générée (bundled OpenAPI par projet)
 └── tools/
-    └── build.mjs                # merge des couches + expansion des macros
+    ├── build.mjs                # merge des couches + expansion des macros (exporté + CLI)
+    └── import.mjs               # importer OpenAPI existant → projet
+
+dépôt-projet/  (chez le consommateur)  # COUCHE 3 uniquement
+├── package.json                 # devDep @monsi/openapi-socle ; script "openapi-socle build ."
+├── api.yaml                     # type + info + servers + tags (le minimum)
+├── paths/                       # 1 fichier par ressource (paths + réponses 2xx)
+├── schemas/                     # schémas métier du projet
+└── build/                       # <projet>.openapi.yaml généré
 ```
 
 ## 6. Le socle commun (couche 1)

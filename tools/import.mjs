@@ -5,7 +5,7 @@
 // Page/StandardErrorObject…) et on reconstruit les macros (x-paginated, x-event).
 //
 // Usage :
-//   node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--no-factor] [--force]
+//   node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--out-dir <dir>] [--no-factor] [--force]
 //
 // L'entrée doit être un fichier UNIQUE (bundlé). Si votre contrat est éclaté en
 // plusieurs fichiers, bundlez-le d'abord :  npx redocly bundle in.yaml -o bundled.yaml
@@ -14,11 +14,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PROJECTS = path.join(ROOT, 'projects');
+// Le projet importé est écrit dans le dossier de l'appelant (défaut : CWD), pas dans le package.
 
 const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace'];
 
@@ -443,10 +442,10 @@ function importDoc(doc, { type, name, factor = true }) {
   };
 }
 
-function writeProject(result, { force }) {
-  const dir = path.join(PROJECTS, result.name);
+export function writeProject(result, { force, outDir = process.cwd() } = {}) {
+  const dir = path.join(outDir, result.name);
   if (fs.existsSync(dir) && !force) {
-    throw new Error(`Le projet "${result.name}" existe déjà (projects/${result.name}). Utilisez --force pour écraser.`);
+    throw new Error(`Le dossier "${result.name}" existe déjà (${dir}). Utilisez --force pour écraser.`);
   }
   fs.mkdirSync(path.join(dir, 'paths'), { recursive: true });
   fs.mkdirSync(path.join(dir, 'schemas'), { recursive: true });
@@ -470,20 +469,21 @@ function parseArgs(argv) {
     else if (a === '--no-factor') args.factor = false;
     else if (a === '--name') args.name = argv[++i];
     else if (a === '--type') args.type = argv[++i];
+    else if (a === '--out-dir') args.outDir = argv[++i];
     else if (a.startsWith('--')) throw new Error(`Option inconnue : ${a}`);
     else args._.push(a);
   }
   return args;
 }
 
-function main() {
+export function runImportCli(argv = process.argv.slice(2)) {
   let args;
-  try { args = parseArgs(process.argv.slice(2)); }
+  try { args = parseArgs(argv); }
   catch (e) { console.error(e.message); process.exit(1); }
 
   const input = args._[0];
   if (!input) {
-    console.error('Usage : node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--no-factor] [--force]');
+    console.error('Usage : node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--out-dir <dir>] [--no-factor] [--force]');
     process.exit(1);
   }
   if (!fs.existsSync(input)) { console.error(`Fichier introuvable : ${input}`); process.exit(1); }
@@ -498,10 +498,11 @@ function main() {
     process.exit(1);
   }
 
-  const dir = writeProject(result, { force: args.force });
+  const outDir = args.outDir || process.cwd();
+  const dir = writeProject(result, { force: args.force, outDir });
 
   const nbRoutes = Object.values(result.files).reduce((n, r) => n + Object.keys(r).length, 0);
-  console.log(`✓ Projet "${result.name}" [${result.resolvedType}] → projects/${result.name}/`);
+  console.log(`✓ Projet "${result.name}" [${result.resolvedType}] → ${path.relative(process.cwd(), dir) || '.'}/`);
   console.log(`  ${nbRoutes} route(s) dans ${Object.keys(result.files).length} fichier(s), ${Object.keys(result.schemas).length} schéma(s) métier.`);
   if (result.is30) console.log(`  OpenAPI 3.0 détecté : ${result.nullableStats.nullable} champ(s) nullable convertis en 3.1.`);
   if (result.droppedWrappers.length) console.log(`  Pagination reconstruite (x-paginated), enveloppe(s) retirée(s) : ${result.droppedWrappers.join(', ')}.`);
@@ -519,7 +520,7 @@ function main() {
 
   if (result.nullableStats.unhandledNullable) console.log(`  ⚠ ${result.nullableStats.unhandledNullable} nullable non convertible automatiquement (type non scalaire) — à vérifier.`);
   for (const w of result.warnings) console.log(`  ⚠ ${w}`);
-  console.log(`\nProchaine étape : node tools/build.mjs --project ${result.name}`);
+  console.log(`\nProchaine étape : openapi-socle build ${path.relative(process.cwd(), dir) || '.'}`);
 }
 
-main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) runImportCli();
