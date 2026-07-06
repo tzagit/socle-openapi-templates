@@ -367,7 +367,8 @@ npm run build            # construit examples/ → build/
 npm run lint             # validité OpenAPI (Redocly)
 npm run spectral         # conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
                          #   par méthode, X-Processing-Route-Id en réponse, identifiants au format uuid,
-                         #   nommage camelCase, items d'array, règles par type (events/called via
+                         #   nommage camelCase, items d'array, codes d'erreur contextuels par méthode
+                         #   (404/409/422 + catalogue), règles par type (events/called via
                          #   info.x-socle-type), x-socle-version, operationId, tags…)
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture) — nécessite oasdiff
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)

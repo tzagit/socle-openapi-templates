@@ -287,3 +287,63 @@ rules:
                         parameters:
                           type: array
                           contains: { type: object, properties: { name: { const: X-Processing-Route-Id } }, required: [name] }
+
+  # --- Codes réponses : catalogue d'erreurs contextuel (paths + webhooks) ---
+  socle-error-catalog:
+    description: Chaque opération doit exposer le catalogue d'erreurs commun.
+    severity: error
+    given:
+      - "$.paths[*][get,put,post,delete,patch]"
+      - "$.webhooks[*][get,put,post,delete,patch]"
+    then:
+      field: responses
+      function: schema
+      functionOptions:
+        schema:
+          required: ["400", "401", "403", "405", "406", "429", "500", "502", "503", "504"]
+  socle-error-404-when-path-param:
+    description: Une opération avec paramètre de path doit exposer 404.
+    severity: error
+    given:
+      - "$.paths[*][get,put,post,delete,patch]"
+      - "$.webhooks[*][get,put,post,delete,patch]"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            required: [parameters]
+            properties:
+              parameters:
+                type: array
+                contains: { type: object, required: [in], properties: { in: { const: path } } }
+          then:
+            required: [responses]
+            properties: { responses: { required: ["404"] } }
+  socle-error-409-when-write:
+    description: Une méthode d'écriture (POST/PUT/PATCH/DELETE) doit exposer 409.
+    severity: error
+    given:
+      - "$.paths[*][put,post,delete,patch]"
+      - "$.webhooks[*][put,post,delete,patch]"
+    then:
+      field: responses
+      function: schema
+      functionOptions:
+        schema:
+          required: ["409"]
+  socle-error-422-when-body:
+    description: Une opération avec requestBody doit exposer 422.
+    severity: error
+    given:
+      - "$.paths[*][get,put,post,delete,patch]"
+      - "$.webhooks[*][get,put,post,delete,patch]"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            required: [requestBody]
+          then:
+            required: [responses]
+            properties: { responses: { required: ["422"] } }
