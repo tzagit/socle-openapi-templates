@@ -1,0 +1,8 @@
+# Un fichier = un event : métadonnées x-event-* + JSON Schema du payload.
+# Le build en génère le webhook (clé = x-event-type) et injecte les headers d'event.
+x-event-type: order.created
+x-event-version: "1.0.0"
+x-summary: Émis lorsqu'une commande est créée
+x-description: Notifie le partenaire de la création d'une commande.
+# Payload : le schéma métier Order (schemas/order.yaml).
+$ref: '#/components/schemas/Order'

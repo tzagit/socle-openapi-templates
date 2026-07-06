@@ -1,0 +1,5 @@
+x-event-type: order.cancelled
+x-event-version: "1.0.0"
+x-summary: Émis lorsqu'une commande est annulée
+x-description: Notifie le partenaire de l'annulation d'une commande.
+$ref: '#/components/schemas/Order'

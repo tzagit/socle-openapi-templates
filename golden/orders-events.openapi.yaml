@@ -535,10 +535,9 @@ components:
 security:
   - bearerAuth: []
 webhooks:
-  order.created:
+  order.cancelled:
     post:
-      operationId: onOrderCreated
-      summary: Émis lorsqu'une commande est créée
+      operationId: onOrderCancelled
       requestBody:
         required: true
         content:
@@ -548,6 +547,9 @@ webhooks:
       responses:
         2XX:
           description: Event acquitté par le partenaire.
+      summary: Émis lorsqu'une commande est annulée
+      description: Notifie le partenaire de l'annulation d'une commande.
+      x-event-version: 1.0.0
       parameters:
         - $ref: '#/components/parameters/XRequestId'
         - $ref: '#/components/parameters/XCorrelationId'
@@ -561,10 +563,9 @@ webhooks:
         - $ref: '#/components/parameters/XOriginalRequestId'
         - $ref: '#/components/parameters/XOriginalCorrelationId'
         - $ref: '#/components/parameters/OriginalIdempotencyKey'
-  order.cancelled:
+  order.created:
     post:
-      operationId: onOrderCancelled
-      summary: Émis lorsqu'une commande est annulée
+      operationId: onOrderCreated
       requestBody:
         required: true
         content:
@@ -574,6 +575,9 @@ webhooks:
       responses:
         2XX:
           description: Event acquitté par le partenaire.
+      summary: Émis lorsqu'une commande est créée
+      description: Notifie le partenaire de la création d'une commande.
+      x-event-version: 1.0.0
       parameters:
         - $ref: '#/components/parameters/XRequestId'
         - $ref: '#/components/parameters/XCorrelationId'

@@ -161,6 +161,8 @@ mon-api/
   réponses `2xx`** ; le reste est injecté.
 - **`schemas/*.yaml`** : tous fusionnés dans `components.schemas`. Référencer par
   `$ref: '#/components/schemas/…'`.
+- **`events/*.yaml`** *(type `events` uniquement)* : un fichier par event (JSON Schema du
+  payload + métadonnées `x-event-*`) ; le build génère les webhooks (cf. §5).
 
 ---
 
@@ -177,22 +179,20 @@ Le champ `type:` de `api.yaml` choisit le profil.
 - **`called`** ajoute le header `X-Processing-Route-Id`. La sécurité (bearer JWT) est commune à
   tous les types.
 - **`events`** bascule les opérations sous **`webhooks:`**, ajoute les headers d'event, envoie
-  le **payload brut** (pas d'enveloppe) et attend un **ack `2xx`**. Exemple :
+  le **payload brut** (pas d'enveloppe) et attend un **ack `2xx`**. On déclare chaque event dans
+  un fichier de **`events/`** (JSON Schema du payload + métadonnées `x-event-*`) ; le build en
+  génère le webhook :
   ```yaml
-  # paths/order-created.yaml  (type: events)
-  order.created:
-    post:
-      operationId: onOrderCreated
-      summary: Émis lorsqu'une commande est créée
-      x-event: order.created
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/Order' }   # payload brut
-      responses:
-        '2xx': ~   # ack attendu du partenaire
+  # events/order-created.yaml  (type: events)
+  x-event-type: order.created                # clé du webhook + marqueur x-event
+  x-event-version: "1.0.0"
+  x-summary: Émis lorsqu'une commande est créée
+  x-description: Notifie le partenaire de la création d'une commande.
+  $ref: '#/components/schemas/Order'         # payload brut ($ref ou schéma inline)
   ```
+  Métadonnées : `x-event-type` (obligatoire), `x-event-version`, `x-summary`, `x-description`,
+  `x-operation-id`, `x-tags`, `x-deprecated`. Un `$ref` nu est réutilisé tel quel ; un schéma
+  inline est enregistré comme composant `<EventType>Event`.
 
 ---
 

@@ -241,22 +241,26 @@ Non inclus pour le moment.
 - Réponses **attendues du partenaire** : `2xx` = ack ; sinon rejeu selon politique
   de retry (extension `x-retry`), puis dead-letter.
 
-Exemple d'un webhook côté projet — le projet ne fournit que le schéma brut du payload :
+**Répertoire `events/`** — pour un projet `events`, chaque fichier de `events/` est un
+**JSON Schema du payload** enrichi de **métadonnées `x-event-*`** ; le build en **génère
+automatiquement le webhook** (clé = `x-event-type`), injecte les headers d'event et l'ack `2xx`.
 
 ```yaml
-# projects/mon-api/paths/order-created.yaml  (type: events)
-order.created:
-  post:
-    summary: Émis lorsqu'une commande est créée
-    x-event: order.created            # injecte les headers d'event/signature
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Order' }   # payload BRUT, sans enveloppe
-    responses:
-      '2xx': ~   # ack attendu du partenaire (géré par le socle)
+# mon-api/events/order-created.yaml   (type: events)
+x-event-type: order.created                 # → clé du webhook + marqueur x-event
+x-event-version: "1.0.0"                     # → extension x-event-version de l'opération
+x-summary: Émis lorsqu'une commande est créée   # → summary
+x-description: Notifie le partenaire…            # → description
+$ref: '#/components/schemas/Order'          # payload BRUT ($ref ou schéma inline)
 ```
+
+Métadonnées reconnues : `x-event-type` (obligatoire), `x-event-version`, `x-summary`,
+`x-description`, `x-operation-id`, `x-tags`, `x-deprecated`. Le reste du fichier est le
+**schéma de payload** : soit un `$ref` nu (réutilisé tel quel), soit un schéma inline
+(enregistré comme composant `<EventType>Event`).
+
+> L'écriture manuelle sous `paths/` (une clé d'event `order.created:` avec `x-event`) reste
+> possible ; `events/` est la voie recommandée (déclaratif, un fichier par event).
 
 ## 8. Pagination & tri — norme commune (page-based)
 

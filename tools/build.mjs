@@ -71,8 +71,14 @@ function globYaml(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter((f) => /\.ya?ml$/.test(f)).sort().map((f) => path.join(dir, f));
 }
+// events/ accepte aussi les .json (JSON Schema).
+function globEvents(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => /\.(ya?ml|json)$/.test(f)).sort().map((f) => path.join(dir, f));
+}
 
 const mergeFiles = (files, seed = {}) => files.reduce((acc, f) => deepMerge(acc, loadYaml(f)), seed);
+const pascal = (s) => String(s).split(/[^A-Za-z0-9]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('');
 
 // Ref helpers
 const paramRef = (name) => ({ $ref: `#/components/parameters/${name}` });
@@ -98,6 +104,48 @@ function loadProfile(type) {
   return loadYaml(file);
 }
 
+// Métadonnées d'un fichier d'event consommées par le build (retirées du schéma de payload).
+const EVENT_META = new Set(['x-event-type', 'x-event-version', 'x-summary', 'x-description', 'x-operation-id', 'x-tags', 'x-deprecated']);
+
+// events/ : chaque fichier = JSON Schema du payload + métadonnées x-event-*. Génère un webhook.
+function loadEvents(dir) {
+  const operations = {};
+  const schemas = {};
+  for (const file of globEvents(path.join(dir, 'events'))) {
+    const raw = loadYaml(file);
+    const type = raw['x-event-type'];
+    if (!type) throw new Error(`events/${path.basename(file)} : "x-event-type" manquant`);
+
+    // payload = le schéma privé des métadonnées consommées
+    const payload = {};
+    for (const [k, v] of Object.entries(raw)) if (!EVENT_META.has(k)) payload[k] = v;
+
+    // requestBody : réutilise un $ref nu tel quel, sinon enregistre le schéma inline.
+    let schemaRef;
+    if (typeof payload.$ref === 'string' && Object.keys(payload).length === 1) {
+      schemaRef = payload.$ref;
+    } else {
+      const name = payload.title || `${pascal(type)}Event`;
+      schemas[name] = payload;
+      schemaRef = `#/components/schemas/${name}`;
+    }
+
+    const post = {
+      operationId: raw['x-operation-id'] || `on${pascal(type)}`,
+      'x-event': type,
+      requestBody: { required: true, content: { 'application/json': { schema: { $ref: schemaRef } } } },
+      responses: { '2xx': null },
+    };
+    if (raw['x-summary']) post.summary = raw['x-summary'];
+    if (raw['x-description']) post.description = raw['x-description'];
+    if (raw['x-event-version']) post['x-event-version'] = raw['x-event-version'];
+    if (raw['x-tags']) post.tags = raw['x-tags'];
+    if (raw['x-deprecated']) post.deprecated = true;
+    operations[type] = { post };
+  }
+  return { operations, schemas };
+}
+
 function loadProject(dir) {
   const api = loadYaml(path.join(dir, 'api.yaml'));
   const type = api.type;
@@ -106,6 +154,11 @@ function loadProject(dir) {
 
   const operations = mergeFiles(globYaml(path.join(dir, 'paths')));
   const schemas = mergeFiles(globYaml(path.join(dir, 'schemas')));
+  if (type === 'events') {
+    const ev = loadEvents(dir);           // webhooks générés depuis events/
+    Object.assign(operations, ev.operations);
+    Object.assign(schemas, ev.schemas);
+  }
   const doc = { ...api };
   doc.components = deepMerge(doc.components ?? {}, { schemas });
   return { type, operations, doc };
