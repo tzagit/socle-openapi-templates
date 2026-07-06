@@ -337,11 +337,12 @@ function factorSchemas(files, schemasMap) {
 
 // ------------------------------------------------------------------ base path / version
 const VERSION_RE = /^v\d+(\.\d+)?$/i;
-// Préfixe de version commun à tous les paths (ex. /v1/orders, /v1/payments → "v1"), sinon null.
+const firstSeg = (route) => (String(route).split('/').filter(Boolean)[0] || '').toLowerCase();
+// Version portée par les paths (ex. /v1/orders → "v1"). Remontée si UNE seule version apparaît
+// (même si certains paths ne sont pas versionnés). Versions multiples (v1 + v2) → ambigu → null.
 function detectVersionPrefix(paths) {
-  const firsts = Object.keys(paths || {}).map((r) => r.split('/').filter(Boolean)[0]);
-  if (!firsts.length || !firsts[0] || !VERSION_RE.test(firsts[0])) return null;
-  return firsts.every((f) => f === firsts[0]) ? firsts[0] : null;
+  const versions = new Set(Object.keys(paths || {}).map(firstSeg).filter((s) => VERSION_RE.test(s)));
+  return versions.size === 1 ? [...versions][0] : null;
 }
 function stripVersionPrefix(route, version) {
   const out = route.replace(new RegExp(`^/${version}(?=/|$)`, 'i'), '');
@@ -435,6 +436,12 @@ function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.
 
   // Version portée par les paths (ex. /v1/…) → remontée dans le base path (hors events).
   const versionSeg = isEvents ? null : detectVersionPrefix(source);
+  if (versionSeg) {
+    const unversioned = Object.keys(source).filter((r) => !VERSION_RE.test(firstSeg(r)));
+    if (unversioned.length) {
+      warnings.add(`${unversioned.length} path(s) sans préfixe /${versionSeg} laissés tels quels : ${unversioned.slice(0, 3).join(', ')}${unversioned.length > 3 ? '…' : ''}`);
+    }
+  }
 
   // --- traitement des opérations paths/ (non-events) ---
   for (const [rawRoute, rawItemOrRef] of Object.entries(isEvents ? {} : source)) {
