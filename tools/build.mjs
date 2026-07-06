@@ -181,6 +181,29 @@ function expandPagination(op, doc) {
   );
 }
 
+// Rend nullable (OpenAPI 3.1) chaque propriété OPTIONNELLE de chaque schéma objet du contrat :
+// une propriété absente de `required` accepte aussi la valeur null. Passe finale du build.
+function asNullable(s) {
+  if (!isObj(s)) return s;
+  if (s.$ref) return { anyOf: [{ $ref: s.$ref }, { type: 'null' }] }; // un $ref nu ne peut pas porter null
+  const t = s.type;
+  if (Array.isArray(t)) { if (!t.includes('null')) s.type = [...t, 'null']; return s; }
+  if (typeof t === 'string') { if (t !== 'null') s.type = [t, 'null']; return s; }
+  if (s.allOf || s.oneOf || s.anyOf) return { anyOf: [s, { type: 'null' }] };       // composition
+  return s; // schéma libre {} : accepte déjà null
+}
+function nullableOptionals(node) {
+  if (Array.isArray(node)) { node.forEach(nullableOptionals); return; }
+  if (!isObj(node)) return;
+  if (isObj(node.properties)) {
+    const req = new Set(Array.isArray(node.required) ? node.required : []);
+    for (const key of Object.keys(node.properties)) {
+      if (!req.has(key)) node.properties[key] = asNullable(node.properties[key]);
+    }
+  }
+  for (const v of Object.values(node)) nullableOptionals(v); // récursion vers les sous-schémas
+}
+
 // ------------------------------------------------------------------ assemblage d'un projet
 export function buildProject(dir, outDir = DEFAULT_OUT) {
   const name = path.basename(path.resolve(dir));
@@ -221,6 +244,8 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
 
   if (isEvents) doc.webhooks = deepMerge(doc.webhooks ?? {}, container);
   else doc.paths = deepMerge(doc.paths ?? {}, container);
+
+  nullableOptionals(doc); // champs optionnels → nullable (3.1)
 
   validateRefs(doc, name);
 

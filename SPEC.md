@@ -358,9 +358,11 @@ expansées par le build).
 3. **Injection auto** — headers communs, réponses d'erreur, params de pagination/tri
    sur toutes les opérations concernées.
 4. **Expansion des macros** (`x-paginated`, `x-event`, `x-errors`…).
-5. **Résolution/bundling des `$ref`** en un seul fichier.
-6. **Validation** (lint OpenAPI) — échoue si contrat non conforme.
-7. **Sortie** → `build/<mon-api>.openapi.yaml`.
+5. **Champs optionnels → nullable** — toute propriété absente de `required` devient
+   `type: [<type>, "null"]` (OpenAPI 3.1) : un champ optionnel peut être absent **ou** `null`.
+6. **Résolution/bundling des `$ref`** en un seul fichier.
+7. **Validation** (lint OpenAPI) — échoue si contrat non conforme.
+8. **Sortie** → `build/<mon-api>.openapi.yaml`.
 
 ## 11. Choix techniques proposés
 

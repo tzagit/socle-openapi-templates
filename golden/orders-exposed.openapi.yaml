@@ -10,22 +10,30 @@ components:
       type: object
       properties:
         code:
-          type: string
+          type:
+            - string
+            - 'null'
           minLength: 1
           maxLength: 20
           description: Code d'erreur applicatif stable.
         text:
-          type: string
+          type:
+            - string
+            - 'null'
           minLength: 1
           maxLength: 40
           description: Message d'erreur destiné au consommateur.
         developerText:
-          type: string
+          type:
+            - string
+            - 'null'
           minLength: 1
           maxLength: 70
           description: Détail technique à destination des développeurs.
         moreInfo:
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 256
           description: Complément d'information / lien de documentation.
     Pagination:
@@ -91,7 +99,9 @@ components:
           type: number
           format: double
         currency:
-          type: string
+          type:
+            - string
+            - 'null'
           default: EUR
         createdAt:
           type: string
@@ -105,7 +115,9 @@ components:
           type: number
           format: double
         currency:
-          type: string
+          type:
+            - string
+            - 'null'
           default: EUR
     PageOfOrder:
       allOf:
@@ -113,7 +125,9 @@ components:
         - type: object
           properties:
             content:
-              type: array
+              type:
+                - array
+                - 'null'
               items:
                 $ref: '#/components/schemas/Order'
   parameters:
