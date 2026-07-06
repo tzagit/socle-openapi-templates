@@ -154,10 +154,17 @@ function loadProject(dir) {
   if (!type) throw new Error(`api.yaml sans champ "type" dans ${dir}`);
   delete api.type; // champ de contrôle, pas de l'OpenAPI final
 
-  // Passer les champs optionnels en nullable : activé par défaut, désactivable par projet
-  // (`nullableOptionals: false` dans api.yaml). NB : nullable en réponse est cassant (cf. SPEC §10).
-  const nullableOpt = api.nullableOptionals !== false;
+  // Champs optionnels → nullable. Défaut : requêtes OUI, réponses NON (nullable en réponse est
+  // cassant). Configurable par projet via `nullableOptionals` dans api.yaml :
+  //   false | true | { requests: bool, responses: bool }
+  const nullCfg = api.nullableOptionals;
   delete api.nullableOptionals; // champ de contrôle
+  const nullable = { requests: true, responses: false };
+  if (nullCfg === false) nullable.requests = false;
+  else if (isObj(nullCfg)) {
+    nullable.requests = nullCfg.requests !== false;
+    nullable.responses = nullCfg.responses === true;
+  }
 
   const operations = mergeFiles(globYaml(path.join(dir, 'paths')));
   const schemas = mergeFiles(globYaml(path.join(dir, 'schemas')));
@@ -168,7 +175,7 @@ function loadProject(dir) {
   }
   const doc = { ...api };
   doc.components = deepMerge(doc.components ?? {}, { schemas });
-  return { type, operations, doc, nullableOpt };
+  return { type, operations, doc, nullable };
 }
 
 // ------------------------------------------------------------------ injections
@@ -252,8 +259,7 @@ function expandPagination(op, doc) {
   );
 }
 
-// Rend nullable (OpenAPI 3.1) chaque propriété OPTIONNELLE de chaque schéma objet du contrat :
-// une propriété absente de `required` accepte aussi la valeur null. Passe finale du build.
+// Passe une propriété en nullable (OpenAPI 3.1).
 function asNullable(s) {
   if (!isObj(s)) return s;
   if (s.$ref) return { anyOf: [{ $ref: s.$ref }, { type: 'null' }] }; // un $ref nu ne peut pas porter null
@@ -263,22 +269,75 @@ function asNullable(s) {
   if (s.allOf || s.oneOf || s.anyOf) return { anyOf: [s, { type: 'null' }] };       // composition
   return s; // schéma libre {} : accepte déjà null
 }
-function nullableOptionals(node) {
-  if (Array.isArray(node)) { node.forEach(nullableOptionals); return; }
-  if (!isObj(node)) return;
-  if (isObj(node.properties)) {
-    const req = new Set(Array.isArray(node.required) ? node.required : []);
-    for (const key of Object.keys(node.properties)) {
-      if (!req.has(key)) node.properties[key] = asNullable(node.properties[key]);
+
+// Rend nullable les propriétés optionnelles d'un schéma (récursif sur les sous-schémas).
+function nullableSchema(schema) {
+  if (!isObj(schema)) return;
+  if (isObj(schema.properties)) {
+    const req = new Set(Array.isArray(schema.required) ? schema.required : []);
+    for (const key of Object.keys(schema.properties)) {
+      if (!req.has(key)) schema.properties[key] = asNullable(schema.properties[key]);
     }
   }
-  for (const v of Object.values(node)) nullableOptionals(v); // récursion vers les sous-schémas
+  for (const kw of ['items', 'not', 'additionalProperties']) if (isObj(schema[kw])) nullableSchema(schema[kw]);
+  for (const kw of ['allOf', 'anyOf', 'oneOf', 'prefixItems']) if (Array.isArray(schema[kw])) schema[kw].forEach(nullableSchema);
+  if (isObj(schema.properties)) for (const v of Object.values(schema.properties)) nullableSchema(v);
+}
+
+// Schémas composants atteignables depuis une RÉPONSE (à ne jamais rendre nullable : ce serait
+// cassant pour le consommateur — cf. SPEC §10).
+function responseReachableSchemas(doc) {
+  const seen = new Set(); const names = new Set(); const queue = [];
+  for (const cont of [doc.paths, doc.webhooks]) {
+    if (!isObj(cont)) continue;
+    for (const item of Object.values(cont)) {
+      if (!isObj(item)) continue;
+      for (const m of HTTP_METHODS) if (isObj(item[m]?.responses)) queue.push(...collectRefs(item[m].responses, []));
+    }
+  }
+  while (queue.length) {
+    const ref = queue.pop();
+    if (typeof ref !== 'string' || !ref.startsWith('#/components/') || seen.has(ref)) continue;
+    seen.add(ref);
+    if (ref.startsWith('#/components/schemas/')) names.add(schemaNameFromRef(ref));
+    const node = resolveComponent(doc, ref);
+    if (node !== undefined) queue.push(...collectRefs(node, []));
+  }
+  return names;
+}
+
+// Optionnel → nullable, piloté par { requests, responses } :
+//  - un schéma composant atteignable depuis une réponse → soumis au flag `responses` ;
+//    sinon (requête seule ou inutilisé) → soumis au flag `requests` ;
+//  - schémas inline des requestBody → `requests` ; des responses → `responses`.
+function nullableOptionals(doc, { requests = true, responses = false } = {}) {
+  const responseSchemas = responseReachableSchemas(doc);
+  for (const [name, def] of Object.entries(doc.components?.schemas ?? {})) {
+    if (responseSchemas.has(name) ? responses : requests) nullableSchema(def);
+  }
+  for (const cont of [doc.paths, doc.webhooks]) {
+    if (!isObj(cont)) continue;
+    for (const item of Object.values(cont)) {
+      if (!isObj(item)) continue;
+      for (const m of HTTP_METHODS) {
+        const op = item[m];
+        if (!isObj(op)) continue;
+        if (requests) for (const media of Object.values(op.requestBody?.content ?? {})) {
+          if (isObj(media?.schema) && !media.schema.$ref) nullableSchema(media.schema);
+        }
+        if (responses) for (const resp of Object.values(op.responses ?? {})) {
+          if (!isObj(resp) || resp.$ref) continue;
+          for (const media of Object.values(resp.content ?? {})) if (isObj(media?.schema) && !media.schema.$ref) nullableSchema(media.schema);
+        }
+      }
+    }
+  }
 }
 
 // ------------------------------------------------------------------ assemblage d'un projet
 export function buildProject(dir, outDir = DEFAULT_OUT) {
   const name = path.basename(path.resolve(dir));
-  const { type, operations, doc: projectDoc, nullableOpt } = loadProject(dir);
+  const { type, operations, doc: projectDoc, nullable } = loadProject(dir);
 
   let doc = deepMerge(loadCore(), loadProfile(type));
   doc = deepMerge(doc, projectDoc);
@@ -322,7 +381,7 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
   if (isEvents) doc.webhooks = deepMerge(doc.webhooks ?? {}, container);
   else doc.paths = deepMerge(doc.paths ?? {}, container);
 
-  if (nullableOpt) nullableOptionals(doc); // champs optionnels → nullable (3.1) ; désactivable par projet
+  nullableOptionals(doc, nullable); // champs optionnels → nullable (requêtes par défaut, réponses en opt-in)
   pruneUnusedComponents(doc);  // n'émet que les composants réellement référencés (pas de pagination si non utilisée, etc.)
 
   validateRefs(doc, name);

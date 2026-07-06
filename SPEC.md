@@ -368,11 +368,13 @@ expansées par le build).
 3. **Injection auto** — headers communs, réponses d'erreur, params de pagination/tri
    sur toutes les opérations concernées.
 4. **Expansion des macros** (`x-paginated`, `x-event`, `x-errors`…).
-5. **Champs optionnels → nullable** — toute propriété absente de `required` devient
-   `type: [<type>, "null"]` (OpenAPI 3.1) : un champ optionnel peut être absent **ou** `null`.
-   Activé par défaut, **désactivable par projet** via `nullableOptionals: false` dans `api.yaml`.
-   ⚠️ Rendre un champ nullable est **cassant en réponse** (le consommateur doit gérer `null`),
-   mais additif en requête — d'où l'intérêt de pouvoir le désactiver.
+5. **Champs optionnels → nullable.** Une propriété optionnelle devient `type: [<type>, "null"]`
+   (OpenAPI 3.1). **Par défaut : appliqué aux requêtes, pas aux réponses** — nullable en réponse
+   est cassant (le consommateur devrait gérer `null`), alors qu'en requête c'est additif. Périmètre
+   « requête » = `requestBody` inline + schémas composants **non atteignables depuis une réponse**.
+   Configurable par projet via `nullableOptionals` dans `api.yaml` :
+   `false` (rien) · `true` (= défaut) · `{ requests: bool, responses: bool }`. Mettre
+   `responses: true` étend le nullable aux schémas de réponse (à n'utiliser qu'en connaissance de cause).
 6. **Tree-shaking** — retire les composants du socle **non référencés** (le core fournit un
    sur-ensemble ; un contrat sans pagination ne porte ni `Page`/`Pagination` ni `page/size/sort`,
    un `exposed` ne porte pas les headers d'event, etc.), quel que soit le type d'API.

@@ -213,10 +213,10 @@ Tu n'as **pas** à écrire ceci — le build l'ajoute :
   `size`, `totalElements`, `totalPages`, `hasNext`, `hasPrevious`) et params `page`/`size`/`sort`.
 - **Sécurité** : **bearer JWT** généralisé à tous les types (`exposed`/`called`/`events`),
   défini au socle. **Aucune API key** (politique interne).
-- **Champs optionnels → nullable** : à la génération, toute propriété absente de `required`
-  devient nullable (`type: [<type>, "null"]`, OpenAPI 3.1) — un champ optionnel peut donc être
-  absent **ou** `null`. Activé par défaut, désactivable par projet avec `nullableOptionals: false`
-  dans `api.yaml` (utile car nullable en réponse est un changement cassant).
+- **Champs optionnels → nullable** : à la génération, une propriété absente de `required` devient
+  nullable (`type: [<type>, "null"]`, OpenAPI 3.1). **Par défaut en requête, pas en réponse**
+  (nullable en réponse est un changement cassant). Configurable par projet via `nullableOptionals`
+  dans `api.yaml` : `false` (rien) · `true` (défaut) · `{ requests: bool, responses: bool }`.
 
 Surcharge par opération possible via `x-errors` / `x-no-errors` (§7).
 
