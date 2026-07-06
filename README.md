@@ -336,7 +336,8 @@ npm install
 npm run build            # construit examples/ → build/
 npm run lint             # validité OpenAPI (Redocly)
 npm run spectral         # conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
-                         #   par méthode, X-Processing-Route-Id en réponse, x-socle-version, operationId, tags…)
+                         #   par méthode, X-Processing-Route-Id en réponse, identifiants au format uuid,
+                         #   x-socle-version, operationId, tags…)
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture)
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
 npm pack --dry-run       # aperçu du package publié

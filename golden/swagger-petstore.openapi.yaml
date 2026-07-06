@@ -648,6 +648,7 @@ paths:
           description: The id of the pet to retrieve
           schema:
             type: string
+            format: uuid
         - $ref: '#/components/parameters/XRequestId'
         - $ref: '#/components/parameters/XCorrelationId'
         - $ref: '#/components/parameters/XInstitutionId'

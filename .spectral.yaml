@@ -124,6 +124,32 @@ rules:
               in: { const: header }
               required: { const: false }
 
+  # --- Identifiants : format uuid ---
+  socle-uuid-only-on-string:
+    description: Le format uuid ne s'applique qu'à une chaîne (type string).
+    severity: error
+    given: "$..[?(@.format=='uuid')]"
+    then:
+      field: type
+      function: pattern
+      functionOptions:
+        match: "^string$"
+  socle-path-id-uuid:
+    description: Un identifiant de ressource (paramètre de path de type string) doit être un uuid.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].parameters[?(@.in=='path')]"
+    then:
+      field: schema
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            required: [type]
+            properties: { type: { const: string } }
+          then:
+            required: [format]
+            properties: { format: { const: uuid } }
+
   # --- Header de réponse X-Processing-Route-Id sur chaque réponse (paths) ---
   socle-response-processing-route:
     description: Chaque réponse (paths) doit porter le header X-Processing-Route-Id.

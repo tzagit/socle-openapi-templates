@@ -53,6 +53,7 @@
         description: The id of the pet to retrieve
         schema:
           type: string
+          format: uuid
     responses:
       '200':
         description: Expected response to a valid request
