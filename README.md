@@ -335,7 +335,8 @@ baseline stockée sur Artifactory devient la référence du prochain diff.
 npm install
 npm run build            # construit examples/ → build/
 npm run lint             # validité OpenAPI (Redocly)
-npm run spectral         # conformité au socle (Spectral : pas d'API key, x-socle-version, operationId, tags…)
+npm run spectral         # conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
+                         #   par méthode, X-Processing-Route-Id en réponse, x-socle-version, operationId, tags…)
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture)
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
 npm pack --dry-run       # aperçu du package publié

@@ -61,3 +61,78 @@ rules:
     then:
       field: StandardErrorObject
       function: truthy
+
+  # --- Headers communs de requête (présents sur chaque opération ; X-Institution-Id requis) ---
+  socle-common-request-headers:
+    description: Les headers communs de requête doivent être présents (X-Institution-Id obligatoire).
+    severity: error
+    given:
+      - "$.paths[*][get,put,post,delete,patch]"
+      - "$.webhooks[*][get,put,post,delete,patch]"
+    then:
+      field: parameters
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          allOf:
+            - contains: { type: object, required: [name, in, required], properties: { name: { const: X-Institution-Id }, in: { const: header }, required: { const: true } } }
+            - contains: { type: object, properties: { name: { const: X-Request-Id } }, required: [name] }
+            - contains: { type: object, properties: { name: { const: X-Correlation-Id } }, required: [name] }
+            - contains: { type: object, properties: { name: { const: X-User-Id } }, required: [name] }
+            - contains: { type: object, properties: { name: { const: X-UserContext-Id } }, required: [name] }
+
+  # --- Idempotency-Key : obligatoire sur POST/PATCH ---
+  socle-idempotency-required:
+    description: POST/PATCH doivent exiger Idempotency-Key (required=true).
+    severity: error
+    given:
+      - "$.paths[*].post"
+      - "$.paths[*].patch"
+    then:
+      field: parameters
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: object
+            required: [name, in, required]
+            properties:
+              name: { const: Idempotency-Key }
+              in: { const: header }
+              required: { const: true }
+
+  # --- Idempotency-Key : optionnel sur PUT/DELETE ---
+  socle-idempotency-optional:
+    description: PUT/DELETE doivent proposer Idempotency-Key (required=false).
+    severity: error
+    given:
+      - "$.paths[*].put"
+      - "$.paths[*].delete"
+    then:
+      field: parameters
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          contains:
+            type: object
+            required: [name, in, required]
+            properties:
+              name: { const: Idempotency-Key }
+              in: { const: header }
+              required: { const: false }
+
+  # --- Header de réponse X-Processing-Route-Id sur chaque réponse (paths) ---
+  socle-response-processing-route:
+    description: Chaque réponse (paths) doit porter le header X-Processing-Route-Id.
+    severity: error
+    given: "$.paths[*][get,put,post,delete,patch].responses[*]"
+    then:
+      field: headers
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [X-Processing-Route-Id]
