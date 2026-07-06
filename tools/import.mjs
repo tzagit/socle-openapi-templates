@@ -5,7 +5,7 @@
 // Page/StandardErrorObject…) et on reconstruit les macros (x-paginated, x-event).
 //
 // Usage :
-//   node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--out-dir <dir>] [--no-factor] [--force]
+//   node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--out-dir <dir>] [--host <url>] [--no-factor] [--force]
 //
 // L'entrée doit être un fichier UNIQUE (bundlé). Si votre contrat est éclaté en
 // plusieurs fichiers, bundlez-le d'abord :  npx redocly bundle in.yaml -o bundled.yaml
@@ -335,6 +335,23 @@ function factorSchemas(files, schemasMap) {
   return factored;
 }
 
+// ------------------------------------------------------------------ base path / version
+const VERSION_RE = /^v\d+(\.\d+)?$/i;
+// Préfixe de version commun à tous les paths (ex. /v1/orders, /v1/payments → "v1"), sinon null.
+function detectVersionPrefix(paths) {
+  const firsts = Object.keys(paths || {}).map((r) => r.split('/').filter(Boolean)[0]);
+  if (!firsts.length || !firsts[0] || !VERSION_RE.test(firsts[0])) return null;
+  return firsts.every((f) => f === firsts[0]) ? firsts[0] : null;
+}
+function stripVersionPrefix(route, version) {
+  const out = route.replace(new RegExp(`^/${version}(?=/|$)`, 'i'), '');
+  return out === '' ? '/' : out;
+}
+function appendSegment(url, seg) {
+  const b = String(url).replace(/\/+$/, '');
+  return new RegExp(`/${seg}$`, 'i').test(b) ? b : `${b}/${seg}`;
+}
+
 // ------------------------------------------------------------------ regroupement des routes en fichiers
 function groupKey(route, isEvents) {
   if (isEvents) return 'events';
@@ -389,7 +406,7 @@ function dump(obj) {
 }
 
 // ------------------------------------------------------------------ assemblage du projet
-function importDoc(doc, { type, name, factor = true }) {
+function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.fr' }) {
   const warnings = new Set();
   const droppedWrappers = new Set();
   // Compteurs de « remise en conformité » (éléments non conformes retirés / customs conservés).
@@ -416,8 +433,12 @@ function importDoc(doc, { type, name, factor = true }) {
   const files = {};      // paths/ (non-events)
   const eventFiles = isEvents ? buildEventFiles(source, doc, warnings, is30, nullableStats) : {};
 
+  // Version portée par les paths (ex. /v1/…) → remontée dans le base path (hors events).
+  const versionSeg = isEvents ? null : detectVersionPrefix(source);
+
   // --- traitement des opérations paths/ (non-events) ---
-  for (const [route, rawItemOrRef] of Object.entries(isEvents ? {} : source)) {
+  for (const [rawRoute, rawItemOrRef] of Object.entries(isEvents ? {} : source)) {
+    const route = versionSeg ? stripVersionPrefix(rawRoute, versionSeg) : rawRoute;
     let item = rawItemOrRef;
     if (isObj(item) && typeof item.$ref === 'string') item = resolveRef(doc, item.$ref);
     if (!isObj(item)) continue;
@@ -477,13 +498,28 @@ function importDoc(doc, { type, name, factor = true }) {
     api.info = {};
     for (const k of ['title', 'version', 'description']) if (doc.info[k] != null) api.info[k] = doc.info[k];
   }
-  if (Array.isArray(doc.servers) && doc.servers.length) api.servers = clone(doc.servers);
+  // servers / base path — pas pour les events (webhooks poussés : ni base path ni servers).
+  if (!isEvents) {
+    const version = versionSeg || 'v1';
+    if (Array.isArray(doc.servers) && doc.servers.length) {
+      // conserve les servers existants ; y remonte la version si elle était dans les paths.
+      api.servers = doc.servers.map((s) => {
+        const srv = clone(s);
+        if (versionSeg && typeof srv.url === 'string') srv.url = appendSegment(srv.url, versionSeg);
+        return srv;
+      });
+    } else {
+      // aucun base path : défaut déduit du nom du contrat.
+      api.servers = [{ url: `${String(host).replace(/\/+$/, '')}/${name}/${version}` }];
+    }
+  }
   if (Array.isArray(doc.tags) && doc.tags.length) api.tags = clone(doc.tags);
 
   return {
     api, files, eventFiles, schemas, isEvents, resolvedType, name,
     warnings: [...warnings], nullableStats, is30,
     droppedWrappers: [...droppedWrappers], prunedSchemas, stats, factoredSchemas,
+    versionSeg, defaultServer: !isEvents && !(Array.isArray(doc.servers) && doc.servers.length),
   };
 }
 
@@ -522,6 +558,7 @@ function parseArgs(argv) {
     else if (a === '--name') args.name = argv[++i];
     else if (a === '--type') args.type = argv[++i];
     else if (a === '--out-dir') args.outDir = argv[++i];
+    else if (a === '--host') args.host = argv[++i];
     else if (a.startsWith('--')) throw new Error(`Option inconnue : ${a}`);
     else args._.push(a);
   }
@@ -535,7 +572,7 @@ export function runImportCli(argv = process.argv.slice(2)) {
 
   const input = args._[0];
   if (!input) {
-    console.error('Usage : node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--out-dir <dir>] [--no-factor] [--force]');
+    console.error('Usage : node tools/import.mjs <input.yaml|json> [--name <projet>] [--type exposed|called|events] [--out-dir <dir>] [--host <url>] [--no-factor] [--force]');
     process.exit(1);
   }
   if (!fs.existsSync(input)) { console.error(`Fichier introuvable : ${input}`); process.exit(1); }
@@ -544,7 +581,7 @@ export function runImportCli(argv = process.argv.slice(2)) {
   try {
     const doc = loadDoc(input);
     const name = sanitize(args.name || doc.info?.title || path.basename(input).replace(/\.(ya?ml|json)$/i, ''));
-    result = importDoc(doc, { type: args.type, name, factor: args.factor !== false });
+    result = importDoc(doc, { type: args.type, name, factor: args.factor !== false, host: args.host });
   } catch (e) {
     console.error(`✗ ${e.message}`);
     process.exit(1);
@@ -560,6 +597,8 @@ export function runImportCli(argv = process.argv.slice(2)) {
     const nbRoutes = Object.values(result.files).reduce((n, r) => n + Object.keys(r).length, 0);
     console.log(`  ${nbRoutes} route(s) dans ${Object.keys(result.files).length} fichier(s), ${Object.keys(result.schemas).length} schéma(s) métier.`);
   }
+  if (result.versionSeg) console.log(`  Version /${result.versionSeg} remontée des paths vers le base path.`);
+  if (result.defaultServer) console.log(`  Base path par défaut ajouté (déduit du nom du contrat).`);
   if (result.is30) console.log(`  OpenAPI 3.0 détecté : ${result.nullableStats.nullable} champ(s) nullable convertis en 3.1.`);
   if (result.droppedWrappers.length) console.log(`  Pagination reconstruite (x-paginated), enveloppe(s) retirée(s) : ${result.droppedWrappers.join(', ')}.`);
 

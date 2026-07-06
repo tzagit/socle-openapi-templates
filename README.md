@@ -283,6 +283,13 @@ L'import :
 Si le contrat source est éclaté en plusieurs fichiers, bundle-le d'abord :
 `npx redocly bundle in.yaml -o bundled.yaml`.
 
+**Base path & version** (hors events) :
+- si tous les paths partagent un préfixe de version (`/v1/…`), il est **remonté dans le base
+  path** (server) et retiré des paths ;
+- s'il n'y a **aucun server**, un base path par défaut est créé, **déduit du nom du contrat** :
+  `https://api.mon-si.fr/<nom>/<version>` (hôte configurable via `--host <url>`) ;
+- pour un import **`--type events`**, ni base path ni `servers` (webhooks poussés).
+
 **Import d'events** — avec `--type events`, le swagger source est un contrat **normal** (un
 `path` par event, le **nom de la ressource du path = nom de l'event**). L'import extrait le
 `requestBody` de chaque opération comme **payload** et génère un fichier `events/<event>.yaml`
