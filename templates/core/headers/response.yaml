@@ -16,7 +16,7 @@ components:
       description: Echoes the corresponding request header if provided in the request.
       required: false
       schema: { type: string, minLength: 3, maxLength: 20 }
-      example: BANK-FR-001
+      example: "30004"
     EchoUserId:
       description: Echoes the corresponding request header if provided in the request.
       required: false

@@ -4,6 +4,11 @@ info:
   title: APIs called by the Issuer Authorisation System
   version: 1.6.0
   description: The purpose of this API is for the Issuer Authorisation System to call the bank's host
+  contact:
+    name: ESTREEM API support team
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: DICO_ESTREEM__v21.17.xlsx
 servers:
   - url: https://api.mon-si.fr/ias-called/v1
 tags:

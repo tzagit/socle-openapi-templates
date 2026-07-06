@@ -6,6 +6,11 @@ info:
   description: >-
     The purpose of the Card Management System APIs is to manage the card agreements (also called card contracts) and the
     cards
+  contact:
+    name: ESTREEM API support team
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: DICO_ESTREEM__v21.14.xlsx
 servers:
   - url: https://api.estreem.eu/issuing/v1
     description: >-

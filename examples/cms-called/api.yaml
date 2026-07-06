@@ -6,6 +6,11 @@ info:
   description: >-
     The purpose of this API is for the Card Management System to call the bank to retrieve cardholder data and card
     agreement owner data
+  contact:
+    name: ESTREEM API support team
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.8.xlsx
 servers:
   - url: https://api.mon-si.fr/cms-called/v1
 tags:

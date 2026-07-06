@@ -22,7 +22,7 @@ components:
       required: true
       description: A unique identifier representing the banking institution context (bank code) associated with the request.
       schema: { type: string, minLength: 3, maxLength: 20 }
-      example: BANK-FR-001
+      example: "30004"
     XUserId:
       name: X-User-Id
       in: header
