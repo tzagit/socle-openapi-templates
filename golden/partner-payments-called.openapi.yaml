@@ -4,6 +4,7 @@ info:
   version: 1.0.0
   description: API de paiement définie par mon SI et exposée par le partenaire.
   x-socle-version: 0.1.0
+  x-socle-type: called
 components:
   schemas:
     StandardError:

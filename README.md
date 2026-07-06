@@ -322,7 +322,8 @@ projet reste sur l'ancienne majeure jusqu'à ce que tu choisisses de migrer.
 
 Trois versions à ne pas confondre : la **version d'API** (`info.version`, SemVer), la **majeure
 d'URL** (`/v1`, `/v2` — la frontière de rupture), et la **version du socle** qui a généré le
-contrat, stampée automatiquement dans `info.x-socle-version`.
+contrat, stampée automatiquement dans `info.x-socle-version` (et le type dans `info.x-socle-type`,
+qui permet les règles Spectral par type).
 
 **Détecter une rupture** : `openapi-socle diff <baseline> <revision>` classe les changements
 (via `oasdiff`) et sort le niveau SemVer requis :
@@ -366,7 +367,8 @@ npm run build            # construit examples/ → build/
 npm run lint             # validité OpenAPI (Redocly)
 npm run spectral         # conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
                          #   par méthode, X-Processing-Route-Id en réponse, identifiants au format uuid,
-                         #   x-socle-version, operationId, tags…)
+                         #   nommage camelCase, items d'array, règles par type (events/called via
+                         #   info.x-socle-type), x-socle-version, operationId, tags…)
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture) — nécessite oasdiff
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
 npm pack --dry-run       # aperçu du package publié

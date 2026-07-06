@@ -4,6 +4,7 @@ info:
   version: 1.6.0
   description: The purpose of this API is for the Issuer Authorisation System to call the bank's host
   x-socle-version: 0.1.0
+  x-socle-type: called
 components:
   schemas:
     StandardError:

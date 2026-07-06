@@ -3,6 +3,7 @@ info:
   title: Swagger Petstore
   version: 1.0.0
   x-socle-version: 0.1.0
+  x-socle-type: exposed
 components:
   schemas:
     StandardError:

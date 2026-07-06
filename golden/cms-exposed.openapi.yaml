@@ -6,6 +6,7 @@ info:
     The purpose of the Card Management System APIs is to manage the card agreements (also called card contracts) and the
     cards
   x-socle-version: 0.1.0
+  x-socle-type: exposed
 components:
   schemas:
     StandardError:

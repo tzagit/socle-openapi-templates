@@ -4,6 +4,7 @@ info:
   version: '1.0'
   description: Generic Fake Swagger for JSON-Schema Models
   x-socle-version: 0.1.0
+  x-socle-type: events
 components:
   schemas:
     StandardError:

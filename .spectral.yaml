@@ -40,7 +40,7 @@ rules:
       field: security
       function: truthy
   socle-operation-secured:
-    description: Sécurité désactivée sur cette opération (security: []) — autorisé mais à confirmer.
+    description: "Sécurité désactivée sur cette opération (security: []) — autorisé mais à confirmer."
     message: "Sécurité désactivée (security: []) sur cette opération — vérifiez que c'est intentionnel."
     severity: warn
     given:
@@ -217,3 +217,73 @@ rules:
         schema:
           type: object
           required: [X-Processing-Route-Id]
+
+  # --- Par type d'API (via info.x-socle-type : exposed | called | events) ---
+  socle-type-structure:
+    description: "events → webhooks ; exposed/called → paths."
+    severity: error
+    given: "$"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          allOf:
+            - if:
+                required: [info]
+                properties: { info: { required: [x-socle-type], properties: { x-socle-type: { const: events } } } }
+              then:
+                required: [webhooks]
+            - if:
+                required: [info]
+                properties: { info: { required: [x-socle-type], properties: { x-socle-type: { enum: [exposed, called] } } } }
+              then:
+                required: [paths]
+
+  # events : chaque webhook porte les headers d'event + X-Processing-Route-Id, et un ack 204.
+  socle-event-request-headers:
+    description: Un webhook (events) doit porter X-Event-Id/-Type/-Version et X-Processing-Route-Id.
+    severity: error
+    given: "$.webhooks[*][get,put,post,delete,patch]"
+    then:
+      field: parameters
+      function: schema
+      functionOptions:
+        schema:
+          type: array
+          allOf:
+            - contains: { type: object, properties: { name: { const: X-Event-Id } }, required: [name] }
+            - contains: { type: object, properties: { name: { const: X-Event-Type } }, required: [name] }
+            - contains: { type: object, properties: { name: { const: X-Event-Version } }, required: [name] }
+            - contains: { type: object, properties: { name: { const: X-Processing-Route-Id } }, required: [name] }
+  socle-event-ack:
+    description: Un webhook (events) doit définir une réponse d'acquittement 204.
+    severity: error
+    given: "$.webhooks[*][get,put,post,delete,patch].responses"
+    then:
+      field: "204"
+      function: truthy
+
+  # called : X-Processing-Route-Id en requête sur chaque opération de path.
+  socle-called-processing-route:
+    description: Un contrat called doit porter X-Processing-Route-Id en requête sur chaque opération.
+    severity: error
+    given: "$"
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            required: [info]
+            properties: { info: { required: [x-socle-type], properties: { x-socle-type: { const: called } } } }
+          then:
+            properties:
+              paths:
+                type: object
+                additionalProperties:
+                  patternProperties:
+                    "^(get|put|post|delete|patch)$":
+                      required: [parameters]
+                      properties:
+                        parameters:
+                          type: array
+                          contains: { type: object, properties: { name: { const: X-Processing-Route-Id } }, required: [name] }

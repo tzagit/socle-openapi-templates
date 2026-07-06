@@ -4,6 +4,7 @@ info:
   version: 1.0.0
   description: API de gestion des commandes exposée par mon SI.
   x-socle-version: 0.1.0
+  x-socle-type: exposed
 components:
   schemas:
     StandardError:

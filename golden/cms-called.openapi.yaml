@@ -6,6 +6,7 @@ info:
     The purpose of this API is for the Card Management System to call the bank to retrieve cardholder data and card
     agreement owner data
   x-socle-version: 0.1.0
+  x-socle-type: called
 components:
   schemas:
     StandardError:

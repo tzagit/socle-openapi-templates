@@ -4,6 +4,7 @@ info:
   version: 1.0.0
   description: Events de commande poussés vers les partenaires via webhook.
   x-socle-version: 0.1.0
+  x-socle-type: events
 components:
   schemas:
     StandardError:

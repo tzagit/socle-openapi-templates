@@ -341,7 +341,7 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
 
   let doc = deepMerge(loadCore(), loadProfile(type));
   doc = deepMerge(doc, projectDoc);
-  doc.info = { ...(doc.info ?? {}), 'x-socle-version': SOCLE_VERSION }; // traçabilité du socle
+  doc.info = { ...(doc.info ?? {}), 'x-socle-version': SOCLE_VERSION, 'x-socle-type': type }; // traçabilité du socle
 
   const isEvents = type === 'events';
   const container = {}; // paths ou webhooks
