@@ -82,47 +82,50 @@ function compareField(field, exp) {
   return out;
 }
 
-// Parcourt les champs (propriétés) d'un doc et applique onField(field, path, name).
-function walkFields(node, p, onField) {
-  if (Array.isArray(node)) { node.forEach((n, i) => walkFields(n, `${p}[${i}]`, onField)); return; }
+// Parcourt tout le doc : valide chaque nœud portant un x-dictionary-id (champ de body OU
+// schéma de paramètre), et signale les feuilles scalaires de body sans id (oubli possible).
+function walk(node, p, ctx) {
+  if (Array.isArray(node)) { node.forEach((n, i) => walk(n, `${p}[${i}]`, ctx)); return; }
   if (!isObj(node)) return;
+  if (node['x-dictionary-id'] != null) ctx.onId(node, p);
   if (isObj(node.properties)) {
-    for (const [name, field] of Object.entries(node.properties)) {
-      onField(field, `${p}.${name}`, name);
-      walkFields(field, `${p}.${name}`, onField);
-    }
+    for (const [name, field] of Object.entries(node.properties))
+      if (isObj(field) && field['x-dictionary-id'] == null && isScalarLeaf(field)) ctx.onLeafNoId(`${p}.${name}`);
   }
-  for (const [k, v] of Object.entries(node)) if (k !== 'properties') walkFields(v, `${p}.${k}`, onField);
+  for (const [k, v] of Object.entries(node)) walk(v, k === 'properties' ? p : `${p}.${k}`, ctx);
 }
 
 function checkProject(dir) {
   const api = loadYaml(path.join(dir, 'api.yaml'));
   const version = api.info?.['x-dictionary-version'];
   if (!version) return null; // pas de dictionnaire déclaré → rien à vérifier
-
-  const dicoFile = path.join(ROOT, 'dico', version);
-  if (!fs.existsSync(dicoFile)) return { name: path.basename(dir), version, skipped: true }; // dico non fourni → on n'échoue pas
-  const dico = loadDictionary(dicoFile);
-
-  // On parcourt les schémas (bodies) + les inline des paths.
+  const name = path.basename(dir);
+  // On parcourt les schémas (bodies) + les inline des paths (params compris).
   const doc = { schemas: mergeFiles(globYaml(path.join(dir, 'schemas'))), paths: mergeFiles(globYaml(path.join(dir, 'paths'))) };
 
+  const dicoFile = path.join(ROOT, 'dico', version);
+  if (!fs.existsSync(dicoFile)) {
+    let annotated = 0;
+    walk(doc, name, { onId: () => annotated++, onLeafNoId: () => {} });
+    if (annotated === 0) return { name, version, metadataOnly: true }; // x-dictionary-version = simple métadonnée
+    throw new Error(`dictionnaire dico/${version} introuvable — ${annotated} champ(s) annoté(s) à valider`);
+  }
+  const dico = loadDictionary(dicoFile);
+
   const errors = [], warnings = [];
-  let checked = 0, leafNoId = 0;
-  walkFields(doc, path.basename(dir), (field, p) => {
-    if (!isObj(field)) return;
-    const id = field['x-dictionary-id'];
-    if (id != null) {
+  let checked = 0, leafNoId = 0, todo = 0;
+  walk(doc, name, {
+    onId(node, p) {
+      const raw = node['x-dictionary-id'], id = String(raw).trim();
+      if (id === '' || id === '?') { todo++; warnings.push({ p, msg: `x-dictionary-id à renseigner (« ${raw} »)` }); return; }
       checked++;
       const exp = dico.resolve(id);
       if (!exp.found) { errors.push({ p, msg: `x-dictionary-id « ${id} » introuvable dans le dictionnaire` }); return; }
-      for (const { sev, msg } of compareField(field, exp)) (sev === 'error' ? errors : warnings).push({ p, msg });
-    } else if (isScalarLeaf(field)) {
-      leafNoId++;
-      warnings.push({ p, msg: 'champ scalaire sans x-dictionary-id — oubli ?' });
-    }
+      for (const { sev, msg } of compareField(node, exp)) (sev === 'error' ? errors : warnings).push({ p, msg });
+    },
+    onLeafNoId(p) { leafNoId++; warnings.push({ p, msg: 'champ scalaire sans x-dictionary-id — oubli ?' }); },
   });
-  return { name: path.basename(dir), version, checked, leafNoId, errors, warnings };
+  return { name, version, checked, leafNoId, todo, errors, warnings };
 }
 
 function projectDirs(root) {
@@ -137,18 +140,18 @@ function main() {
   let totalErr = 0, ran = 0;
   for (const dir of dirs) {
     let r;
-    try { r = checkProject(dir); } catch (e) { console.error(`✗ ${path.basename(dir)} : ${e.message}`); totalErr++; continue; }
+    try { r = checkProject(dir); } catch (e) { console.error(`✗ ${path.basename(dir)} : ${e.message}`); totalErr++; ran++; continue; }
     if (!r) continue; // pas de x-dictionary-version
     ran++;
-    if (r.skipped) { console.log(`\n▸ ${r.name}  ⚠ dico dico/${r.version} non fourni — validation ignorée`); continue; }
+    if (r.metadataOnly) { console.log(`\n▸ ${r.name}  (dico ${r.version}) — aucune annotation x-dictionary-id, métadonnée seule`); continue; }
     console.log(`\n▸ ${r.name}  (dico ${r.version}) — ${r.checked} champ(s) annoté(s) vérifié(s)`);
     for (const e of r.errors) console.log(`  ✗ ${e.p} : ${e.msg}`);
     for (const w of r.warnings.slice(0, 40)) console.log(`  ⚠ ${w.p} : ${w.msg}`);
     if (r.warnings.length > 40) console.log(`  ⚠ … +${r.warnings.length - 40} autre(s) warning(s)`);
-    console.log(`  → ${r.errors.length} erreur(s), ${r.warnings.length} warning(s) (${r.leafNoId} champ(s) sans id).`);
+    console.log(`  → ${r.errors.length} erreur(s), ${r.warnings.length} warning(s) (${r.leafNoId} sans id, ${r.todo} à renseigner).`);
     totalErr += r.errors.length;
   }
-  if (!ran) { console.log('Aucun projet avec info.x-dictionary-version.'); return; }
+  if (!ran && !totalErr) { console.log('Aucun projet avec info.x-dictionary-version.'); return; }
   console.log(`\n${totalErr === 0 ? '✓ Conforme au dictionnaire.' : `✗ ${totalErr} écart(s) bloquant(s) avec le dictionnaire.`}`);
   if (totalErr) process.exit(1);
 }
