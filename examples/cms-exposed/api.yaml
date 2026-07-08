@@ -10,7 +10,7 @@ info:
     name: ESTREEM API support team
     url: https://estreem.eu
     email: support@estreem.eu
-  x-dictionary-version: DICO_ESTREEM__v21.14.xlsx
+  x-dictionary-version: _DICO_ESTREEM_v21.15.xlsx
 servers:
   - url: https://api.estreem.eu/issuing/v1
     description: >-

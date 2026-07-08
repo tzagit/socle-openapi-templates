@@ -1,5 +1,6 @@
 # Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
-x-event-type: ias-transaction
+x-event-type: iss-author-full
+x-event-version: 1.0
 x-summary: Publish IAS transaction (Iss-OA3_002)
 x-description: Event associated to the IAS transaction
 x-operation-id: iasTransaction

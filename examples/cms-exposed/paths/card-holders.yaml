@@ -25,6 +25,9 @@
             Cardholder Id<br>Technical identifier of the cardholder in the banking system.<br>This identifier is
             provided during the subscription by the bank.<br>Afterwards, it is used by the CMS to retrieve the
             cardholder data from the bank.
+          x-dictionary-id: '250331121313'
+          x-estreem-field-original-object: cardholder
+          x-estreem-field-original-name: cardholderId
         description: >-
           Technical identifier of the cardholder in the banking system.<br>This identifier is provided during the
           subscription by the bank.<br>Afterwards, it is used by the CMS to retrieve the cardholder data from the bank.

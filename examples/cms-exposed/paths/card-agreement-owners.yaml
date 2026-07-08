@@ -27,6 +27,9 @@
             system.<br>This identifier can be provided during the subscription by the bank if the owner of the card
             agreement is different from the cardholder.<br>Afterwards, it is used by the CMS to retrieve the owner data
             from the bank.
+          x-dictionary-id: '250617090000'
+          x-estreem-field-original-object: cardAgreement
+          x-estreem-field-original-name: ownerId
         description: >-
           Technical identifier of the owner of the card agreement in the banking system.<br>This identifier can be
           provided during the subscription by the bank if the owner of the card agreement is different from the
