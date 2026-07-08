@@ -1,0 +1,232 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+# Schémas métier du domaine, regroupés (voir paths/).
+CardholderDataReq:
+  title: CardholderDataReq
+  type: object
+  description: ''
+  properties:
+    civility:
+      type: string
+      minLength: 1
+      maxLength: 16
+      description: >-
+        cardholder title<br>Civility of the cardholder<br>The data is defined as a 16 characters string but at this
+        stage the CMS service only uses the first 10 characters
+      x-dictionary-id: '250528104051'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: civility
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 70
+      description: >-
+        first name<br>The first name is defined as 70 characters strings but, at this stage, the CMS service only uses
+        up to the first 40 characters.
+      x-dictionary-id: '241112000101'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: firstName
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 70
+      description: >-
+        last name<br>The last name is defined as 70 characters strings but, at this stage, the CMS service only uses up
+        to the first 40 characters.
+      x-dictionary-id: '241112000102'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: lastName
+    dateOfBirth:
+      type: string
+      format: date
+      description: Date of birth of cardholder
+      x-dictionary-id: '250528104054'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: dateOfBirth
+    birthPlace:
+      type: string
+      minLength: 1
+      maxLength: 50
+      description: Cardholder birth place
+      x-dictionary-id: '250617090112'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: birthPlace
+    birthCountryCode:
+      type: string
+      pattern: ^[0-9]{3}$
+      description: Cardholder birth country code<br>Birth country code of the cardholder (ISO 3166, Numeric-3 code)
+      x-dictionary-id: '250617090113'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: birthCountryCode
+    countryCode:
+      type: string
+      pattern: ^[0-9]{3}$
+      description: country code of cardholder<br>Cardholder residence country code (ISO 3166, Numeric-3 code)
+      x-dictionary-id: '241112000099'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: countryCode
+    gender:
+      type: string
+      minLength: 1
+      maxLength: 10
+      description: Cardholder Gender
+      x-dictionary-id: '250617090111'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: gender
+    localLanguageCode:
+      type: string
+      pattern: ^[a-z]{2,3}$
+      description: >-
+        local language code <br>Language to be used for communication with the cardholder<br>This language is sent by
+        the CMS to the card manufacturer for the manufacturer to edit letters in the cardholder's language<br>The
+        language code is defined in accordance with ISO 639-1 and ISO 639-2.<br>Example : fra
+      x-dictionary-id: '241112000103'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: localLanguageCode
+    cellPhone:
+      type: string
+      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+      description: >-
+        Cardholder cellphone number<br>Cardholder personal cellular phone number<br>Format : International phone number
+        E164 standard<br>Example : +14151231234
+      x-dictionary-id: '250617090114'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: cellPhone
+    phoneNumber:
+      type: string
+      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+      description: >-
+        phone number<br>Cardholder personal landline phone number<br>Format : International phone number E164
+        standard<br>Example : +14151231234
+      x-dictionary-id: '241112000105'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: phoneNumber
+    proPhone:
+      type: string
+      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+      description: >-
+        Cardholder pro phone number<br>Cardholder professional phone number<br>Format : International phone number E164
+        standard<br>Example : +14151231234
+      x-dictionary-id: '250617090115'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: proPhone
+    email:
+      type: string
+      format: email
+      description: email address
+      x-dictionary-id: '241112000100'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: email
+    postalAddress:
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          minLength: 1
+          maxLength: 36
+        room:
+          type: string
+          minLength: 1
+          maxLength: 70
+        floor:
+          type: string
+          minLength: 1
+          maxLength: 70
+        streetName:
+          type: string
+          minLength: 1
+          maxLength: 70
+        postBox:
+          type: string
+          minLength: 1
+          maxLength: 16
+        townNameLocation:
+          type: string
+          minLength: 1
+          maxLength: 70
+        postCode:
+          type: string
+          minLength: 1
+          maxLength: 16
+        townName:
+          type: string
+          minLength: 1
+          maxLength: 70
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+      description: >-
+        Postal Address<br>Principal postal address of a cardholder used by default when non explicit shipping conditions
+        are provided by the bank<br>postalAddressID is the postalAddress identifier which may be provided by the bank in
+        the subscription and which will correspond to the identifier provided upon retrieval of the cardholder
+        details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set using the
+        civility/firstName/lastName data which are provided separately<br>- Line 2 is set using the room<br>- Line 3 is
+        set using the floor<br>- Line 4 is set using the streetName<br>- Line 5 is set by concatenating the postBox and
+        the townNameLocation<br>- Line 6 is set by concatenating the postCode and the townName<br>- Line 7 is set using
+        the countryCode (country name determined from the ISO3166 numeric-3 code)<br>postalAddressID, townName and
+        countryCode are required.<br>At least one of (room, floor, streetName or townNameLocation) is required.<br>The
+        room, floor, streetName, townNameLocation and townName are defined as 70 characters  strings but, at this stage,
+        the CMS service only uses up to the first 38 characters.
+      x-dictionary-id: '241112000106'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: postalAddress
+      x-estreem-field-selector: postalAddressID,room,floor,streetName,postBox,townNameLocation,postCode,townName,countryCode
+    secondaryPostalAddress:
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          minLength: 1
+          maxLength: 36
+        room:
+          type: string
+          minLength: 1
+          maxLength: 70
+        floor:
+          type: string
+          minLength: 1
+          maxLength: 70
+        streetName:
+          type: string
+          minLength: 1
+          maxLength: 70
+        postBox:
+          type: string
+          minLength: 1
+          maxLength: 16
+        townNameLocation:
+          type: string
+          minLength: 1
+          maxLength: 70
+        postCode:
+          type: string
+          minLength: 1
+          maxLength: 16
+        townName:
+          type: string
+          minLength: 1
+          maxLength: 70
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+      description: >-
+        Cardholder secondary postal address<br>postalAddressID is the postalAddress identifier which may be provided by
+        the bank in the subscription and which will correspond to the identifier provided upon retrieval of the
+        cardholder details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set using
+        the civility/firstName/lastName data which are provided separately <br>- Line 2 is set using the room<br>- Line
+        3 is set using the floor<br>- Line 4 is set using the streetName<br>- Line 5 is set by concatenating the postBox
+        and the townNameLocation<br>- Line 6 is set by concatenating the postCode and the townName<br>- Line 7 is set
+        using the countryCode (country name determined from the ISO3166 numeric-3 code)<br>postalAddressID, townName and
+        countryCode are required.<br>At least one of (room, floor, streetName or townNameLocation) is required.<br>The
+        room, floor, streetName, townNameLocation and townName are defined as 70 characters strings but, at this stage,
+        the CMS service only uses up to the first 38 characters.
+      x-dictionary-id: '250617090038'
+      x-estreem-field-original-object: cardholder
+      x-estreem-field-original-name: secondaryPostalAddress
+      x-estreem-field-selector: postalAddressID,room,floor,streetName,postBox,townNameLocation,postCode,townName,countryCode
+  additionalProperties: false
+  required:
+    - firstName
+    - lastName
+    - countryCode
+    - localLanguageCode
+    - postalAddress

@@ -1,0 +1,111 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+# Schémas métier du domaine, regroupés (voir paths/).
+CardAgreementOwnerDataReq:
+  title: CardAgreementOwnerDataReq
+  type: object
+  description: ''
+  properties:
+    civility:
+      type: string
+      minLength: 1
+      maxLength: 16
+      description: >-
+        Civility of the owner<br>Civility of the owner of the card agreement if the owner is a person (otherwise this
+        field should be absent)<br>The data is defined as a 16 characters string but at this stage the CMS service only
+        uses the first 10 characters.
+      x-dictionary-id: '250617090001'
+      x-estreem-field-original-object: cardAgreement
+      x-estreem-field-original-name: ownerCivility
+    firstName:
+      type: string
+      minLength: 1
+      maxLength: 70
+      description: >-
+        First name<br>First name of the owner of the card agreement if the owner is a person (otherwise this field
+        should be absent)<br>The first name is defined as 70 characters strings but, at this stage, the CMS service only
+        uses up to the first 40 characters.
+      x-dictionary-id: '250617090002'
+      x-estreem-field-original-object: cardAgreement
+      x-estreem-field-original-name: ownerFirstName
+    lastName:
+      type: string
+      minLength: 1
+      maxLength: 70
+      description: >-
+        Last name<br>Last name of the owner of the card agreement if the owner is a person (otherwise this field should
+        be absent)<br>The last name is defined as 70 characters strings but, at this stage, the CMS service only uses up
+        to the first 40 characters.
+      x-dictionary-id: '250617090003'
+      x-estreem-field-original-object: cardAgreement
+      x-estreem-field-original-name: ownerLastName
+    companyName:
+      type: string
+      minLength: 1
+      maxLength: 50
+      description: >-
+        Company Name<br>Company name of the owner of the card agreement if the owner is a company (otherwise this field
+        should be absent)
+      x-dictionary-id: '250617090004'
+      x-estreem-field-original-object: cardAgreement
+      x-estreem-field-original-name: ownerCompanyName
+    postalAddress:
+      type: object
+      properties:
+        postalAddressID:
+          type: string
+          minLength: 1
+          maxLength: 36
+        department:
+          type: string
+          minLength: 1
+          maxLength: 70
+        room:
+          type: string
+          minLength: 1
+          maxLength: 70
+        floor:
+          type: string
+          minLength: 1
+          maxLength: 70
+        streetName:
+          type: string
+          minLength: 1
+          maxLength: 70
+        postBox:
+          type: string
+          minLength: 1
+          maxLength: 16
+        townNameLocation:
+          type: string
+          minLength: 1
+          maxLength: 70
+        postCode:
+          type: string
+          minLength: 1
+          maxLength: 16
+        townName:
+          type: string
+          minLength: 1
+          maxLength: 70
+        countryCode:
+          type: string
+          pattern: ^[0-9]{3}$
+      description: >-
+        Postal Address<br>postalAddressID is the postalAddress identifier which may be provided by the bank in the
+        subscription and which will correspond to the identifier provided upon retrieval of the cardholder
+        details.<br>The data are used to format the address on a letter as follows :<br>- Line 1 is set using the
+        civility/firstName/lastName/companyName data which are provided separately<br>- Line 2 is set using either the
+        department (professionnal address) or the room (personal address)<br>- Line 3 is set using the floor<br>- Line 4
+        is set using the streetName<br>- Line 5 is set by concatenating the postBox and the townNameLocation<br>- Line 6
+        is set by concatenating the postCode and the townName<br>- Line 7 is set using the countryCode (country name
+        determined from the ISO3166 numeric-3 code)<br>postalAddressID, townName and countryCode are required.<br>At
+        least one of (department, room, floor, streetName or townNameLocation) is required.<br>The department, room,
+        floor, streetName, townNameLocation and townName are defined as 70 characters strings but, at this stage, the
+        CMS service only uses up to the first 38 characters.
+      x-dictionary-id: '250617090005'
+      x-estreem-field-original-object: cardAgreement
+      x-estreem-field-original-name: ownerPostalAddress
+      x-estreem-field-selector: postalAddressID,department,room,floor,streetName,postBox,townNameLocation,postCode,townName,countryCode
+  additionalProperties: false
+  required:
+    - postalAddress

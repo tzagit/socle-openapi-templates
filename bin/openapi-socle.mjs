@@ -10,6 +10,7 @@ import path from 'node:path';
 import { buildProjects } from '../tools/build.mjs';
 import { runImportCli } from '../tools/import.mjs';
 import { runDiffCli } from '../tools/diff.mjs';
+import { runCheckDictionaryCli } from '../tools/check-dictionary.mjs';
 
 function usage() {
   console.log(`openapi-socle — socle de templating OpenAPI
@@ -29,6 +30,10 @@ function usage() {
   openapi-socle diff <baseline> <revision>   Compare deux contrats et déduit le niveau SemVer.
       --allow-breaking  Ne pas échouer sur un changement cassant (sort quand même 'major')
                         stdout = major|minor|patch ; exit 1 si cassant (sauf --allow-breaking).
+
+  openapi-socle check-dictionary [projet]    Valide les champs annotés x-dictionary-id contre le
+                                             dico (dico/<info.x-dictionary-version> à la racine du
+                                             dépôt). Écart net → exit 1 ; cas ambigu → warning.
 
   Défaut de sortie du build : ./build/<projet>.openapi.yaml`);
 }
@@ -65,6 +70,7 @@ switch (cmd) {
   case 'build': buildCli(rest); break;
   case 'import': runImportCli(rest); break;
   case 'diff': runDiffCli(rest); break;
+  case 'check-dictionary': runCheckDictionaryCli(rest); break;
   case undefined: case '-h': case '--help': usage(); break;
   default: console.error(`Commande inconnue : ${cmd}`); usage(); process.exit(1);
 }

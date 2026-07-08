@@ -16,6 +16,8 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm test                  # tests unitaires (node:test)
+      - run: npm run check:dictionary  # conformité au dictionnaire Estreem (avant génération)
       - run: npm run build
       - run: npm run lint        # Redocly : validité OpenAPI
       - run: npm run spectral    # Spectral : conformité au socle

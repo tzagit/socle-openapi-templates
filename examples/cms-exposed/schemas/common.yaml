@@ -1,0 +1,281 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+# Schémas métier du domaine, regroupés (voir paths/).
+Code:
+  type: string
+  enum:
+    - PDOM
+    - PINT
+    - PTOT
+    - WGRD
+    - WGRI
+    - WNGD
+    - WNGI
+    - WTOT
+  x-enumDescriptions:
+    PDOM: Purchase DOMestic
+    PINT: Purchase INTernational
+    PTOT: Purchase TOTal
+    WGRD: Withdrawal GRoup Domestic
+    WGRI: Withdrawal GRoup International
+    WNGD: Withdrawal Not Group Domestic
+    WNGI: Withdrawal Not Group International
+    WTOT: Withdrawal TOTal
+  description: >-
+    Usage limit code<br>Code defining the context of use of the usage limit<br>Value :
+    Label<br>---------------------------------------------------------------------<br>PDOM : Paiement domestique
+    (Purchase DOMestic)<br>PINT : Paiement international (Purchase INTernational)​<br>PTOT : Paiement total (Purchase
+    TOTal)<br>WGRD : Retrait domestique groupe (Withdrawal GRoup Domestic)<br>WNGD : Retrait domestique hors groupe et
+    cash manuel domestique (Withdrawal Not Group Domestic)​<br>WGRI : Retrait international groupe (Withdrawal GRoup
+    International)​<br>WNGI : Retrait international hors groupe et cash manuel international (Withdrawal Not Group
+    International)<br>WTOT : Retrait total (Withdrawal TOTal)​
+  x-dictionary-id: '250617090028'
+  x-estreem-field-original-object: cardAgreementParameters
+  x-estreem-field-original-name: usageLimitCode
+ValueType:
+  type: string
+  enum:
+    - AMNT
+    - NUBR
+  x-enumDescriptions:
+    AMNT: Amount
+    NUBR: Number
+  description: >-
+    Type of value of the usage limit<br>Type defining whether the usage limit is an amount or a number<br>In the current
+    definition, only amounts are supported.<br>The definition of the "number" type is reserved for future use<br>Value :
+    Label<br>---------------------------------------------------------------------<br>AMNT  : Amount<br>NUBR  : Number
+    (RFU)
+  x-dictionary-id: '250617090030'
+  x-estreem-field-original-object: cardAgreementParameters
+  x-estreem-field-original-name: usageLimitValueType
+PersonalizedAmount:
+  type: object
+  properties:
+    amount:
+      type: string
+      pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+  description: >-
+    Personalized amount of the usage limit<br>Amount of the usage limit provided by the bank during the subscription or
+    modified after the subscription (this amount overrides the default amount of the limit)<br>This amount is
+    significant if the usageLimitValueType is set as AMNT<br>This amount can be temporary if a start and end date/time
+    are defined or permanent if no date/time are defined.<br>The amount is provided as a number of monetary units
+    specified in a currency where the unit of currency is implied by the context and compliant with ISO 4217. The
+    decimal separator is a dot.
+  x-dictionary-id: '250617090034'
+  x-estreem-field-original-object: cardAgreementParameters
+  x-estreem-field-original-name: usageLimitPersonalizedAmount
+  x-estreem-field-selector: amount
+PostalAddress:
+  type: object
+  properties:
+    department:
+      type: string
+      minLength: 1
+      maxLength: 70
+    room:
+      type: string
+      minLength: 1
+      maxLength: 70
+    floor:
+      type: string
+      minLength: 1
+      maxLength: 70
+    streetName:
+      type: string
+      minLength: 1
+      maxLength: 70
+    postBox:
+      type: string
+      minLength: 1
+      maxLength: 16
+    townNameLocation:
+      type: string
+      minLength: 1
+      maxLength: 70
+    postCode:
+      type: string
+      minLength: 1
+      maxLength: 16
+    townName:
+      type: string
+      minLength: 1
+      maxLength: 70
+    countryCode:
+      type: string
+      pattern: ^[0-9]{3}$
+  description: >-
+    Temporary shipping condition postal address<br>The data are used to format the address on a letter as follows :<br>-
+    Line 1 is set using the civility/firstName/lastName/company or entity Name data which are provided separately <br>-
+    Line 2 is set using either the department (professionnal address) or the room (personal address)<br>- Line 3 is set
+    using the floor<br>- Line 4 is set using the streetName<br>- Line 5 is set by concatenating the postBox and the
+    townNameLocation<br>- Line 6 is set by concatenating the postCode and the townName<br>- Line 7 is set using the
+    countryCode (country name determined from the ISO3166 numeric-3 code)<br>townName and countryCode are
+    required.<br>At least one of (department, room, floor, streetName or townNameLocation) is required.<br>The
+    department, room, floor, streetName, townNameLocation and townName are defined as 70 characters strings but, at this
+    stage, the CMS service only used up to the first 38 characters.
+  x-dictionary-id: '250708120003'
+  x-estreem-field-original-object: cardAgreementParameters
+  x-estreem-field-original-name: shippingConditionPostalAddress
+  x-estreem-field-selector: department,room,floor,streetName,postBox,townNameLocation,postCode,townName,countryCode
+BlockingReasonCode:
+  type: string
+  enum:
+    - ABUS
+    - AUTB
+    - CNTF
+    - FRAU
+    - HRFR
+    - LOST
+    - LSRN
+    - STLN
+  x-enumDescriptions:
+    ABUS: Abusive
+    AUTB: Automatic blocking
+    CNTF: Counterfeit
+    FRAU: Fraudulent
+    HRFR: High risk fraudulent
+    LOST: Lost Card
+    LSRN: Lost or stolen during renewal
+    STLN: Stolen Card
+  description: >-
+    Blocking reason code<br>Standard blocking reason code<br>Value :
+    Label<br>---------------------------------------------------------------------<br>ABUS : Abusive<br>AUTB : Automatic
+    blocking<br>CNTF : Counterfeit<br>FRAU : Fraudulent<br>HRFR : High risk fraudulent<br>LOST : Lost Card<br>LSRN :
+    Lost or stolen during renewal<br>STLN : Stolen Card
+  x-dictionary-id: '250410114322'
+  x-estreem-field-original-object: cardContext
+  x-estreem-field-original-name: blockingReasonCode
+LockingReasonCode:
+  type: string
+  enum:
+    - ABUS
+    - CLRQ
+    - CNTF
+    - FRAU
+    - LOST
+    - OTHR
+  x-enumDescriptions:
+    ABUS: Abusive
+    CLRQ: Cardholder request
+    CNTF: Counterfeit
+    FRAU: Fraudulent
+    LOST: Lost Card (or Card Temporary Lost)
+    OTHR: Other
+  description: >-
+    Locking reason code<br>Value :
+    Label<br>---------------------------------------------------------------------<br>ABUS : Abusive<br>CLRQ :
+    Cardholder request<br>CNTF : Counterfeit<br>FRAU : Fraudulent<br>LOST : Lost Card (or Card Temporary Lost)<br>OTHR :
+    Other
+  x-dictionary-id: '250410114321'
+  x-estreem-field-original-object: cardContext
+  x-estreem-field-original-name: lockingReasonCode
+ClosingReasonCode:
+  type: string
+  enum:
+    - BRRQ
+    - CBLK
+    - CLFB
+    - CLNC
+    - CLST
+    - CLTD
+    - CUPD
+    - LCCL
+    - OTHR
+  x-enumDescriptions:
+    BRRQ: Contract closure initiated by the branch/agency on  cutomer request
+    CBLK: Card blocked
+    CLFB: Card holder Or Customer left the bank
+    CLNC: Card cancellation requested by the Card Owner/holder
+    CLST: Card lost
+    CLTD: Account holder deceased
+    CUPD: Card agreement update
+    LCCL: Card agreement automatic cancellation
+    OTHR: Other
+  description: >-
+    Card agreement closing reason code<br>Value :
+    Label<br>---------------------------------------------------------------------<br>BRRQ : Contract closure initiated
+    by the branch/agency on  cutomer request<br>CBLK : Card blocked<br>CLFB : Card holder Or Customer left the
+    bank<br>CLNC : Card cancellation requested by the Card Owner/holder<br>CLST : Card lost<br>CLTD : Account holder
+    deceased<br>CUPD : Card agreement update<br>LCCL : Card agreement automatic cancellation<br>OTHR : Other
+  x-dictionary-id: '250617090027'
+  x-estreem-field-original-object: cardAgreementParameters
+  x-estreem-field-original-name: cardAgreementClosingReasonCode
+RemanufacturingReasonCode:
+  type: string
+  enum:
+    - BLCD
+    - BRCD
+    - EACH
+    - LOCH
+    - LSCD
+    - MARR
+    - RNWL
+    - VICH
+  x-enumDescriptions:
+    BLCD: Blocked card
+    BRCD: Broken card
+    EACH: Embossed area change
+    LOCH: Locked chip
+    LSCD: Lost card
+    MARR: Manufacturing error
+    RNWL: Renewal
+    VICH: Visual change
+  description: >-
+    Remanufacturing reason code<br>Value :
+    Label<br>---------------------------------------------------------------------<br>BLCD : Blocked card<br>BRCD :
+    Broken card<br>EACH : Embossed area change<br>LOCH : Locked chip<br>LSCD : Lost card<br>MARR : Manufacturing
+    error<br>RNWL : Renewal<br>VICH : Visual change
+  x-dictionary-id: '250617090048'
+  x-estreem-field-original-object: card
+  x-estreem-field-original-name: remanufacturingReasonCode
+Context:
+  type: object
+  description: ''
+  properties:
+    blockingDateTime:
+      type: string
+      format: date-time
+      description: >-
+        Blocking date and time<br>The date and time are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601
+        datetime format)
+      x-dictionary-id: '260211115200'
+      x-estreem-field-original-object: cardContext
+      x-estreem-field-original-name: blockingDateTime
+    blockingReference:
+      type: string
+      pattern: ^[0-9a-zA-Z\-]{1,36}$
+      description: Blocking reference<br>Reference generated by the CMS when processing a card blocking request
+      x-dictionary-id: '251110110003'
+      x-estreem-field-original-object: cardContext
+      x-estreem-field-original-name: blockingReference
+  additionalProperties: false
+  required:
+    - blockingDateTime
+    - blockingReference
+Shared:
+  type: string
+  enum:
+    - BKOF
+    - BRNH
+    - BTCH
+    - CCNT
+    - OBNK
+    - UNKN
+    - USIN
+    - USR1
+    - USR2
+    - WBNK
+  x-enumDescriptions:
+    BKOF: Back office (back-office agents)
+    BRNH: Branch (customer advisor)
+    BTCH: Batch processing (reserved value for the processor’s batch processing of files)
+    CCNT: Call Center
+    OBNK: Open banking (selfcare on mobiles or tablets)
+    UNKN: Unknown
+    USIN: User interface (reserved value for the processor’s UIs)
+    USR1: User defined 1 (usage defined by the bank)
+    USR2: "User defined 2 \_(usage defined by the bank)"
+    WBNK: Web banking (selfcare on a computer)
+  description: "Indicates through which channel the action is triggered<br>Communication channel used to initiate the request<br>This channel identifies the origin of the request such as a web banking application, a branch system, a back-office system, etc.<br>Value<br>---------------------------------------------------------------------<br>BKOF : Back office (back-office agents)<br>BTCH : Batch processing (reserved value for the processor’s batch processing of files<br>BRNH : Branch (customer advisor)<br>CCNT : Call Center<br>OBNK :Open banking (selfcare on mobiles or tablets)<br>UNKN : Unknown<br>USR1 : User defined 1 (usage defined by the bank)<br>USR2 : User defined 2 \_(usage defined by the bank)<br>USIN : User interface (reserved value for the processor’s UIs)<br>WBNK : Web banking (selfcare on a computer)"
+  x-dictionary-id: '250331114321'
+  x-estreem-field-original-object: cardContext
+  x-estreem-field-original-name: acquiringChannel

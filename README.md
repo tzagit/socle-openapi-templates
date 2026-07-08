@@ -22,7 +22,11 @@ pagination/tri, sécurité) ; un projet ne décrit que **ce qui lui est propre**
 9. [Importer un OpenAPI existant](#9-importer-un-openapi-existant)
 10. [Mettre à jour le socle](#10-mettre-à-jour-le-socle)
 11. [Versioning & non-régression (CI)](#11-versioning--non-régression-ci)
-12. [Développer le socle (ce dépôt)](#12-développer-le-socle-ce-dépôt)
+12. [Démarrer depuis un contrat legacy (Excel et Python)](#12-démarrer-depuis-un-contrat-legacy-excel-et-python)
+13. [Faire évoluer un contrat d'interface](#13-faire-évoluer-un-contrat-dinterface)
+14. [Créer une API de zéro](#14-créer-une-api-de-zéro)
+15. [Monter la version du dictionnaire](#15-monter-la-version-du-dictionnaire)
+16. [Développer le socle (ce dépôt)](#16-développer-le-socle-ce-dépôt)
 
 ---
 
@@ -152,15 +156,17 @@ mon-api/
 ├── api.yaml         # type + info + servers + tags
 ├── paths/           # 1 fichier par ressource ; chaque clé est une route
 │   └── *.yaml
-└── schemas/         # schémas métier (top-level = nom du schéma)
+└── schemas/         # schémas métier (top-level = nom du schéma), découpés par domaine
     └── *.yaml
 ```
 
 - **`api.yaml`** : `type` (obligatoire, retiré du contrat final) + la partie `info`/`servers`/`tags`.
 - **`paths/*.yaml`** : tous les fichiers sont fusionnés. Chaque route ne déclare **que ses
   réponses `2xx`** ; le reste est injecté.
-- **`schemas/*.yaml`** : tous fusionnés dans `components.schemas`. Référencer par
-  `$ref: '#/components/schemas/…'`.
+- **`schemas/*.yaml`** : tous fusionnés dans `components.schemas` (les `$ref` fonctionnent
+  entre fichiers). **Découpe recommandée : un fichier par domaine**, en calquant `paths/`
+  (ex. `card-agreements.yaml`, `cards.yaml`, `common.yaml` pour les types partagés) plutôt qu'un
+  seul gros fichier. Référencer par `$ref: '#/components/schemas/…'`.
 - **`events/*.yaml`** *(type `events` uniquement)* : un fichier par event (JSON Schema du
   payload + métadonnées `x-event-*`) ; le build génère les webhooks (cf. §5).
 
@@ -359,23 +365,181 @@ et **`openapi:release`** (sur tag `vX.Y.Z`, publie le contrat versionné sur Art
 | Socle (ce dépôt) | le dossier `golden/` (committé) | `npm run golden:update` (chemin figé dans `tools/check-regression.mjs`) |
 | Ad-hoc / local | le fichier de ton choix | le 1er argument de `openapi-socle diff <baseline> <revision>` |
 
-## 12. Développer le socle (ce dépôt)
+## 12. Démarrer depuis un contrat legacy (Excel et Python)
+
+Beaucoup d'APIs existantes ont été produites par l'**ancienne méthode** : un fichier **Excel**
+(la spec + le dictionnaire de données) et un **script Python** qui génère le swagger JSON. Pour
+faire entrer une telle API dans le socle **en conservant les références au dictionnaire**, on
+réalise une **migration one-shot** :
+
+1. **Partir de l'Excel du dernier contrat validé** — la version de référence (celle réellement
+   validée / en production), pas un brouillon.
+2. **Régénérer le JSON** avec le script Python en activant l'extension des identifiants de
+   dictionnaire dans le `.env` :
+   ```dotenv
+   ENABLE_EXTEND_SCHEMA_ESTREEM_FIELD_ID=true
+   ```
+   → chaque champ du swagger porte alors son `x-dictionary-id` (et les annotations `x-estreem-*`).
+3. **Déposer la version correspondante du dico** dans le répertoire `dico/` du projet, et vérifier
+   que `info.x-dictionary-version` du swagger pointe bien ce fichier :
+   ```
+   dico/_DICO_ESTREEM_vXX.YY.xlsx
+   ```
+4. **Lancer l'import** — il dé-factorise le contrat **en préservant** les `x-dictionary-id` sur
+   les champs (body **et** paramètres) et `info.x-dictionary-version` :
+   ```bash
+   openapi-socle import ./swagger-genere.json --name mon-api --out-dir .
+   ```
+5. **Construire et valider contre le dico** :
+   ```bash
+   openapi-socle build ./mon-api
+   openapi-socle check-dictionary ./mon-api
+   ```
+   Tous les champs annotés sont vérifiés (type, format, pattern, longueurs, enum, **types
+   structurés**). Le **build retire** les annotations internes (`x-dictionary-id`, `x-estreem-*`)
+   du contrat final, mais **conserve** `info.x-dictionary-version` pour la traçabilité.
+
+> **Projets code-first** — si le swagger est **généré à partir du code** (Spring, etc.), il faut
+> voir avec l'**équipe Foundation** comment faire remonter le `x-dictionary-id` dans le swagger
+> généré : sur les champs des **request/response bodies** **et** sur les **paramètres de path et
+> de query**. Sans ces `x-dictionary-id`, le check dico n'a rien à valider.
+
+Cette migration ne se fait **qu'une fois**. Ensuite, le projet est un projet du socle normal et
+évolue par delta (section 13).
+
+---
+
+## 13. Faire évoluer un contrat d'interface
+
+Une fois la migration one-shot terminée, le contrat évolue **par delta**, selon le **process
+standard** (specs, tickets Jira, revue de MR) :
+
+1. **Modifier les sources** du projet (`paths/`, `schemas/`, `events/`) conformément à la spec.
+2. **Pour chaque champ ajouté ou modifié, renseigner le `x-dictionary-id`** correspondant à
+   l'élément du dictionnaire (et, si besoin, monter la version du dico — section 15). Un champ
+   métier sans id remonte en **warning** ; un id inexistant ou une définition divergente **bloque**.
+3. **Committer** le contrat régénéré — le changement se relit comme un diff de code.
+
+**Ce que la CI/CD vérifie** à chaque push (bloque ✗ ou avertit ⚠ selon le doute) :
+
+| Check | Outil | Rôle | En cas de problème |
+|-------|-------|------|--------------------|
+| **Dictionnaire** | `check-dictionary` | chaque `x-dictionary-id` conforme au dico | ✗ **bloque** (écart net) / ⚠ (ambigu) |
+| **Validité** | Redocly | OpenAPI 3.1 valide | ✗ bloque |
+| **Conformité socle** | Spectral | headers, erreurs, casing, règles par type… | ✗ bloque (règles `error`) / ⚠ (`warn`) |
+| **Rupture** | oasdiff | comparaison à la dernière baseline publiée | ✗ bloque si rupture non assumée par une majeure |
+
+**Si tous les checks passent**, la CI **génère et stocke, aux côtés du contrat bundlé**, les
+**artefacts de code** dérivés du contrat :
+- **Java serveur** (interfaces / stubs),
+- **Java client**,
+- **client JavaScript**.
+
+Ces artefacts sont versionnés avec le contrat : les consommateurs ne codent pas à la main contre
+le swagger, ils prennent le client généré.
+
+---
+
+## 14. Créer une API de zéro
+
+Pas de contrat legacy : on part d'un **exemple** et on ne garde que son métier. `orders-exposed`
+est un bon point de départ (`partner-payments-called` ou `orders-events` pour les autres types) :
+
+```bash
+cp -r node_modules/@monsi/openapi-socle/examples/orders-exposed ./mon-api
+```
+
+1. **`api.yaml`** — adapter `info` (title, version), `servers` (base path avec la **majeure d'URL**,
+   ex. `/v1`) et `tags`. Si l'API s'appuie sur le dictionnaire, le déclarer et déposer le fichier
+   dans `dico/` :
+   ```yaml
+   info:
+     x-dictionary-version: _DICO_ESTREEM_vXX.YY.xlsx
+   ```
+2. **`paths/`** — décrire **uniquement** les routes et leurs réponses **2xx** ; le socle injecte
+   headers, codes d'erreur, pagination et sécurité.
+3. **`schemas/`** — les schémas métier. **Sur chaque champ** (body, et paramètres path/query),
+   ajouter le `x-dictionary-id` de l'élément de dictionnaire correspondant :
+   ```yaml
+   cardholderId:
+     type: string
+     pattern: ^[0-9a-zA-Z\-]{1,36}$
+     x-dictionary-id: '250331121313'   # → doit exister dans le dico et matcher type/pattern/longueurs
+   ```
+4. **Construire et vérifier** :
+   ```bash
+   openapi-socle build ./mon-api && openapi-socle check-dictionary ./mon-api
+   ```
+
+Les mêmes checks CI/CD que la section 13 s'appliquent — c'est le même contrat, sans l'étape de
+migration. Voir §4–§7 pour l'anatomie d'un projet et les macros.
+
+---
+
+## 15. Monter la version du dictionnaire
+
+Cas fréquent : le **dictionnaire évolue** (nouvelle version `.xlsx`) alors que l'API **n'a pas
+changé par ailleurs**. Il faut re-vérifier la conformité et reporter d'éventuels changements du
+dico sur les champs utilisés.
+
+1. **Déposer la nouvelle version** dans `dico/` et pointer dessus :
+   ```yaml
+   info:
+     x-dictionary-version: _DICO_ESTREEM_vXX.ZZ.xlsx   # nouvelle version
+   ```
+2. **Relancer le check dico** : `openapi-socle check-dictionary ./mon-api`
+   - **Tout passe** → rien à faire côté champs ; c'est une évolution de traçabilité.
+   - **Des écarts remontent** (un `x-dictionary-id` a changé de type / longueur / pattern / enum
+     dans le nouveau dico) → **reporter le changement** sur le champ concerné (ajuster `type`,
+     `maxLength`, `enum`… pour recoller au dico), ou mettre à jour le `x-dictionary-id` si
+     l'élément a été renommé/remplacé.
+
+**Quelle version d'API en sortie ?** — c'est **oasdiff** qui tranche, en comparant le contrat
+régénéré à la baseline :
+
+| Effet du report sur le contrat | Niveau | Action |
+|--------------------------------|--------|--------|
+| aucun changement (seule `x-dictionary-version` bouge) | `patch` | bump patch |
+| ajout rétrocompatible (champ nullable, enum élargi…) | `minor` | bump mineure |
+| **rupture** (type incompatible, `maxLength` réduit, enum restreint, champ rendu requis…) | `major` | **nouvelle majeure** |
+
+**En cas de breaking change** (oasdiff sort `major` et bloque) : on **n'écrase pas** la majeure
+en cours. On publie une **nouvelle majeure d'URL** (`/v2`) et on fait **coexister** `/v1` et `/v2`
+le temps de migrer les consommateurs. La CI ne débloque que si la rupture est **assumée** par
+cette nouvelle majeure (baseline distincte). Pour un correctif purement cosmétique faussement vu
+comme cassant, ajuster le contrat plutôt que forcer.
+
+**Cohérence version d'API ↔ base path** — la **majeure** de `info.version` (SemVer) doit
+**correspondre** à la majeure du base path (`/v1`, `/v2`). Ex. : `info.version: 2.3.0` ⇒ base path
+`…/v2/…`. Une divergence (du `2.x` servi sous `/v1`) est le signe qu'une rupture a été introduite
+sans monter la majeure d'URL. C'est vérifié par la règle Spectral
+**`socle-version-major-matches-basepath`** — en **`warning`** (à arbitrer / passer en blocage avec
+l'équipe Foundation si besoin).
+
+---
+
+## 16. Développer le socle (ce dépôt)
 
 ```bash
 npm install
-npm run build            # construit examples/ → build/
+npm test                 # tests unitaires (node:test) — voir ARCHITECTURE.md pour reprendre le code
+npm run check:dictionary # (avant génération) valide les champs annotés x-dictionary-id contre le
+                         #   dictionnaire Estreem dico/<info.x-dictionary-version> : type, format, pattern,
+                         #   longueurs, enum (Codeset), digits. Écart net → erreur ; cas ambigu → warning.
+npm run build            # construit examples/ → build/ (retire x-dictionary-id + x-estreem-* du contrat)
 npm run lint             # validité OpenAPI (Redocly)
 npm run spectral         # conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
                          #   par méthode, X-Processing-Route-Id en réponse, identifiants au format uuid,
                          #   nommage camelCase, items d'array, codes d'erreur contextuels par méthode
                          #   (404/409/422 + catalogue), règles par type (events/called via
-                         #   info.x-socle-type), x-socle-version, operationId, tags…)
+                         #   info.x-socle-type), cohérence version majeure ↔ base path,
+                         #   x-socle-version, operationId, tags…)
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture) — nécessite oasdiff
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
 npm pack --dry-run       # aperçu du package publié
 ```
 
-Le pipeline complet en local : `npm run build && npm run lint && npm run spectral && npm run check:regression`.
+Le pipeline complet en local : `npm run check:dictionary && npm run build && npm run lint && npm run spectral && npm run check:regression`.
 
 **Installer `oasdiff`** (requis par `check:regression` et `openapi-socle diff`) :
 ```bash

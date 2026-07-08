@@ -2,6 +2,9 @@
 # Complète Redocly (validité OpenAPI) par les conventions maison. Sévérité error = bloquant.
 extends: ["spectral:oas"]
 
+# Fonctions custom (dans ./functions/<nom>.js).
+functions: [versionMajorMatch]
+
 rules:
 
   # --- Servers : requis seulement s'il y a des paths (un contrat webhook/events n'en a pas) ---
@@ -20,6 +23,16 @@ rules:
           then:
             required: [servers]
             properties: { servers: { type: array, minItems: 1 } }
+
+  # --- Cohérence version : la majeure de info.version doit correspondre au /vN du base path ---
+  # warn (et non error) : divergence à arbitrer (souvent signe d'une rupture non répercutée sur l'URL).
+  socle-version-major-matches-basepath:
+    description: La majeure de info.version doit correspondre à la version du base path (/vN).
+    message: "{{error}}"
+    severity: warn
+    given: "$"
+    then:
+      function: versionMajorMatch
 
   # --- Sécurité ---
   socle-no-api-key:

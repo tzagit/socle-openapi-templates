@@ -14,27 +14,28 @@ components:
   schemas:
     StandardError:
       type: object
+      description: Standard error response used across all APIs
       properties:
         code:
           type: string
           minLength: 1
           maxLength: 20
-          description: Code d'erreur applicatif stable.
+          description: Functional or technical error code
         text:
           type: string
           minLength: 1
           maxLength: 40
-          description: Message d'erreur destiné au consommateur.
+          description: User-friendly error message
         developerText:
           type: string
           minLength: 1
           maxLength: 70
-          description: Détail technique à destination des développeurs.
+          description: Detailed technical message for debugging
         moreInfo:
           type: string
           minLength: 1
           maxLength: 256
-          description: Complément d'information / lien de documentation.
+          description: Additional information or documentation link
     BalanceCheckingReq:
       title: BalanceCheckingReq
       type: object
