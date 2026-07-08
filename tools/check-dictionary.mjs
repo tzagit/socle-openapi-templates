@@ -39,7 +39,21 @@ export function compareField(field, exp) {
   const err = (m) => out.push({ sev: 'error', msg: m });
   const warn = (m) => out.push({ sev: 'warn', msg: m });
 
-  if (exp.kind === 'unknown') { warn(`type dico « ${exp.typeName} » non résolu (type structuré ?)`); return out; }
+  if (exp.kind === 'unknown') { warn(`type dico « ${exp.typeName} » non résolu (absent du dictionnaire ?)`); return out; }
+
+  // type structuré : le champ doit être un objet ; on compare ses sous-champs par nom.
+  if (exp.kind === 'structured') {
+    const et = effType(field.type);
+    if (et && et !== 'object') err(`type « ${et} » ≠ dico « object » (${exp.typeName})`);
+    if (isObj(field.properties) && isObj(exp.attributes)) {
+      for (const [sub, subDef] of Object.entries(field.properties)) {
+        const attr = exp.attributes[sub];
+        if (!attr) { warn(`sous-champ « ${sub} » hors du type structuré ${exp.typeName}`); continue; }
+        for (const { sev, msg } of compareField(subDef, { found: true, ...attr })) out.push({ sev, msg: `${sub}: ${msg}` });
+      }
+    }
+    return out;
+  }
 
   const hasEnum = Array.isArray(field.enum);
   const ft = effType(field.type);
@@ -93,7 +107,9 @@ export function walk(node, p, ctx) {
       node['x-dictionary-id'] == null && !(isObj(node.schema) && node.schema['x-dictionary-id'] != null)) {
     ctx.onParamNoId(`${p} (${node.name})`);
   }
-  if (isObj(node.properties)) {
+  // Feuille scalaire de body sans id → oubli ? (sauf si l'objet parent est lui-même annoté :
+  // ses sous-champs sont alors couverts par son type structuré.)
+  if (isObj(node.properties) && node['x-dictionary-id'] == null) {
     for (const [name, field] of Object.entries(node.properties))
       if (isObj(field) && field['x-dictionary-id'] == null && isScalarLeaf(field)) ctx.onLeafNoId(`${p}.${name}`);
   }

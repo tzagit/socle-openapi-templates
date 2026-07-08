@@ -42,8 +42,19 @@ test('compareField — enum (Codeset)', () => {
   assert.ok(warns(compareField({ type: 'string' }, exp)).some((m) => /enum manquant/.test(m)), 'enum absent → warning');
 });
 
-test('compareField — type structuré non résolu → warning', () => {
-  const out = compareField({ type: 'object' }, { found: true, kind: 'unknown', typeName: 'AmountType' });
+test('compareField — type structuré : objet + sous-champs comparés par nom', () => {
+  const exp = { found: true, kind: 'structured', type: 'object', typeName: 'AddrType', attributes: {
+    city: { kind: 'simple', type: 'string', maxLength: 70 },
+    zip: { kind: 'simple', type: 'string', maxLength: 16 },
+  } };
+  assert.deepEqual(compareField({ type: 'object', properties: { city: { type: 'string', maxLength: 70 } } }, exp), [], 'sous-champ conforme');
+  assert.ok(errors(compareField({ type: 'object', properties: { city: { type: 'string', maxLength: 99 } } }, exp)).some((m) => /^city: maxLength/.test(m)), 'sous-champ divergent → erreur préfixée du nom');
+  assert.ok(warns(compareField({ type: 'object', properties: { nope: { type: 'string' } } }, exp)).some((m) => /hors du type structuré/.test(m)), 'sous-champ inconnu → warning');
+  assert.ok(errors(compareField({ type: 'string' }, exp)).some((m) => /object/.test(m)), 'non-objet → erreur');
+});
+
+test('compareField — type vraiment inconnu → warning', () => {
+  const out = compareField({ type: 'object' }, { found: true, kind: 'unknown', typeName: 'MysteryType' });
   assert.equal(errors(out).length, 0);
   assert.ok(warns(out).some((m) => /non résolu/.test(m)));
 });

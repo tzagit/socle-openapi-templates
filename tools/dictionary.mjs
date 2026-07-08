@@ -24,6 +24,14 @@ export function loadDictionary(file) {
     const d = str(r['Data']); if (d) codesetByName.get(n).values.push(d);
   }
 
+  // Types structurés (objets) : Structure → liste de { attribute, typology }.
+  const structuredByName = new Map();
+  for (const r of sheet('TypesStructures')) {
+    const n = str(r['Structure']), a = str(r['Attributes']); if (!n || !a) continue;
+    if (!structuredByName.has(n)) structuredByName.set(n, []);
+    structuredByName.get(n).push({ attribute: a, typology: str(r['Typologie']) });
+  }
+
   const simpleDef = (name) => {
     const s = simpleByName.get(name); if (!s) return null;
     return {
@@ -36,21 +44,36 @@ export function loadDictionary(file) {
     };
   };
 
+  // Résout un NOM de type (simple | codeset | structuré | inconnu). Récursif sur les sous-champs
+  // d'un type structuré ; `seen` coupe les cycles éventuels.
+  const resolveTypeName = (name, seen = new Set()) => {
+    const n = str(name);
+    if (simpleByName.has(n)) return { kind: 'simple', ...simpleDef(n) };
+    if (codesetByName.has(n)) {
+      const cs = codesetByName.get(n);
+      return { kind: 'codeset', ...(simpleDef(cs.format) || { type: 'string' }), enum: cs.values };
+    }
+    if (structuredByName.has(n)) {
+      if (seen.has(n)) return { kind: 'structured', type: 'object', attributes: {} }; // garde-fou anti-cycle
+      const next = new Set(seen).add(n);
+      const attributes = {};
+      for (const { attribute, typology } of structuredByName.get(n)) attributes[attribute] = resolveTypeName(typology, next);
+      return { kind: 'structured', type: 'object', attributes };
+    }
+    return { kind: 'unknown', typeName: n };
+  };
+
   return {
     version: file,
-    // Renvoie { found, kind:'simple'|'codeset'|'unknown', type, pattern, minLength, maxLength,
-    //           fractionDigits, totalDigits, enum, object, attribute, typeName }
+    resolveTypeName,
+    // Renvoie { found, kind:'simple'|'codeset'|'structured'|'unknown', type, pattern, minLength,
+    //          maxLength, fractionDigits, totalDigits, enum, attributes, object, attribute, typeName }
     resolve(id) {
       const e = byId.get(str(id));
       if (!e) return { found: false };
       const typeName = str(e['Type']);
       const meta = { object: str(e['Object']), attribute: str(e['Attribute']), typeName };
-      if (simpleByName.has(typeName)) return { found: true, kind: 'simple', ...simpleDef(typeName), ...meta };
-      if (codesetByName.has(typeName)) {
-        const cs = codesetByName.get(typeName);
-        return { found: true, kind: 'codeset', ...(simpleDef(cs.format) || { type: 'string' }), enum: cs.values, ...meta };
-      }
-      return { found: true, kind: 'unknown', ...meta };
+      return { found: true, ...resolveTypeName(typeName), ...meta };
     },
   };
 }
