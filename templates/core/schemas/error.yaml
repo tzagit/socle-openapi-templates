@@ -3,8 +3,9 @@ components:
   schemas:
     StandardError:
       type: object
+      description: Standard error response used across all APIs
       properties:
-        code:          { type: string, minLength: 1, maxLength: 20,  description: "Code d'erreur applicatif stable." }
-        text:          { type: string, minLength: 1, maxLength: 40,  description: "Message d'erreur destiné au consommateur." }
-        developerText: { type: string, minLength: 1, maxLength: 70,  description: "Détail technique à destination des développeurs." }
-        moreInfo:      { type: string, minLength: 1, maxLength: 256, description: "Complément d'information / lien de documentation." }
+        code:          { type: string, minLength: 1, maxLength: 20,  description: "Functional or technical error code" }
+        text:          { type: string, minLength: 1, maxLength: 40,  description: "User-friendly error message" }
+        developerText: { type: string, minLength: 1, maxLength: 70,  description: "Detailed technical message for debugging" }
+        moreInfo:      { type: string, minLength: 1, maxLength: 256, description: "Additional information or documentation link" }
