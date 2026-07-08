@@ -19,10 +19,10 @@ const globYaml = (d) => (!fs.existsSync(d) ? [] : fs.readdirSync(d).filter((f) =
 const mergeFiles = (files) => files.reduce((acc, f) => ({ ...acc, ...loadYaml(f) }), {});
 
 // type OpenAPI effectif (gère [type,"null"]).
-const effType = (t) => (Array.isArray(t) ? t.find((x) => x !== 'null') : t);
+export const effType = (t) => (Array.isArray(t) ? t.find((x) => x !== 'null') : t);
 // normalise une regex : retire ancres ^ … $ pour comparer au dico (qui ne les met pas).
-const normPat = (p) => (p == null ? null : String(p).replace(/^\^/, '').replace(/\$$/, ''));
-const isScalarLeaf = (f) => isObj(f) && !isObj(f.properties) && ['string', 'integer', 'number', 'boolean'].includes(effType(f.type));
+export const normPat = (p) => (p == null ? null : String(p).replace(/^\^/, '').replace(/\$$/, ''));
+export const isScalarLeaf = (f) => isObj(f) && !isObj(f.properties) && ['string', 'integer', 'number', 'boolean'].includes(effType(f.type));
 
 // Le dico met parfois un FORMAT OpenAPI dans sa colonne « type » (le champ est alors
 // type: string + format: X). Table de correspondance format → type OpenAPI.
@@ -34,7 +34,7 @@ const FORMAT_TYPE = {
 };
 
 // Compare un champ à la définition attendue du dico → liste de { sev, msg }.
-function compareField(field, exp) {
+export function compareField(field, exp) {
   const out = [];
   const err = (m) => out.push({ sev: 'error', msg: m });
   const warn = (m) => out.push({ sev: 'warn', msg: m });
@@ -84,7 +84,7 @@ function compareField(field, exp) {
 
 // Parcourt tout le doc : valide chaque nœud portant un x-dictionary-id (champ de body OU
 // schéma de paramètre), et signale les feuilles scalaires de body sans id (oubli possible).
-function walk(node, p, ctx) {
+export function walk(node, p, ctx) {
   if (Array.isArray(node)) { node.forEach((n, i) => walk(n, `${p}[${i}]`, ctx)); return; }
   if (!isObj(node)) return;
   if (node['x-dictionary-id'] != null) ctx.onId(node, p);
@@ -100,7 +100,7 @@ function walk(node, p, ctx) {
   for (const [k, v] of Object.entries(node)) walk(v, k === 'properties' ? p : `${p}.${k}`, ctx);
 }
 
-function checkProject(dir) {
+export function checkProject(dir) {
   const api = loadYaml(path.join(dir, 'api.yaml'));
   const version = api.info?.['x-dictionary-version'];
   if (!version) return null; // pas de dictionnaire déclaré → rien à vérifier
@@ -162,4 +162,4 @@ function main() {
   if (totalErr) process.exit(1);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();

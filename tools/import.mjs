@@ -70,7 +70,7 @@ function resolveRef(doc, ref) {
   return cur;
 }
 
-const sanitize = (s) => lower(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'api';
+export const sanitize = (s) => lower(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'api';
 
 // ------------------------------------------------------------------ inlining des $ref non-schéma
 // On garde les $ref vers #/components/schemas/* (le projet réémet ces schémas) mais on inline
@@ -102,7 +102,7 @@ function inlineNonSchemaRefs(node, doc, warnings, seen = new Set()) {
 
 // ------------------------------------------------------------------ conversion 3.0 -> 3.1 (nullable)
 // OpenAPI 3.0 : `{ type: X, nullable: true }`. En 3.1 : `{ type: [X, 'null'] }`.
-function convertNullable(node, stats) {
+export function convertNullable(node, stats) {
   if (Array.isArray(node)) return node.map((n) => convertNullable(n, stats));
   if (!isObj(node)) return node;
   const out = {};
@@ -125,7 +125,7 @@ function paramMeta(p) {
 }
 // Retire les paramètres fournis par le socle (headers communs, pagination/tri) et
 // CONSERVE tout header custom. Compte les normalisations dans stats.
-function filterParams(params, stats) {
+export function filterParams(params, stats) {
   const kept = [];
   for (const p of params) {
     const { name, in: loc } = paramMeta(p);
@@ -139,7 +139,7 @@ function filterParams(params, stats) {
 
 // ------------------------------------------------------------------ détection de pagination
 // Reconstruit x-paginated à partir d'une enveloppe de type Page<Item> sur le 200.
-function pageItemRef(schemaNode, doc) {
+export function pageItemRef(schemaNode, doc) {
   if (!isObj(schemaNode)) return null;
   const hasContentItems = (n) => isObj(n) && isObj(n.properties?.content?.items) && typeof n.properties.content.items.$ref === 'string';
   const metaKeys = ['pagination', 'page', 'pageable', 'totalElements', 'totalPages', 'number'];
@@ -156,7 +156,7 @@ function pageItemRef(schemaNode, doc) {
   return null;
 }
 
-function detectPagination(op, doc, droppedWrappers) {
+export function detectPagination(op, doc, droppedWrappers) {
   const existing200 = op.responses?.['200'];
   const media = existing200?.content?.['application/json'];
   if (!isObj(media) || !isObj(media.schema)) return false;
@@ -243,7 +243,7 @@ function schemaRefsIn(def, acc) {
 
 // ------------------------------------------------------------------ factorisation des schémas répétés
 // Forme canonique (clés triées) pour comparer deux schémas indépendamment de l'ordre.
-function canon(v) {
+export function canon(v) {
   if (Array.isArray(v)) return `[${v.map(canon).join(',')}]`;
   if (isObj(v)) return `{${Object.keys(v).sort().map((k) => JSON.stringify(k) + ':' + canon(v[k])).join(',')}}`;
   return JSON.stringify(v);
@@ -302,7 +302,7 @@ function genName(slots, used) {
   return name;
 }
 // Boucle en point fixe, du plus profond au plus superficiel : hisse un groupe de doublons par tour.
-function factorSchemas(files, schemasMap) {
+export function factorSchemas(files, schemasMap) {
   const factored = [];
   const used = new Set(Object.keys(schemasMap));
   for (let guard = 0; guard < 1000; guard++) {
@@ -340,28 +340,28 @@ const VERSION_RE = /^v\d+(\.\d+)?$/i;
 const firstSeg = (route) => (String(route).split('/').filter(Boolean)[0] || '').toLowerCase();
 // Version portée par les paths (ex. /v1/orders → "v1"). Remontée si UNE seule version apparaît
 // (même si certains paths ne sont pas versionnés). Versions multiples (v1 + v2) → ambigu → null.
-function detectVersionPrefix(paths) {
+export function detectVersionPrefix(paths) {
   const versions = new Set(Object.keys(paths || {}).map(firstSeg).filter((s) => VERSION_RE.test(s)));
   return versions.size === 1 ? [...versions][0] : null;
 }
-function stripVersionPrefix(route, version) {
+export function stripVersionPrefix(route, version) {
   const out = route.replace(new RegExp(`^/${version}(?=/|$)`, 'i'), '');
   return out === '' ? '/' : out;
 }
-function appendSegment(url, seg) {
+export function appendSegment(url, seg) {
   const b = String(url).replace(/\/+$/, '');
   return new RegExp(`/${seg}$`, 'i').test(b) ? b : `${b}/${seg}`;
 }
 
 // ------------------------------------------------------------------ regroupement des routes en fichiers
-function groupKey(route, isEvents) {
+export function groupKey(route, isEvents) {
   if (isEvents) return 'events';
   const seg = String(route).split('/').filter(Boolean)[0];
   return seg ? sanitize(seg.replace(/\{.*$/, '') || seg) : 'root';
 }
 
 // Nom de l'event = ressource (dernier segment non-paramétré) du path. Ex. /order-created → order-created.
-function eventNameFromPath(route) {
+export function eventNameFromPath(route) {
   const segs = String(route).split('/').filter(Boolean).filter((s) => !s.startsWith('{'));
   return segs.length ? segs[segs.length - 1] : 'event';
 }
@@ -407,7 +407,7 @@ function dump(obj) {
 }
 
 // ------------------------------------------------------------------ assemblage du projet
-function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.fr' }) {
+export function importDoc(doc, { type, name, factor = true, host = 'https://api.mon-si.fr' }) {
   const warnings = new Set();
   const droppedWrappers = new Set();
   // Compteurs de « remise en conformité » (éléments non conformes retirés / customs conservés).
@@ -636,4 +636,4 @@ export function runImportCli(argv = process.argv.slice(2)) {
   console.log(`\nProchaine étape : openapi-socle build ${path.relative(process.cwd(), dir) || '.'}`);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) runImportCli();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) runImportCli();

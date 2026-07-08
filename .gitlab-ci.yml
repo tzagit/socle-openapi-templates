@@ -14,6 +14,7 @@ lint:
   image: $NODE_IMAGE
   script:
     - npm ci
+    - npm test                  # tests unitaires (node:test)
     - npm run check:dictionary  # conformité au dictionnaire Estreem (avant génération)
     - npm run build
     - npm run lint          # Redocly : validité OpenAPI

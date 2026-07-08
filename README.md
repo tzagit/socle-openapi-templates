@@ -363,6 +363,7 @@ et **`openapi:release`** (sur tag `vX.Y.Z`, publie le contrat versionné sur Art
 
 ```bash
 npm install
+npm test                 # tests unitaires (node:test) — voir ARCHITECTURE.md pour reprendre le code
 npm run check:dictionary # (avant génération) valide les champs annotés x-dictionary-id contre le
                          #   dictionnaire Estreem dico/<info.x-dictionary-version> : type, format, pattern,
                          #   longueurs, enum (Codeset), digits. Écart net → erreur ; cas ambigu → warning.

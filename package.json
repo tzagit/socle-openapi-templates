@@ -18,6 +18,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "test": "node --test",
     "build": "node tools/build.mjs",
     "build:one": "node tools/build.mjs --project",
     "import": "node tools/import.mjs",

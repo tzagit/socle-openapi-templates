@@ -59,7 +59,7 @@ const RESPONSE_HEADERS = {
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const loadYaml = (file) => yaml.load(fs.readFileSync(file, 'utf8')) ?? {};
 
-function deepMerge(a, b) {
+export function deepMerge(a, b) {
   if (b === undefined) return a;
   if (!isObj(a) || !isObj(b)) return b;
   const out = { ...a };
@@ -78,7 +78,7 @@ function globEvents(dir) {
 }
 
 const mergeFiles = (files, seed = {}) => files.reduce((acc, f) => deepMerge(acc, loadYaml(f)), seed);
-const pascal = (s) => String(s).split(/[^A-Za-z0-9]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('');
+export const pascal = (s) => String(s).split(/[^A-Za-z0-9]+/).filter(Boolean).map((w) => w[0].toUpperCase() + w.slice(1)).join('');
 
 // Ref helpers
 const paramRef = (name) => ({ $ref: `#/components/parameters/${name}` });
@@ -218,7 +218,7 @@ function attachResponseHeaders(response) {
   );
 }
 
-function injectErrors(op, method, hasPathParam) {
+export function injectErrors(op, method, hasPathParam) {
   op.responses ??= {};
   const codes = new Set(ERRORS_ALWAYS);
   if (hasPathParam) codes.add(ERROR_IF_PATH_PARAM);
@@ -234,7 +234,7 @@ function injectErrors(op, method, hasPathParam) {
 }
 
 // Macro x-paginated: '#/components/schemas/Order' -> Page<Order> + params page/size/sort.
-function expandPagination(op, doc) {
+export function expandPagination(op, doc) {
   const itemRef = op['x-paginated'];
   delete op['x-paginated'];
   if (!itemRef || itemRef === false) return;
@@ -260,7 +260,7 @@ function expandPagination(op, doc) {
 }
 
 // Passe une propriété en nullable (OpenAPI 3.1).
-function asNullable(s) {
+export function asNullable(s) {
   if (!isObj(s)) return s;
   if (s.$ref) return { anyOf: [{ $ref: s.$ref }, { type: 'null' }] }; // un $ref nu ne peut pas porter null
   const t = s.type;
@@ -271,7 +271,7 @@ function asNullable(s) {
 }
 
 // Rend nullable les propriétés optionnelles d'un schéma (récursif sur les sous-schémas).
-function nullableSchema(schema) {
+export function nullableSchema(schema) {
   if (!isObj(schema)) return;
   if (isObj(schema.properties)) {
     const req = new Set(Array.isArray(schema.required) ? schema.required : []);
@@ -286,7 +286,7 @@ function nullableSchema(schema) {
 
 // Schémas composants atteignables depuis une RÉPONSE (à ne jamais rendre nullable : ce serait
 // cassant pour le consommateur — cf. SPEC §10).
-function responseReachableSchemas(doc) {
+export function responseReachableSchemas(doc) {
   const seen = new Set(); const names = new Set(); const queue = [];
   for (const cont of [doc.paths, doc.webhooks]) {
     if (!isObj(cont)) continue;
@@ -310,7 +310,7 @@ function responseReachableSchemas(doc) {
 //  - un schéma composant atteignable depuis une réponse → soumis au flag `responses` ;
 //    sinon (requête seule ou inutilisé) → soumis au flag `requests` ;
 //  - schémas inline des requestBody → `requests` ; des responses → `responses`.
-function nullableOptionals(doc, { requests = true, responses = false } = {}) {
+export function nullableOptionals(doc, { requests = true, responses = false } = {}) {
   const responseSchemas = responseReachableSchemas(doc);
   for (const [name, def] of Object.entries(doc.components?.schemas ?? {})) {
     if (responseSchemas.has(name) ? responses : requests) nullableSchema(def);
@@ -402,7 +402,7 @@ function normalizeEventAck(op) {
 
 // Retire les annotations internes du dictionnaire : x-dictionary-id et tout x-estreem-*.
 // x-dictionary-version (dans info) est conservé pour la traçabilité.
-function stripDictAnnotations(node) {
+export function stripDictAnnotations(node) {
   if (Array.isArray(node)) { node.forEach(stripDictAnnotations); return; }
   if (!isObj(node)) return;
   for (const k of Object.keys(node)) {
@@ -434,7 +434,7 @@ function resolveComponent(doc, ref) {
   return cur;
 }
 
-function pruneUnusedComponents(doc) {
+export function pruneUnusedComponents(doc) {
   if (!isObj(doc.components)) return;
   const { components, ...outside } = doc; // racines : refs hors de components
 
@@ -461,7 +461,7 @@ function pruneUnusedComponents(doc) {
 }
 
 // ------------------------------------------------------------------ validation légère des $ref internes
-function collectRefs(node, acc) {
+export function collectRefs(node, acc) {
   if (Array.isArray(node)) node.forEach((n) => collectRefs(n, acc));
   else if (isObj(node)) for (const [k, v] of Object.entries(node)) (k === '$ref' && typeof v === 'string') ? acc.push(v) : collectRefs(v, acc);
   return acc;
@@ -524,4 +524,4 @@ function main() {
   if (ok !== dirs.length) process.exit(1);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
