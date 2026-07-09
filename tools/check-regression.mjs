@@ -19,19 +19,24 @@ let fail = false, checked = 0;
 for (const r of results) {
   if (!r.ok) { console.error(`✗ build ${r.name} : ${r.error}`); fail = true; continue; }
 
-  const golden = path.join(GOLDEN, `${r.name}.openapi.yaml`);
-  if (!fs.existsSync(golden)) { console.log(`• ${r.name.padEnd(28)} pas de baseline (nouveau) — ignoré`); continue; }
+  // un projet peut produire plusieurs contrats (events multi-events) → une baseline par fichier.
+  for (const outFile of r.outFiles) {
+    const base = path.basename(outFile);
+    const label = base.replace(/\.openapi\.yaml$/, '');
+    const golden = path.join(GOLDEN, base);
+    if (!fs.existsSync(golden)) { console.log(`• ${label.padEnd(28)} pas de baseline (nouveau) — ignoré`); continue; }
 
-  let res;
-  try { res = diffContracts(golden, r.outFile); }
-  catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
+    let res;
+    try { res = diffContracts(golden, outFile); }
+    catch (e) { console.error(`✗ ${e.message}`); process.exit(2); }
 
-  checked++;
-  console.log(`${res.level === 'major' ? '✗' : '✓'} ${r.name.padEnd(28)} ${res.level}`);
-  if (res.level === 'major') {
-    fail = true;
-    for (const c of res.breaking.slice(0, 20)) {
-      console.log(`    • ${[c.operation, c.path, c.text || c.id].filter(Boolean).join(' ')}`);
+    checked++;
+    console.log(`${res.level === 'major' ? '✗' : '✓'} ${label.padEnd(28)} ${res.level}`);
+    if (res.level === 'major') {
+      fail = true;
+      for (const c of res.breaking.slice(0, 20)) {
+        console.log(`    • ${[c.operation, c.path, c.text || c.id].filter(Boolean).join(' ')}`);
+      }
     }
   }
 }

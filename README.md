@@ -200,6 +200,11 @@ Le champ `type:` de `api.yaml` choisit le profil.
   Métadonnées : `x-event-type` (obligatoire), `x-event-version`, `x-summary`, `x-description`,
   `x-operation-id`, `x-tags`, `x-deprecated`. Un `$ref` nu est réutilisé tel quel ; un schéma
   inline est enregistré comme composant `<EventType>Event`.
+  - **Plusieurs events → un swagger par event** : si un projet `events` déclare **plusieurs**
+    events, le build produit **un contrat webhook par event** — `build/<projet>-<event>.openapi.yaml`
+    (ex. `orders-events-order-created.openapi.yaml`), chacun réduit à ses seuls composants. Un
+    **seul** event → un contrat unique `build/<projet>.openapi.yaml`. Chaque fichier a sa propre
+    baseline dans `golden/`.
 
 ---
 

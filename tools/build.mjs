@@ -383,15 +383,32 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
 
   nullableOptionals(doc, nullable); // champs optionnels → nullable (requêtes par défaut, réponses en opt-in)
   stripDictAnnotations(doc);   // retire x-dictionary-id + x-estreem-* (annotations internes ; x-dictionary-version conservé)
-  pruneUnusedComponents(doc);  // n'émet que les composants réellement référencés (pas de pagination si non utilisée, etc.)
-
-  validateRefs(doc, name);
 
   fs.mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, `${name}.openapi.yaml`);
-  fs.writeFileSync(outFile, yaml.dump(doc, { lineWidth: 120, noRefs: true, sortKeys: false }));
-  return { name, type, outFile, operations: Object.keys(operations).length };
+  const dump = (d) => yaml.dump(d, { lineWidth: 120, noRefs: true, sortKeys: false });
+  const write = (d, file) => {
+    pruneUnusedComponents(d); // n'émet que les composants réellement référencés
+    validateRefs(d, path.basename(file, '.openapi.yaml'));
+    fs.writeFileSync(file, dump(d));
+    return file;
+  };
+
+  // events avec PLUSIEURS events → un swagger webhook par event (chacun réduit à ses composants).
+  const webhookRoutes = isEvents ? Object.keys(doc.webhooks ?? {}) : [];
+  const outFiles = [];
+  if (webhookRoutes.length > 1) {
+    for (const route of webhookRoutes) {
+      const one = structuredClone({ ...doc, webhooks: { [route]: doc.webhooks[route] } });
+      outFiles.push(write(one, path.join(outDir, `${name}-${eventSlug(route)}.openapi.yaml`)));
+    }
+  } else {
+    outFiles.push(write(doc, path.join(outDir, `${name}.openapi.yaml`)));
+  }
+  return { name, type, outFiles, operations: Object.keys(operations).length };
 }
+
+// Slug de nom de fichier depuis une clé d'event (ex. order.created → order-created).
+export const eventSlug = (route) => String(route).replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
 
 // events : la réponse de succès est un 204 (ack sans corps). Retire toute réponse 2xx déclarée.
 function normalizeEventAck(op) {
@@ -517,8 +534,10 @@ function main() {
   }
   let ok = 0;
   for (const r of results) {
-    if (r.ok) { console.log(`✓ ${r.name.padEnd(28)} [${r.type}]  ${r.operations} route(s)  → build/${r.name}.openapi.yaml`); ok++; }
-    else console.error(`✗ ${r.name} : ${r.error}`);
+    if (r.ok) {
+      const outs = r.outFiles.map((f) => `build/${path.basename(f)}`).join(', ');
+      console.log(`✓ ${r.name.padEnd(28)} [${r.type}]  ${r.operations} route(s)  → ${outs}`); ok++;
+    } else console.error(`✗ ${r.name} : ${r.error}`);
   }
   console.log(`\n${ok}/${dirs.length} projet(s) construit(s).`);
   if (ok !== dirs.length) process.exit(1);
