@@ -23,12 +23,13 @@
     "build": "node tools/build.mjs",
     "build:one": "node tools/build.mjs --project",
     "import": "node tools/import.mjs",
-    "lint": "redocly lint build/*.openapi.yaml",
-    "spectral": "spectral lint \"build/*.openapi.yaml\" --ruleset .spectral.yaml --fail-severity=error",
+    "lint": "npm run build && redocly lint build/*.openapi.yaml",
+    "spectral": "npm run build && spectral lint \"build/*.openapi.yaml\" --ruleset .spectral.yaml --fail-severity=error",
     "check:dictionary": "node tools/check-dictionary.mjs",
     "check:regression": "node tools/check-regression.mjs",
     "release:notes": "node tools/release-notes.mjs",
-    "golden:update": "rm -f build/*.openapi.yaml && node tools/build.mjs && rm -f golden/*.openapi.yaml && cp build/*.openapi.yaml golden/"
+    "golden:update": "rm -f build/*.openapi.yaml && node tools/build.mjs && rm -f golden/*.openapi.yaml && cp build/*.openapi.yaml golden/",
+    "verify": "npm run check:dictionary && npm run lint && npm run spectral && npm run check:regression"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",

@@ -16,9 +16,8 @@ lint:
     - npm ci
     - npm test                  # tests unitaires (node:test)
     - npm run check:dictionary  # conformité au dictionnaire Estreem (avant génération)
-    - npm run build
-    - npm run lint          # Redocly : validité OpenAPI
-    - npm run spectral      # Spectral : conformité au socle
+    - npm run lint          # build + Redocly (validité OpenAPI)
+    - npm run spectral      # build + Spectral (conformité au socle)
 
 non-regression:
   stage: check

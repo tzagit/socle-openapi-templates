@@ -536,8 +536,9 @@ npm run check:dictionary # (avant génération) valide les champs annotés x-dic
                          #   dictionnaire Estreem dico/<info.x-dictionary-version> : type, format, pattern,
                          #   longueurs, enum (Codeset), digits. Écart net → erreur ; cas ambigu → warning.
 npm run build            # construit examples/ → build/ (retire x-dictionary-id + x-estreem-* du contrat)
-npm run lint             # validité OpenAPI (Redocly)
-npm run spectral         # conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
+npm run build:one -- cms-exposed   # ne construit qu'un projet (nom obligatoire après --)
+npm run lint             # build + validité OpenAPI (Redocly) — se construit tout seul
+npm run spectral         # build + conformité au socle (Spectral : pas d'API key, headers communs, Idempotency-Key
                          #   par méthode, X-Processing-Route-Id en réponse, identifiants au format uuid,
                          #   nommage camelCase, items d'array, codes d'erreur contextuels par méthode
                          #   (404/409/422 + catalogue), règles par type (events/called via
@@ -546,10 +547,13 @@ npm run spectral         # conformité au socle (Spectral : pas d'API key, heade
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture) — nécessite oasdiff
 npm run release:notes    # release note (cassants / non cassants) du build vs golden — AVANT golden:update
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
+npm run verify           # TOUT le pipeline en une commande (check:dictionary + lint + spectral + check:regression)
 npm pack --dry-run       # aperçu du package publié
 ```
 
-Le pipeline complet en local : `npm run check:dictionary && npm run build && npm run lint && npm run spectral && npm run check:regression`.
+`lint`, `spectral`, `check:regression` et `release:notes` **construisent eux-mêmes** ce dont ils
+ont besoin — pas de `npm run build` préalable à faire. Le pipeline complet en une commande :
+`npm run verify`.
 
 **Passer une nouvelle version en golden avec une release note** — `golden/` = la dernière version.
 Générer la note **avant** d'écraser les baselines, puis promouvoir :

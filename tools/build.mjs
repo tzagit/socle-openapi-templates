@@ -526,6 +526,10 @@ export function buildProjects({ root = EXAMPLES, outDir = DEFAULT_OUT, filter = 
 // CLI de dev du socle : `node tools/build.mjs [--project <nom>]` construit examples/ → build/.
 function main() {
   const idx = process.argv.indexOf('--project');
+  if (idx !== -1 && !process.argv[idx + 1]) {
+    console.error('Usage : npm run build:one -- <nom-du-projet>   (ex. npm run build:one -- cms-exposed)');
+    process.exit(1);
+  }
   const filter = idx !== -1 ? process.argv[idx + 1] : null;
   const { dirs, results } = buildProjects({ root: EXAMPLES, outDir: DEFAULT_OUT, filter });
   if (!dirs.length) {
