@@ -36,9 +36,10 @@ test('compareField — format (le dico met un format dans "type")', () => {
 });
 
 test('compareField — enum (Codeset)', () => {
-  const exp = { found: true, kind: 'codeset', type: 'string', enum: ['A', 'B'] };
-  assert.deepEqual(compareField({ type: 'string', enum: ['B', 'A'] }, exp), [], 'même ensemble (ordre libre) → conforme');
-  assert.ok(errors(compareField({ type: 'string', enum: ['A'] }, exp)).some((m) => /enum/.test(m)), 'enum ≠ → erreur');
+  const exp = { found: true, kind: 'codeset', type: 'string', enum: ['A', 'B', 'C'] };
+  assert.deepEqual(compareField({ type: 'string', enum: ['C', 'B', 'A'] }, exp), [], 'même ensemble (ordre libre) → conforme');
+  assert.ok(warns(compareField({ type: 'string', enum: ['A'] }, exp)).some((m) => /enum restreint/.test(m)), 'sous-ensemble → warning');
+  assert.ok(errors(compareField({ type: 'string', enum: ['A', 'Z'] }, exp)).some((m) => /hors dico/.test(m)), 'valeur inventée → erreur');
   assert.ok(warns(compareField({ type: 'string' }, exp)).some((m) => /enum manquant/.test(m)), 'enum absent → warning');
 });
 

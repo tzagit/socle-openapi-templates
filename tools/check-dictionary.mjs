@@ -80,12 +80,16 @@ export function compareField(field, exp) {
     else if (exp[k] != null && field[k] == null && !hasEnum) warn(`${k} manquant (dico : ${exp[k]})`);
   }
 
-  // enum (Codeset)
+  // enum (Codeset) : le schéma peut RESTREINDRE le codeset (sous-ensemble → warning), mais pas
+  // introduire une valeur absente du dico (→ erreur).
   if (exp.enum && exp.enum.length) {
     if (!hasEnum) warn(`enum manquant (dico : ${exp.enum.length} valeur(s))`);
     else {
-      const a = [...field.enum].map(String).sort(), b = [...exp.enum].map(String).sort();
-      if (a.length !== b.length || a.some((v, i) => v !== b[i])) err(`enum ≠ dico [${exp.enum.join(', ')}]`);
+      const dicoValues = new Set(exp.enum.map(String));
+      const fieldValues = new Set(field.enum.map(String));
+      const invented = [...fieldValues].filter((v) => !dicoValues.has(v));
+      if (invented.length) err(`enum : valeur(s) hors dico [${invented.join(', ')}]`);
+      else if (fieldValues.size < dicoValues.size) warn(`enum restreint : ${fieldValues.size}/${dicoValues.size} valeur(s) du codeset`);
     }
   }
 

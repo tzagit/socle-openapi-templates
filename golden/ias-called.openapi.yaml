@@ -625,7 +625,8 @@ components:
                   format: date-time
                   description: >-
                     Date Time in local region<br>Equivalent to DE12, DE13 and DE59.102 in ISO8583 based protocols<br>The
-                    date and time are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                    dateTime is specified in the following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO
+                    8601 / RFC 3339)
                 reference:
                   type: string
                   minLength: 1
@@ -637,8 +638,9 @@ components:
                   type: string
                   format: date-time
                   description: >-
-                    Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The date and time
-                    are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                    Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The dateTime is
+                    specified in the following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO 8601 / RFC
+                    3339)
               additionalProperties: false
               required:
                 - endToEndTransId
@@ -1630,7 +1632,8 @@ components:
                   format: date-time
                   description: >-
                     Date Time in local region<br>Equivalent to DE12, DE13 and DE59.102 in ISO8583 based protocols<br>The
-                    date and time are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                    dateTime is specified in the following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO
+                    8601 / RFC 3339)
                 reference:
                   type: string
                   minLength: 1
@@ -1642,8 +1645,9 @@ components:
                   type: string
                   format: date-time
                   description: >-
-                    Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The date and time
-                    are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                    Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The dateTime is
+                    specified in the following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO 8601 / RFC
+                    3339)
               additionalProperties: false
               required:
                 - localDateTime
@@ -1826,8 +1830,8 @@ components:
               format: date-time
               description: >-
                 local transaction date time in original message<br>Equivalent to DE12, DE13 and DE59.102 (from the
-                original transaction) in ISO8583 based protocols<br>The date and time are specified in the following
-                form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                original transaction) in ISO8583 based protocols<br>The dateTime is specified in the following form
+                YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO 8601 / RFC 3339)
             reference:
               type: string
               minLength: 1
@@ -1850,8 +1854,8 @@ components:
               format: date-time
               description: >-
                 initial transmission gmt date time<br>Transmission date and time of the original
-                transaction<br>Equivalent to DE90 part 3 in ISO8583 based protocols<br>The date and time are specified
-                in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+                transaction<br>Equivalent to DE90 part 3 in ISO8583 based protocols<br>The dateTime is specified in the
+                following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO 8601 / RFC 3339)
           additionalProperties: false
           required:
             - localDateTime
@@ -2412,8 +2416,9 @@ components:
           type: string
           format: date-time
           description: >-
-            Date Time in local region<br>Equivalent to DE12, DE13 and DE59.102 in ISO8583 based protocols<br>The date
-            and time are specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            Date Time in local region<br>Equivalent to DE12, DE13 and DE59.102 in ISO8583 based protocols<br>The
+            dateTime is specified in the following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO 8601 /
+            RFC 3339)
         reference:
           type: string
           minLength: 1
@@ -2425,8 +2430,8 @@ components:
           type: string
           format: date-time
           description: >-
-            Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The date and time are
-            specified in the following form <YYYY-MM-DDThh:mm:ssz> (ISO8601 datetime format)
+            Transmission date and time GMT<br>Equivalent to DE7 in ISO8583 based protocols<br>The dateTime is specified
+            in the following form YYYY-MM-DDThh:mm:ssZ or YYYY-MM-DDThh:mm:ss±hh:mm (ISO 8601 / RFC 3339)
       additionalProperties: false
       required:
         - endToEndTransId
@@ -3129,80 +3134,6 @@ paths:
         - $ref: '#/components/parameters/XUserContextId'
         - $ref: '#/components/parameters/XProcessingRouteId'
         - $ref: '#/components/parameters/IdempotencyKeyRequired'
-  /issuing/authorisations/action-funds-transfer-scoring:
-    post:
-      operationId: scoringFundsTransfer
-      summary: Request for funds transfert scoring (Iss-OA6_001)
-      description: >-
-        Request for Anti Money Laundering scoring on funds transfer transactions<br><br>The path must not have any
-        parameters.
-      tags:
-        - Authorisation
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FundsTransferScoringReq'
-      responses:
-        '200':
-          description: Scoring OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FundsTransferScoringRes'
-          headers:
-            X-Request-Id:
-              $ref: '#/components/headers/EchoRequestId'
-            X-Correlation-Id:
-              $ref: '#/components/headers/EchoCorrelationId'
-            X-Institution-Id:
-              $ref: '#/components/headers/EchoInstitutionId'
-            X-User-Id:
-              $ref: '#/components/headers/EchoUserId'
-            X-UserContext-Id:
-              $ref: '#/components/headers/EchoUserContextId'
-            X-Processing-Route-Id:
-              $ref: '#/components/headers/ProcessingRouteId'
-            Idempotency-Key:
-              required: false
-              description: Idempotency Key, to avoid duplicate processing of the same message.
-              schema:
-                type: string
-                format: uuid
-                description: Idempotency Key, to avoid duplicate processing of the same message.
-        '400':
-          $ref: '#/components/responses/Error400'
-        '401':
-          $ref: '#/components/responses/Error401'
-        '403':
-          $ref: '#/components/responses/Error403'
-        '405':
-          $ref: '#/components/responses/Error405'
-        '406':
-          $ref: '#/components/responses/Error406'
-        '409':
-          $ref: '#/components/responses/Error409'
-        '422':
-          $ref: '#/components/responses/Error422'
-        '429':
-          $ref: '#/components/responses/Error429'
-        '500':
-          $ref: '#/components/responses/Error500'
-        '502':
-          $ref: '#/components/responses/Error502'
-        '503':
-          $ref: '#/components/responses/Error503'
-        '504':
-          $ref: '#/components/responses/Error504'
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XCorrelationId'
-        - $ref: '#/components/parameters/XInstitutionId'
-        - $ref: '#/components/parameters/XUserId'
-        - $ref: '#/components/parameters/XUserContextId'
-        - $ref: '#/components/parameters/XProcessingRouteId'
-        - $ref: '#/components/parameters/IdempotencyKeyRequired'
   /issuing/authorisations/advice:
     post:
       operationId: adviceAuth
@@ -3322,6 +3253,87 @@ paths:
               $ref: '#/components/headers/EchoUserContextId'
             X-Processing-Route-Id:
               $ref: '#/components/headers/ProcessingRouteId'
+            Idempotency-Key:
+              required: false
+              description: Idempotency Key, to avoid duplicate processing of the same message.
+              schema:
+                type: string
+                format: uuid
+                description: Idempotency Key, to avoid duplicate processing of the same message.
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/IdempotencyKeyRequired'
+  /issuing/authorisations/action-funds-transfer-scoring:
+    post:
+      operationId: scoringFundsTransfer
+      summary: Request for funds transfert scoring (Iss-OA6_001)
+      description: >-
+        Request for Anti Money Laundering scoring on funds transfer transactions<br><br>The path must not have any
+        parameters.
+      tags:
+        - Authorisation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundsTransferScoringReq'
+      responses:
+        '200':
+          description: Scoring OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundsTransferScoringRes'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+            Idempotency-Key:
+              required: false
+              description: Idempotency Key, to avoid duplicate processing of the same message.
+              schema:
+                type: string
+                format: uuid
+                description: Idempotency Key, to avoid duplicate processing of the same message.
         '400':
           $ref: '#/components/responses/Error400'
         '401':
