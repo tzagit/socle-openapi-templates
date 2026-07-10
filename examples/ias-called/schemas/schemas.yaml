@@ -1991,7 +1991,6 @@ AccountUsage:
     SAAC: 'CBAE 1.5 Value : 10  Saving account'
     UNAC: "40 VISA & MCD\_: “Universal” Account"
   description: Total Amount
-  x-dictionary-id: '241112000224'
 UniqueTransactionIdNetwork:
   type: string
   enum:
@@ -2132,6 +2131,7 @@ Identification:
     - transmissionGmtDateTime
 TotalAmount:
   type: object
+  x-dictionary-id: '241112000224'
   description: >-
     Amount, currency of the transaction are mandatory and account usage of the account is optional
 
@@ -2160,12 +2160,10 @@ TotalAmount:
       type: string
       pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
       description: Total Amount
-      x-dictionary-id: '241112000224'
     currency:
       type: string
       pattern: ^[0-9]{3}$
       description: Total Amount
-      x-dictionary-id: '241112000224'
     accountUsage:
       $ref: '#/components/schemas/AccountUsage'
   additionalProperties: false

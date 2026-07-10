@@ -140,9 +140,9 @@ function loadEvents(dir) {
     };
     // version par défaut si absente (l'import la pose déjà ; défensif ici aussi).
     const version = raw['x-event-version'] || DEFAULT_EVENT_VERSION;
-    // summary Markdown : le résumé, puis une liste à puces des valeurs des headers d'event (casse exacte).
-    const base = raw['x-summary'] || type;
-    post.summary = `${base}\n\n- **X-Event-Type**: ${type}\n- **X-Event-Version**: ${version}`;
+    // summary : le résumé humain seul. Les coordonnées d'event (X-Event-Type / -Version)
+    // sont portées par info.description du swagger (cf. describeEvent), pas par le webhook.
+    post.summary = raw['x-summary'] || type;
     if (raw['x-description']) post.description = raw['x-description'];
     post['x-event-version'] = version;
     if (raw['x-tags']) post.tags = raw['x-tags'];
@@ -403,9 +403,11 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
   if (webhookRoutes.length > 1) {
     for (const route of webhookRoutes) {
       const one = structuredClone({ ...doc, webhooks: { [route]: doc.webhooks[route] } });
+      describeEvent(one, route);
       outFiles.push(write(one, path.join(outDir, `${name}-${eventSlug(route)}.openapi.yaml`)));
     }
   } else {
+    if (webhookRoutes.length === 1) describeEvent(doc, webhookRoutes[0]);
     outFiles.push(write(doc, path.join(outDir, `${name}.openapi.yaml`)));
   }
   return { name, type, outFiles, operations: Object.keys(operations).length };
@@ -413,6 +415,16 @@ export function buildProject(dir, outDir = DEFAULT_OUT) {
 
 // Slug de nom de fichier depuis une clé d'event (ex. order.created → order-created).
 export const eventSlug = (route) => String(route).replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+
+// events : chaque swagger de sortie porte UN event. Ses coordonnées (X-Event-Type = la clé
+// de route, X-Event-Version = l'extension de l'opération) sont ajoutées à info.description
+// (bloc Markdown), et non au webhook. L'extension x-event-version reste sur l'opération.
+function describeEvent(doc, route) {
+  const version = doc.webhooks?.[route]?.post?.['x-event-version'] ?? DEFAULT_EVENT_VERSION;
+  const coords = `- **X-Event-Type**: ${route}\n- **X-Event-Version**: ${version}`;
+  const base = doc.info?.description ? `${doc.info.description}\n\n` : '';
+  doc.info = { ...(doc.info ?? {}), description: `${base}${coords}` };
+}
 
 // events : la réponse de succès est un 204 (ack sans corps). Retire toute réponse 2xx déclarée.
 function normalizeEventAck(op) {

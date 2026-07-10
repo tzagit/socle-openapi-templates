@@ -2,7 +2,11 @@ openapi: 3.1.1
 info:
   title: Orders Events
   version: 1.0.0
-  description: Events de commande poussés vers les partenaires via webhook.
+  description: |-
+    Events de commande poussés vers les partenaires via webhook.
+
+    - **X-Event-Type**: order.created
+    - **X-Event-Version**: 1.0.0
   x-socle-version: 0.1.0
   x-socle-type: events
 components:
@@ -512,11 +516,7 @@ webhooks:
           $ref: '#/components/responses/Error503'
         '504':
           $ref: '#/components/responses/Error504'
-      summary: |-
-        Émis lorsqu'une commande est créée
-
-        - **X-Event-Type**: order.created
-        - **X-Event-Version**: 1.0.0
+      summary: Émis lorsqu'une commande est créée
       description: Notifie le partenaire de la création d'une commande.
       x-event-version: 1.0.0
       parameters:

@@ -2,7 +2,11 @@ openapi: 3.1.1
 info:
   title: Notifications Connector API - OpenAPI 3.0
   version: 1.7.0
-  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  description: |-
+    Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+
+    - **X-Event-Type**: dispute-case-operations-decisions
+    - **X-Event-Version**: 1.0
   contact:
     name: Estreem
     url: https://estreem.eu
@@ -778,11 +782,6 @@ webhooks:
       summary: >-
         This endpoint sends a notification of decisions made on the analysis or on the recovery method of operations in
         a dispute case (CNT-EM15)
-
-
-        - **X-Event-Type**: dispute-case-operations-decisions
-
-        - **X-Event-Version**: 1.0
       x-event-version: '1.0'
       tags:
         - Dispute Case

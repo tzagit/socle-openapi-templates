@@ -32,7 +32,6 @@
               type: string
               format: uuid
               description: Idempotency Key, to avoid duplicate processing of the same message.
-              x-dictionary-id: Idempotency-Key
 /issuing/authorisations/advice:
   post:
     operationId: adviceAuth
@@ -68,7 +67,6 @@
               type: string
               format: uuid
               description: Idempotency Key, to avoid duplicate processing of the same message.
-              x-dictionary-id: Idempotency-Key
 /issuing/reversals/advice:
   post:
     operationId: adviceReversal
@@ -104,7 +102,6 @@
               type: string
               format: uuid
               description: Idempotency Key, to avoid duplicate processing of the same message.
-              x-dictionary-id: Idempotency-Key
 /issuing/authorisations/action-funds-transfer-scoring:
   post:
     operationId: scoringFundsTransfer
@@ -135,4 +132,3 @@
               type: string
               format: uuid
               description: Idempotency Key, to avoid duplicate processing of the same message.
-              x-dictionary-id: Idempotency-Key

@@ -2,7 +2,11 @@ openapi: 3.1.1
 info:
   title: Notifications Connector API - OpenAPI 3.0
   version: 1.7.0
-  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  description: |-
+    Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+
+    - **X-Event-Type**: crc-case-created
+    - **X-Event-Version**: 1.0
   contact:
     name: Estreem
     url: https://estreem.eu
@@ -1180,11 +1184,7 @@ webhooks:
           $ref: '#/components/responses/Error503'
         '504':
           $ref: '#/components/responses/Error504'
-      summary: |-
-        This endpoint sends a notification containing details of CRC case creation (CNT-EM75)
-
-        - **X-Event-Type**: crc-case-created
-        - **X-Event-Version**: 1.0
+      summary: This endpoint sends a notification containing details of CRC case creation (CNT-EM75)
       x-event-version: '1.0'
       tags:
         - CRC Case

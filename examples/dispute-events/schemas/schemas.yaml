@@ -1952,7 +1952,7 @@ DMDisputeCaseSummary:
           clearingDate:
             description: Expected Date of Clearing<br>Date de compensation (AAAA-MM-JJ) en UTC
             type: string
-            format: date-time
+            format: date
             example: '2025-07-27'
           grossAmount:
             description: (Brut) amount of the transaction<br>Montant brut signé et devise
@@ -2482,7 +2482,7 @@ DMDisputeCaseSummary:
                     transaction<br>Indique si ce wallet correspond à celui utilisé lors du paiement associé à la
                     transaction
                   type: boolean
-                  example: 'true'
+                  example: true
                 walletType:
                   description: >-
                     Wallet Provider, Apple Pay, Samsung Pay, etc …<br>Indique le type de wallet dans lequel la carte a
@@ -2586,7 +2586,7 @@ DMDisputeCaseSummary:
                     was completed successfully<br>Indicateur permettant d'indiquer si l'authentification utilisée pour
                     l'enrôlement a été réalisée avec succès
                   type: boolean
-                  example: 'true'
+                  example: true
                 enrolmentValidationMessage:
                   description: >-
                     Message associated with the validation of the card enrollment into a digital wallet<br>Message
@@ -2667,7 +2667,7 @@ DMDisputeCaseSummary:
                         Was the connection successful ?<br>Indicateur permettant d'indiquer si la connexion a été
                         réalisée avec succès
                       type: boolean
-                      example: 'true'
+                      example: true
                     authenticationMethod:
                       $ref: '#/components/schemas/AuthenticationMethod'
                     device:
