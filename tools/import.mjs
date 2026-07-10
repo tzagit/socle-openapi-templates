@@ -335,6 +335,40 @@ export function factorSchemas(files, schemasMap) {
   return factored;
 }
 
+// ------------------------------------------------------------------ répartition des schémas par event
+// Events : un fichier de schémas par event (schémas atteignables depuis SON payload) ; les schémas
+// partagés par plusieurs events (ou orphelins) vont dans common.yaml. La clé de fichier = celle de
+// l'event (schemas/<event>.yaml en miroir de events/<event>.yaml).
+function splitEventSchemas(eventFiles, schemas) {
+  const reachFrom = (roots) => {
+    const seen = new Set(); const queue = [...roots];
+    while (queue.length) {
+      const n = queue.pop();
+      if (seen.has(n) || !schemas[n]) continue;
+      seen.add(n);
+      for (const r of schemaRefsIn(schemas[n], new Set())) if (!seen.has(r)) queue.push(r);
+    }
+    return seen;
+  };
+  const perEvent = {}; const refCount = {};
+  for (const [key, ev] of Object.entries(eventFiles)) {
+    const set = reachFrom(schemaRefsIn(ev, new Set()));
+    perEvent[key] = set;
+    for (const n of set) refCount[n] = (refCount[n] || 0) + 1;
+  }
+  const files = {}; const assigned = new Set();
+  for (const [key, set] of Object.entries(perEvent)) {
+    for (const n of set) {
+      if (assigned.has(n) || refCount[n] !== 1) continue; // schéma propre à ce seul event
+      (files[key] ??= {})[n] = schemas[n]; assigned.add(n);
+    }
+  }
+  for (const [n, def] of Object.entries(schemas)) {         // partagés (>1 event) ou orphelins
+    if (!assigned.has(n)) { (files.common ??= {})[n] = def; assigned.add(n); }
+  }
+  return files;
+}
+
 // ------------------------------------------------------------------ base path / version
 const VERSION_RE = /^v\d+(\.\d+)?$/i;
 const firstSeg = (route) => (String(route).split('/').filter(Boolean)[0] || '').toLowerCase();
@@ -499,6 +533,9 @@ export function importDoc(doc, { type, name, factor = true, host = 'https://api.
   // --- factorisation des schémas inline répétés dans components.schemas ---
   const factoredSchemas = factor ? factorSchemas(files, schemas) : [];
 
+  // --- events : un fichier de schémas par event (+ common.yaml pour les partagés) ---
+  const schemaFiles = isEvents ? splitEventSchemas(eventFiles, schemas) : null;
+
   // --- api.yaml (couche 3 : le minimum) ---
   const api = { type: resolvedType };
   if (isObj(doc.info)) {
@@ -534,7 +571,7 @@ export function importDoc(doc, { type, name, factor = true, host = 'https://api.
   if (Array.isArray(doc.tags) && doc.tags.length) api.tags = clone(doc.tags);
 
   return {
-    api, files, eventFiles, schemas, isEvents, resolvedType, name,
+    api, files, eventFiles, schemas, schemaFiles, isEvents, resolvedType, name,
     warnings: [...warnings], nullableStats, is30,
     droppedWrappers: [...droppedWrappers], prunedSchemas, stats, factoredSchemas,
     versionSeg, defaultServer,
@@ -560,7 +597,12 @@ export function writeProject(result, { force, outDir = process.cwd() } = {}) {
       fs.writeFileSync(path.join(dir, 'paths', `${key}.yaml`), dump(routes));
     }
   }
-  if (Object.keys(result.schemas).length) {
+  // events : un fichier de schémas par event (+ common.yaml) ; sinon un seul schemas.yaml.
+  if (result.schemaFiles) {
+    for (const [key, group] of Object.entries(result.schemaFiles)) {
+      if (Object.keys(group).length) fs.writeFileSync(path.join(dir, 'schemas', `${key}.yaml`), dump(group));
+    }
+  } else if (Object.keys(result.schemas).length) {
     fs.writeFileSync(path.join(dir, 'schemas', 'schemas.yaml'), dump(result.schemas));
   }
   return dir;

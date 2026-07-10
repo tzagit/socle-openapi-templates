@@ -69,6 +69,28 @@ test('factorSchemas — hisse un sous-schéma dupliqué en composant partagé', 
   assert.equal(schemas.A.properties.addr.$ref, schemas.B.properties.addr.$ref, 'A et B pointent le même composant');
 });
 
+test('importDoc events — un fichier de schémas par event (+ common pour les partagés)', () => {
+  const doc = {
+    openapi: '3.0.1',
+    info: { title: 'Events', version: '1.0.0' },
+    paths: {
+      '/order-created': { post: { requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/OrderCreated' } } } }, responses: { '200': {} } } },
+      '/order-cancelled': { post: { requestBody: { content: { 'application/json': { schema: { $ref: '#/components/schemas/OrderCancelled' } } } }, responses: { '200': {} } } },
+    },
+    components: { schemas: {
+      OrderCreated: { type: 'object', properties: { order: { $ref: '#/components/schemas/Order' } } },
+      OrderCancelled: { type: 'object', properties: { order: { $ref: '#/components/schemas/Order' }, reason: { type: 'string' } } },
+      Order: { type: 'object', properties: { id: { type: 'string' } } }, // partagé par les deux events
+    } },
+  };
+  const r = importDoc(doc, { type: 'events', name: 'ev', factor: false });
+  assert.ok(r.schemaFiles, 'schemaFiles présent pour un import events');
+  assert.ok(r.schemaFiles['order-created']?.OrderCreated, 'OrderCreated dans son propre fichier');
+  assert.ok(r.schemaFiles['order-cancelled']?.OrderCancelled, 'OrderCancelled dans son propre fichier');
+  assert.ok(r.schemaFiles.common?.Order, 'schéma partagé → common.yaml');
+  assert.ok(!r.schemaFiles['order-created']?.Order, 'le partagé n’est pas dupliqué dans le fichier d’event');
+});
+
 test('importDoc — dé-factorise un OpenAPI 3.0 (intégration)', () => {
   const doc = {
     openapi: '3.0.1',

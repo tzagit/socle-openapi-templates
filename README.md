@@ -311,6 +311,10 @@ openapi-socle import ./webhooks.yaml --type events --out-dir ./apis
 # /order-created (POST, requestBody) → events/order-created.yaml (x-event-type: order-created, payload)
 ```
 
+Les **schémas** sont répartis **par event** : `schemas/<event>.yaml` contient les schémas propres
+au payload de cet event, et `schemas/common.yaml` ceux **partagés** par plusieurs events (au lieu
+d'un unique `schemas.yaml`). Le build re-fusionne tout `schemas/` — la sortie est identique.
+
 ---
 
 ## 10. Mettre à jour le socle
