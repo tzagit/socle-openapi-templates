@@ -55,6 +55,13 @@ export function diffContracts(base, rev) {
   return { level: changes.length ? 'minor' : 'patch', breaking: [], changes: changes.length };
 }
 
+// Changelog complet (cassant + non cassant) : liste de { id, text, level, operation, path, section }.
+// level : 1=info, 2=warning (non cassants), 3=error (cassant).
+export function changelog(base, rev) {
+  for (const f of [base, rev]) if (!fs.existsSync(f)) throw new Error(`Fichier introuvable : ${f}`);
+  return run('changelog', base, rev, ['-f', 'json']);
+}
+
 export function runDiffCli(argv = process.argv.slice(2)) {
   const allowBreaking = argv.includes('--allow-breaking');
   const pos = argv.filter((a) => !a.startsWith('--'));

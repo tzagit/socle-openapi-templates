@@ -540,11 +540,22 @@ npm run spectral         # conformité au socle (Spectral : pas d'API key, heade
                          #   info.x-socle-type), cohérence version majeure ↔ base path,
                          #   x-socle-version, operationId, tags…)
 npm run check:regression # compare examples/ aux baselines golden/ (échoue sur rupture) — nécessite oasdiff
+npm run release:notes    # release note (cassants / non cassants) du build vs golden — AVANT golden:update
 npm run golden:update    # régénère les baselines golden/ (après un changement assumé)
 npm pack --dry-run       # aperçu du package publié
 ```
 
 Le pipeline complet en local : `npm run check:dictionary && npm run build && npm run lint && npm run spectral && npm run check:regression`.
+
+**Passer une nouvelle version en golden avec une release note** — `golden/` = la dernière version.
+Générer la note **avant** d'écraser les baselines, puis promouvoir :
+```bash
+npm run release:notes -- --out release-notes/$(date +%F).md   # diff build (nouveau) vs golden (dernier)
+#   → tableau de synthèse par contrat + détail : ⚠️ cassants / ✅ non cassants, niveau SemVer global
+npm run golden:update                                         # promeut le nouveau build en baseline
+```
+La note s'appuie sur `oasdiff changelog` (`level 3` = cassant). Sans `--out`, elle sort sur stdout.
+Options : `--title "..."`, `--date YYYY-MM-DD`.
 
 **Installer `oasdiff`** (requis par `check:regression` et `openapi-socle diff`) :
 ```bash
