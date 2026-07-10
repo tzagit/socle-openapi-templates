@@ -235,16 +235,6 @@ components:
         type: string
         format: uuid
       example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
-    XEventVersion:
-      name: X-Event-Version
-      in: header
-      required: true
-      description: >-
-        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
-        schema evolution gracefully.
-      schema:
-        type: string
-      example: '1.0'
     XOriginalRequestId:
       name: X-Original-Request-Id
       in: header
@@ -626,7 +616,12 @@ webhooks:
           $ref: '#/components/responses/Error503'
         '504':
           $ref: '#/components/responses/Error504'
-      summary: This endpoint sends a notification of dispute case status change (CNT-EM9) (dispute-case-advancement-updated)
+      summary: |-
+        This endpoint sends a notification of dispute case status change (CNT-EM9)
+
+        - **X-Event-Type**: dispute-case-advancement-updated
+        - **X-Event-Version**: 1.0
+      x-event-version: '1.0'
       tags:
         - Dispute Case
       parameters:
@@ -645,7 +640,15 @@ webhooks:
             type: string
             maxLength: 36
           example: dispute-case-advancement-updated
-        - $ref: '#/components/parameters/XEventVersion'
+        - name: X-Event-Version
+          in: header
+          required: true
+          description: >-
+            Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+            schema evolution gracefully.
+          schema:
+            type: string
+          example: '1.0'
         - $ref: '#/components/parameters/XOriginalRequestId'
         - $ref: '#/components/parameters/XOriginalCorrelationId'
         - $ref: '#/components/parameters/OriginalIdempotencyKey'

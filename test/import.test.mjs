@@ -84,6 +84,7 @@ test('importDoc events — un fichier de schémas par event (+ common pour les p
     } },
   };
   const r = importDoc(doc, { type: 'events', name: 'ev', factor: false });
+  assert.equal(r.eventFiles['order-created']['x-event-version'], '1.0', 'x-event-version posé par défaut si absent');
   assert.ok(r.schemaFiles, 'schemaFiles présent pour un import events');
   assert.ok(r.schemaFiles['order-created']?.OrderCreated, 'OrderCreated dans son propre fichier');
   assert.ok(r.schemaFiles['order-cancelled']?.OrderCancelled, 'OrderCancelled dans son propre fichier');

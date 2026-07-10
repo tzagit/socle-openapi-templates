@@ -197,9 +197,11 @@ Le champ `type:` de `api.yaml` choisit le profil.
   x-description: Notifie le partenaire de la création d'une commande.
   $ref: '#/components/schemas/Order'         # payload brut ($ref ou schéma inline)
   ```
-  Métadonnées : `x-event-type` (obligatoire), `x-event-version`, `x-summary`, `x-description`,
-  `x-operation-id`, `x-tags`, `x-deprecated`. Un `$ref` nu est réutilisé tel quel ; un schéma
-  inline est enregistré comme composant `<EventType>Event`.
+  Métadonnées : `x-event-type` (obligatoire), `x-event-version` (**défaut `1.0`** si absent),
+  `x-summary`, `x-description`, `x-operation-id`, `x-tags`, `x-deprecated`. Un `$ref` nu est
+  réutilisé tel quel ; un schéma inline est enregistré comme composant `<EventType>Event`.
+  Le **summary** généré est en Markdown et se termine par une liste des valeurs des headers :
+  `- **X-Event-Type**: <type>` / `- **X-Event-Version**: <version>`.
   - **Plusieurs events → un swagger par event** : si un projet `events` déclare **plusieurs**
     events, le build produit **un contrat webhook par event** — `build/<projet>-<event>.openapi.yaml`
     (ex. `orders-events-order-created.openapi.yaml`), chacun réduit à ses seuls composants. Un

@@ -512,7 +512,11 @@ webhooks:
           $ref: '#/components/responses/Error503'
         '504':
           $ref: '#/components/responses/Error504'
-      summary: Émis lorsqu'une commande est créée (order.created v1.0.0)
+      summary: |-
+        Émis lorsqu'une commande est créée
+
+        - **X-Event-Type**: order.created
+        - **X-Event-Version**: 1.0.0
       description: Notifie le partenaire de la création d'une commande.
       x-event-version: 1.0.0
       parameters:

@@ -44,6 +44,8 @@ const ERROR_CODES = new Set([
 ]);
 // Schémas fournis par le socle (§6.5/§8.2) — jamais réémis par le projet.
 const SOCLE_SCHEMAS = new Set(['StandardErrorObject', 'Page', 'PageMeta']);
+// Version d'event par défaut quand le swagger source n'en déclare pas.
+const DEFAULT_EVENT_VERSION = '1.0';
 
 // ------------------------------------------------------------------ helpers
 const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -424,7 +426,7 @@ function buildEventFiles(source, doc, warnings, is30, nullableStats) {
     if (op.summary) ev['x-summary'] = op.summary;
     if (op.description) ev['x-description'] = op.description;
     if (op.operationId) ev['x-operation-id'] = op.operationId;
-    if (op['x-event-version']) ev['x-event-version'] = op['x-event-version'];
+    ev['x-event-version'] = op['x-event-version'] || DEFAULT_EVENT_VERSION; // défaut si absent
     if (Array.isArray(op.tags) && op.tags.length) ev['x-tags'] = op.tags;
     if (op.deprecated) ev['x-deprecated'] = true;
     Object.assign(ev, payload); // payload à la racine : $ref nu ou schéma inline

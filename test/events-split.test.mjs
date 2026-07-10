@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import yaml from 'js-yaml';
 import { eventSlug, buildProject } from '../tools/build.mjs';
 
 test('eventSlug — slug de fichier depuis une clé d’event', () => {
@@ -40,4 +41,10 @@ test('buildProject events — UN SEUL event → un contrat unique (comportement 
   const r = buildProject(dir, out);
   assert.equal(r.outFiles.length, 1, 'un seul contrat');
   assert.equal(path.basename(r.outFiles[0]), `${r.name}.openapi.yaml`);
+
+  // summary Markdown : liste à puces avec les valeurs des headers d'event + version par défaut.
+  const doc = yaml.load(fs.readFileSync(r.outFiles[0], 'utf8'));
+  const summary = doc.webhooks['order.created'].post.summary;
+  assert.match(summary, /- \*\*X-Event-Type\*\*: order\.created/, 'summary : puce X-Event-Type');
+  assert.match(summary, /- \*\*X-Event-Version\*\*: 1\.0/, 'summary : puce X-Event-Version (défaut 1.0)');
 });

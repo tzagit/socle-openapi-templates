@@ -29,6 +29,8 @@ const PROCESSING_ROUTE_HEADER = ['XProcessingRouteId'];
 // Headers de livraison (X-Event-Time/-Source, X-Webhook-Id, X-Delivery-Id) : non inclus (SPEC §7.3).
 const EVENT_HEADERS = ['XEventId', 'XEventType', 'XEventVersion'];
 const EVENT_ORIGIN_HEADERS = ['XOriginalRequestId', 'XOriginalCorrelationId', 'OriginalIdempotencyKey'];
+// Version d'event par défaut quand le fichier n'en déclare pas.
+const DEFAULT_EVENT_VERSION = '1.0';
 
 // Idempotency-Key par méthode (cf. §6.2).
 const IDEMPOTENCY_BY_METHOD = {
@@ -136,11 +138,13 @@ function loadEvents(dir) {
       requestBody: { required: true, content: { 'application/json': { schema: { $ref: schemaRef } } } },
       responses: { '2xx': null },
     };
-    // summary : intègre les valeurs documentées de x-event-type / x-event-version.
-    const tv = raw['x-event-version'] ? `${type} v${raw['x-event-version']}` : type;
-    post.summary = raw['x-summary'] ? `${raw['x-summary']} (${tv})` : tv;
+    // version par défaut si absente (l'import la pose déjà ; défensif ici aussi).
+    const version = raw['x-event-version'] || DEFAULT_EVENT_VERSION;
+    // summary Markdown : le résumé, puis une liste à puces des valeurs des headers d'event (casse exacte).
+    const base = raw['x-summary'] || type;
+    post.summary = `${base}\n\n- **X-Event-Type**: ${type}\n- **X-Event-Version**: ${version}`;
     if (raw['x-description']) post.description = raw['x-description'];
-    if (raw['x-event-version']) post['x-event-version'] = raw['x-event-version'];
+    post['x-event-version'] = version;
     if (raw['x-tags']) post.tags = raw['x-tags'];
     if (raw['x-deprecated']) post.deprecated = true;
     operations[type] = { post };
