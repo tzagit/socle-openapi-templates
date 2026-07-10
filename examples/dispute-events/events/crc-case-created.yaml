@@ -1,0 +1,7 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: crc-case-created
+x-summary: This endpoint sends a notification containing details of CRC case creation (CNT-EM75)
+x-operation-id: crcCaseCreated
+x-tags:
+  - CRC Case
+$ref: '#/components/schemas/DMCrcCreatedCase'

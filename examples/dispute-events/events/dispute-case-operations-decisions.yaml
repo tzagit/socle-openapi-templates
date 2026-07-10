@@ -1,0 +1,9 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-operations-decisions
+x-summary: >-
+  This endpoint sends a notification of decisions made on the analysis or on the recovery method of operations in a
+  dispute case (CNT-EM15)
+x-operation-id: disputeCaseOperationsDecision
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/DMOperationDecision'

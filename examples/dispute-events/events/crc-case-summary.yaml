@@ -1,0 +1,7 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: crc-case-summary
+x-summary: This endpoint sends a notification containing a summary of a CRC case (CNT-EM27
+x-operation-id: crcCaseSummary
+x-tags:
+  - CRC Case
+$ref: '#/components/schemas/DMCrcCaseSummary'

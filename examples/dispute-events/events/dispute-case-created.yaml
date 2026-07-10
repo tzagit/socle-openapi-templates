@@ -1,0 +1,7 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-created
+x-summary: This endpoint sends a notification containing details of dispute case creation (CNT-EM6)
+x-operation-id: disputeCaseCreated
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/DMCreatedCase'
