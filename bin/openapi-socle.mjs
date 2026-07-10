@@ -58,8 +58,10 @@ function buildCli(argv) {
   }
   let ok = 0;
   for (const r of results) {
-    if (r.ok) { console.log(`✓ ${r.name.padEnd(28)} [${r.type}]  ${r.operations} route(s)  → ${path.relative(process.cwd(), r.outFile)}`); ok++; }
-    else console.error(`✗ ${r.name} : ${r.error}`);
+    if (r.ok) {
+      const outs = r.outFiles.map((f) => path.relative(process.cwd(), f)).join(', ');
+      console.log(`✓ ${r.name.padEnd(28)} [${r.type}]  ${r.operations} route(s)  → ${outs}`); ok++;
+    } else console.error(`✗ ${r.name} : ${r.error}`);
   }
   console.log(`\n${ok}/${dirs.length} projet(s) construit(s).`);
   if (ok !== dirs.length) process.exit(1);

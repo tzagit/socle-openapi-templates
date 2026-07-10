@@ -56,8 +56,10 @@ Flux de `buildProject` (dans l'ordre) :
 5. `nullableOptionals` (optionnels → nullable : requêtes par défaut, réponses en opt-in ;
    jamais un schéma atteignable depuis une réponse — cf. `responseReachableSchemas`).
 6. `stripDictAnnotations` (retire `x-dictionary-id` + `x-estreem-*`).
-7. `pruneUnusedComponents` (tree-shaking : ne garde que les composants atteignables).
-8. `validateRefs` (échoue si un `$ref` interne est cassé) puis écriture YAML.
+7. Écriture : pour chaque contrat de sortie, `pruneUnusedComponents` (tree-shaking : ne garde que
+   les composants atteignables) + `validateRefs` puis dump YAML. `buildProject` renvoie `outFiles`
+   (liste) : un projet **events multi-events** écrit **un contrat par event**
+   (`<projet>-<event>.openapi.yaml`), chacun élagué à ses seuls composants ; sinon un seul fichier.
 
 Les **règles d'injection** sont des constantes en tête de fichier (`COMMON_REQUEST_HEADERS`,
 `ERRORS_ALWAYS`, `IDEMPOTENCY_BY_METHOD`, `RESPONSE_HEADERS`…) — c'est là qu'on ajuste le commun.
