@@ -1,0 +1,1220 @@
+openapi: 3.1.1
+info:
+  title: Notifications Connector API - OpenAPI 3.0
+  version: 1.7.0
+  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  contact:
+    name: Estreem
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.15.xlsx
+  x-socle-version: 0.1.0
+  x-socle-type: events
+components:
+  schemas:
+    StandardError:
+      type: object
+      description: Standard error response used across all APIs
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Functional or technical error code
+        text:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: User-friendly error message
+        developerText:
+          type: string
+          minLength: 1
+          maxLength: 70
+          description: Detailed technical message for debugging
+        moreInfo:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Additional information or documentation link
+    DMCrcCreatedCase:
+      description: Objet racine - Evenement de création d'un dossier CRC
+      type: object
+      properties:
+        issuer:
+          description: objet contenant les informations liées à la banque émettrice
+          type: object
+          additionalProperties: false
+          properties:
+            leadInstitutionId:
+              description: Issuer Leader institution Id<br>Code chef de file de la banque émetteur  du dossier CRC
+              type: string
+              example: '30007'
+              maxLength: 5
+              minLength: 1
+            institutionId:
+              description: Issuer institution Id<br>Code de la banque émetteur du dossier CRC
+              type: string
+              example: '10107'
+              maxLength: 5
+              minLength: 1
+          required:
+            - leadInstitutionId
+            - institutionId
+        card:
+          description: objet contenant les informations liées à la carte
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          properties:
+            internalEntityId:
+              description: branch code<br>Référence de l'agence
+              type:
+                - string
+                - 'null'
+              example: '00307'
+              pattern: ^[0-9A-Za-z]{1,5}$
+            encryptedPrimaryAccountNumber:
+              description: >-
+                encrypted pan<br>Numéro de carte (PAN) chiffré.<br>Le chiffrement respecte le standard JWE. Une fois
+                déchiffrée la donnée représente un PAN, sous forme d'une chaine de 16 à 19 caractères numériques.
+              type:
+                - string
+                - 'null'
+              example: >-
+                eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.dyt0CoTl4WoVjAHI9Q.wSKhl6d_9rhM3NrXuJttkao.k_CwSKhwcCI6IktZSI6
+              pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$
+            primaryAccountNumberId:
+              description: Primary Account Number ID<br>Identifiant de substitution du PAN (PAN Id)
+              type: string
+              format: uuid
+              example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            maskedPrimaryAccountNumber:
+              description: Masked Primary Account Number<br>Numéro de carte (PAN) caviardé
+              type: string
+              example: 1234 45XX XXXX 1234
+              maxLength: 30
+              minLength: 1
+            productCode:
+              description: Product Code<br>Code produit carte défini au niveau du CMS
+              type: string
+              example: 2I
+              maxLength: 50
+              minLength: 1
+          required:
+            - primaryAccountNumberId
+            - maskedPrimaryAccountNumber
+            - productCode
+        originCall:
+          description: objet contenant les informations liées à l'appel
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          properties:
+            number:
+              description: Call count number<br>Numero d'appel
+              type: string
+              example: '1'
+              pattern: ^[0-9]{1,5}$
+            dateTime:
+              description: Date Time in local region<br>Date et heure de l'appel (AAAA-MM-JJTHH:MM:SS) en UTC
+              type: string
+              format: date-time
+              example: '2025-07-28T15:04:34'
+            user:
+              description: user of operator handling the call  <br>Identifiant de l'opérateur ayant traité l'appel
+              type:
+                - string
+                - 'null'
+              example: 0000operateur
+              maxLength: 255
+              minLength: 1
+            incomingCallIndicator:
+              description: 'Is an incoming call<br>Indicateur sens de l''appel (true : entrant, false : sortant)'
+              type: boolean
+              example: true
+            communicationChannel:
+              description: "Communication channel<br>Canal de communication préferentiel choisi par le client pour la réception des notifications<br>CALL\tCall<br>EMAI\tEmail<br>PHON\tPhone (unspecified)<br>PMAI\tPostal mail<br>PMAO\tMail (other address)<br>PMAU\tMail (usual address)<br>SMSE\tSms"
+              type: string
+              example: SMSE
+              enum:
+                - EMAI
+                - SMSE
+              x-enumDescriptions:
+                EMAI: Email
+                SMSE: Sms
+            email:
+              description: email address<br>Email de l'appelant
+              type:
+                - string
+                - 'null'
+              format: email
+              example: adresse@mail.com
+            phoneList:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                description: liste des téléphones
+                properties:
+                  number:
+                    description: phone number<br>Numéro de téléphone de l'appelant (avec indicatif téléphonique international)
+                    type:
+                      - string
+                      - 'null'
+                    example: '+33602030405'
+                    pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                  type:
+                    anyOf:
+                      - $ref: '#/components/schemas/Type'
+                      - type: 'null'
+                additionalProperties: false
+              maxItems: 10
+              minItems: 1
+            internalEntityName:
+              description: Branch name<br>Nom de l'agence
+              type:
+                - string
+                - 'null'
+              example: BRED Boulogne
+              maxLength: 100
+              minLength: 1
+            callReason:
+              description: Reason of the call<br>Motif d'appel (contestation, alerte fraude, hors périmètre)
+              type: string
+              example: FRAL
+              enum:
+                - DISP
+                - FRAL
+                - OSCP
+              x-enumDescriptions:
+                DISP: Dispute
+                FRAL: Fraud alert
+                OSCP: Out of scope
+            callSubReason:
+              description: Subreason of the call<br>Sous motif d'appel
+              type: string
+              example: FRAL
+              enum:
+                - 3DSA
+                - ACIN
+                - ACQC
+                - ATMD
+                - BEXI
+                - CADI
+                - CBTI
+                - CNCE
+                - CNPF
+                - CODI
+                - DSTR
+                - DWCI
+                - FFRR
+                - FRAL
+                - INFO
+                - INQR
+                - INSI
+                - JREQ
+                - OPPR
+                - PEER
+                - RMIN
+                - TRCK
+              x-enumDescriptions:
+                3DSA: 3DS cardholder authentification
+                ACIN: Account inquiry
+                ACQC: Acquirer call
+                ATMD: ATM cash deposit
+                BEXI: Bug/exceptional incident
+                CADI: Cardholder dispute
+                CBTI: CB technical issue
+                CNCE: Cardholder not CE
+                CNPF: CE not PFM
+                CODI: Commercial dispute
+                DSTR: Dispute tracking
+                DWCI: Dispute withdrawn following CRC information
+                FFRR: Fraud related fees reimbursement request
+                FRAL: Fraud alert
+                INFO: Information
+                INQR: Inquiry (check / transfer / direct debit / private card)
+                INSI: Insurance information
+                JREQ: Juridical requisition
+                OPPR: Opposition request
+                PEER: Peer
+                RMIN: Reminder
+                TRCK: Tracking
+            callerCategory:
+              description: Interlocutor type<br>Typologie interlocuteur
+              type:
+                - string
+                - 'null'
+              example: CAHO
+              enum:
+                - ACMA
+                - CAHO
+                - LPSR
+                - NPFM
+                - TPAR
+              x-enumDescriptions:
+                ACMA: Account manager
+                CAHO: Cardholder
+                LPSR: Local payment systems representative
+                NPFM: Non-PFM branch
+                TPAR: Third party
+            fraudAlertReference:
+              description: Reference of the alert CRC<br>Numéro référence alerte fraude
+              type:
+                - string
+                - 'null'
+              example: '266540'
+              pattern: ^[0-9A-Za-z]{1,255}$
+            fraudAlertDateTime:
+              description: Date Time of the associated fraud<br>Date alerte fraude (AAAA-MM-JJTHH:MM:SS) en UTC
+              type:
+                - string
+                - 'null'
+              format: date-time
+              example: '2025-07-27T15:04:34'
+            callResult:
+              description: Result of the call<br>Résultat appel
+              type: string
+              example: RESO
+              enum:
+                - ICNB
+                - MSGI
+                - OTHR
+                - PNDG
+                - RESO
+                - RWIF
+                - RWOA
+                - RWOF
+                - TBPR
+                - UNRC
+              x-enumDescriptions:
+                ICNB: Incorrect number
+                MSGI: Messaging
+                OTHR: Other
+                PNDG: Pending
+                RESO: Resolved
+                RWIF: Resolved with fraud
+                RWOA: Resolved without further action required
+                RWOF: Resolved without fraud
+                TBPR: To be processed
+                UNRC: Unreachable
+          required:
+            - number
+            - dateTime
+            - incomingCallIndicator
+            - communicationChannel
+            - callReason
+            - callSubReason
+            - callResult
+        crcCase:
+          description: objet contenant les informations liées au dossier CRC
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              description: CRC case reference<br>Identifiant de dossier CRC
+              type: string
+              example: T101072304189878
+              pattern: ^[0-9A-Za-z]{16}$
+            totalAmount:
+              $ref: '#/components/schemas/TotalAmount2'
+            result:
+              description: Result of the CRC case<br>Resultat final
+              type:
+                - string
+                - 'null'
+              example: RESO
+              enum:
+                - ICNB
+                - MSGI
+                - OTHR
+                - PNDG
+                - RESO
+                - RWIF
+                - RWOA
+                - RWOF
+                - TBPR
+                - UNRC
+              x-enumDescriptions:
+                ICNB: Incorrect number
+                MSGI: Messaging
+                OTHR: Other
+                PNDG: Pending
+                RESO: Resolved
+                RWIF: Resolved with fraud
+                RWOA: Resolved without further action required
+                RWOF: Resolved without fraud
+                TBPR: To be processed
+                UNRC: Unreachable
+          required:
+            - id
+            - totalAmount
+        transactionList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: liste des transactions attachées au dossier
+            properties:
+              context:
+                description: objet contenant le contexte de la transaction
+                type: object
+                additionalProperties: false
+                properties:
+                  manualIndicator:
+                    description: >-
+                      Manual indicator<br>indique que la transaction a été ajoutée via une saisie manuelle (et non pas
+                      par une recherche - cas d'une transaction non disponible dans l'historique)<br>false: Transaction 
+                      non saisie manuellement<br>true: Transaction saisie manuellement
+                    type: boolean
+                    example: true
+                  schemeNature:
+                    $ref: '#/components/schemas/SchemeNature'
+                  ecommerceIndicatorInfo:
+                    description: >-
+                      Information about ecommerce indicator<br>ElectronicCommerceIndicator<br>Pour VISA, prend les
+                      valeurs :<br>- (blanc)<br>- 1 : Single mail order/telephone order transaction<br>- 2 : Recurring
+                      transaction (valid only for U.S.A. Region <br>acquired Transactions)<br>- 3: Instalment
+                      Transaction<br>- 4: Unknown classification/other mail order<br>- 5: Secure Electronic Commerce
+                      Transaction<br>- 6: Authenticated Security Transaction at a 3-D <br>Secure-capable merchant and
+                      the merchant <br>attempted cardholder authentication using 3-D <br>Secure<br>- 7: Authenticated
+                      Security Transaction<br>- 8: Secure Transaction<br>- 9: For optional Regional use only<br><br>Pour
+                      MasterCard. Exemple de valeur possible :  <br>- PDS 0052—Electronic Commerce Security Level
+                      Indicator<br><br>Non renseignée pour les transactions domestiques CB
+                    type:
+                      - string
+                      - 'null'
+                    example: '8'
+                    maxLength: 20
+                    minLength: 1
+                  regulatoryAndTechnicalEnvironment:
+                    description: >-
+                      Regulatory and technical environment<br>Environnement réglementaire et technique de la
+                      transaction.<br>Renseignée pour les transactions domestiques CB uniquement
+                    type:
+                      - string
+                      - 'null'
+                    example: '10'
+                    pattern: ^[0-9A-Za-z]{2}$
+                  cardDataEntryMode:
+                    anyOf:
+                      - $ref: '#/components/schemas/CardDataEntryMode'
+                      - type: 'null'
+                  electronicCommerceAuthenticationNature:
+                    anyOf:
+                      - $ref: '#/components/schemas/ElectronicCommerceAuthenticationNature'
+                      - type: 'null'
+                required:
+                  - manualIndicator
+                  - schemeNature
+              identification:
+                description: objet contenant les informations pour l'identification de la transaction
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  reference:
+                    description: Transaction Reference<br>Identifiant unique de transaction attribué par le Processeur (COIDOP)
+                    type:
+                      - string
+                      - 'null'
+                    example: R3079017501428448
+                    maxLength: 35
+                    minLength: 1
+              merchantCategoryCode:
+                description: Merchant Category Code<br>indique le type d'activité du commerçant
+                type:
+                  - string
+                  - 'null'
+                example: '5812'
+                pattern: ^[0-9]{4}$
+              merchantPostalAddress:
+                description: >-
+                  Official, main administrative Postal Address<br>Code ISO pays du commerçant de la transaction en
+                  format ISO Numérique sur 3 caractères (ISO 3166)et localisation du marchand
+                type:
+                  - object
+                  - 'null'
+                example:
+                  countryCode: '250'
+                  townName: 94 Charenton le pont
+                properties:
+                  countryCode:
+                    type:
+                      - string
+                      - 'null'
+                    pattern: ^[0-9]{3}$
+                  townName:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 70
+                    minLength: 1
+              saleReference:
+                description: Sale Reference Number<br>Référence d'archivage de la transaction (CBAE champ 37)
+                type:
+                  - string
+                  - 'null'
+                example: '888250530747'
+                maxLength: 35
+                minLength: 1
+              totalAmount:
+                description: Total Amount<br>Montant et devise de la transaction
+                type: object
+                example:
+                  amount: '00.00'
+                  currency: '978'
+                properties:
+                  amount:
+                    type: string
+                    pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  currency:
+                    type: string
+                    pattern: ^[0-9]{3}$
+                required:
+                  - amount
+                  - currency
+              localDateTime:
+                description: Date Time in local region<br>Date et heure de la transaction (AAAA-MM-JJTHH:MM:SS) en UTC
+                type: string
+                format: date-time
+                example: '2025-07-27T15:04:34'
+              vrolTransactionReference:
+                description: >-
+                  VISA Resolve Online transaction reference<br>Identifiant transaction VISA (VROL Transaction
+                  Identifier)
+                type:
+                  - string
+                  - 'null'
+                example: '5303140407'
+                pattern: ^[0-9A-Za-z]{1,35}$
+              merchantName:
+                description: Merchant Name used by all acquisition services.<br>Raison sociale du commerçant
+                type: string
+                example: PIZZA WEB
+                maxLength: 70
+                minLength: 1
+              feesAmount:
+                $ref: '#/components/schemas/FeesAmount'
+              authorisationCode:
+                description: authorisation identification response<br>Numéro d'autorisation
+                type:
+                  - string
+                  - 'null'
+                example: '146123'
+                pattern: ^[0-9A-Za-z]{1,6}$
+            additionalProperties: false
+            required:
+              - context
+              - totalAmount
+              - localDateTime
+              - merchantName
+              - feesAmount
+          maxItems: 100
+          minItems: 1
+        authorisationList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: liste des authorisations
+            properties:
+              authorisedLocalDateTime:
+                description: >-
+                  Local date and time, authorisation request<br>Date  heure de l'autorisation (AAAA-MM-JJTHH:MM:SS) en
+                  UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-27T15:04:34'
+              authorisedAmount:
+                anyOf:
+                  - $ref: '#/components/schemas/AuthorisedAmount'
+                  - type: 'null'
+              merchantName:
+                description: Merchant Name used by all acquisition services.<br>Libellé du commerçant
+                type:
+                  - string
+                  - 'null'
+                example: PIZZA WEB
+                maxLength: 70
+                minLength: 1
+              authorisationResponse:
+                anyOf:
+                  - $ref: '#/components/schemas/AuthorisationResponse'
+                  - type: 'null'
+              countryName:
+                description: Official Country Name<br>Pays de l'autorisation
+                type:
+                  - string
+                  - 'null'
+                example: FRANCE
+                maxLength: 100
+                minLength: 1
+              merchantCategoryCodeLabel:
+                description: Merchant Category Code Label<br>Libellé du type d'activité du commercant
+                type:
+                  - string
+                  - 'null'
+                example: RESTAURANTS
+                maxLength: 255
+                minLength: 1
+              regulatoryAndTechnicalEnvironmentLabel:
+                description: Regulatory and technical environment Label<br>Libellé de l'environnement technique et réglementaire
+                type:
+                  - string
+                  - 'null'
+                example: Paiement de proximité
+                maxLength: 255
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+      additionalProperties: false
+      required:
+        - issuer
+        - crcCase
+      title: DMCrcCreatedCase
+    SchemeNature:
+      description: Scheme nature<br>caractérise le réseau de la transactions contestée
+      type: string
+      example: VISA
+      enum:
+        - CBFR
+        - INTR
+        - MACD
+        - VISA
+      x-enumDescriptions:
+        CBFR: CB
+        INTR: INTRA
+        MACD: MasterCard
+        VISA: VISA
+    CardDataEntryMode:
+      description: Card entry mode<br>Mode de lecture du système d'acceptation (CBAE champ 22)
+      type: string
+      example: CCEC
+      enum:
+        - BRCD
+        - CCEC
+        - CCMD
+        - COFT
+        - EDGR
+        - EDRP
+        - ICCR
+        - MAAR
+        - MAGS
+        - MANE
+        - MFLB
+        - NOTS
+        - OCRD
+        - PVBS
+      x-enumDescriptions:
+        BRCD: Bar code
+        CCEC: Contactless chip transaction using EMV chip data
+        CCMD: Contactless chip transaction using magstripe data
+        COFT: Card-on-File
+        EDGR: EMV downgraded
+        EDRP: Digital Secure Remote Payment using EMV
+        ICCR: Integrated circuit card reader
+        MAAR: Magstripe, after attempt to read chip
+        MAGS: Magstripe
+        MANE: Manual entry
+        MFLB: Manual fallback from an EMV capable terminal
+        NOTS: Not specified
+        OCRD: OCR
+        PVBS: Provided by a server
+    ElectronicCommerceAuthenticationNature:
+      description: >-
+        Electronic commerce transaction authentication type<br>Type de sécurisation du commerce electronique. <br>Ne
+        concerne que les transactions domestiques CB
+      type: string
+      example: ACXX
+      enum:
+        - ACMO
+        - ACNO
+        - ACNS
+        - ACXX
+      x-enumDescriptions:
+        ACMO: Authentication cryptogram issued from a mobile  (CB2A 21)
+        ACNO: No authentication cryptogram  (CB2A 09)
+        ACNS: Legacy – Non-secured electronic commerce transaction (CB2A 08)
+        ACXX: Authentication cryptogram issued from a server (CB2A 20)
+    Type:
+      description: phone usage type<br>Type de téléphone de l'appelant (privé ou professionnel)
+      type: string
+      example: PRIV
+      enum:
+        - BUSI
+        - PRIV
+      x-enumDescriptions:
+        BUSI: Business
+        PRIV: Private
+    FeesAmount:
+      description: Fees Amount<br>Montant signé et devise de la commission de service imputée au porteur.
+      type: object
+      example:
+        feesAmount: '00.00'
+        currency: '978'
+      properties:
+        feesAmount:
+          type: string
+          pattern: ^\-?[0-9]{1,5}(\.?[0-9]{0,10})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - feesAmount
+        - currency
+    AuthorisedAmount:
+      description: Authorised Amount<br>Montant signé et devise de l'autorisation en euro (978) et dans la devise d'origine
+      type: object
+      example:
+        amount: '40.00'
+        currency: '978'
+        originalAmount: '40.00'
+        originalCurrency: '978'
+      properties:
+        amount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+        originalAmount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        originalCurrency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - amount
+        - currency
+        - originalAmount
+        - originalCurrency
+    AuthorisationResponse:
+      description: Authorisation response<br>Réponse de la banque à l'autorisation
+      type: string
+      example: APPR
+      enum:
+        - APPR
+        - DECL
+        - RFPU
+        - UNKW
+      x-enumDescriptions:
+        APPR: Approved
+        DECL: Declined
+        RFPU: Reserved for private use
+        UNKW: Unkown
+    TotalAmount2:
+      description: Total Amount<br>Montant signé et devise du dossier CRC
+      type: object
+      example:
+        amount: '40.00'
+        currency: '978'
+      properties:
+        amount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - amount
+        - currency
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Unique identifier of the event. Used to identify technical duplicates.
+      schema:
+        type: string
+        format: uuid
+      example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: >-
+        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+        schema evolution gracefully.
+      schema:
+        type: string
+      example: '1.0'
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
+  headers:
+    EchoRequestId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    EchoCorrelationId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    EchoInstitutionId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    EchoUserId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    EchoUserContextId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    ProcessingRouteId:
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      required: false
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+  responses:
+    Error400:
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error401:
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error403:
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error405:
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error406:
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error409:
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error422:
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error429:
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error500:
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error502:
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error503:
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error504:
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+webhooks:
+  crc-case-created:
+    post:
+      operationId: crcCaseCreated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DMCrcCreatedCase'
+      responses:
+        '204':
+          description: Event acquitté par le partenaire (No Content).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      summary: This endpoint sends a notification containing details of CRC case creation (CNT-EM75) (crc-case-created)
+      tags:
+        - CRC Case
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/XEventId'
+        - name: X-Event-Type
+          in: header
+          required: true
+          description: The type of the event.
+          schema:
+            type: string
+            maxLength: 36
+          example: crc-case-created
+        - $ref: '#/components/parameters/XEventVersion'
+        - $ref: '#/components/parameters/XOriginalRequestId'
+        - $ref: '#/components/parameters/XOriginalCorrelationId'
+        - $ref: '#/components/parameters/OriginalIdempotencyKey'
+tags:
+  - name: Dispute Case
+    description: Notification related to a dispute case
+  - name: CRC Case
+    description: Notification related to a CRC (Customer Relations Center) case

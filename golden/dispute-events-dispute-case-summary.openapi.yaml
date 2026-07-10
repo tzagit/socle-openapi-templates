@@ -1,0 +1,3269 @@
+openapi: 3.1.1
+info:
+  title: Notifications Connector API - OpenAPI 3.0
+  version: 1.7.0
+  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  contact:
+    name: Estreem
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.15.xlsx
+  x-socle-version: 0.1.0
+  x-socle-type: events
+components:
+  schemas:
+    StandardError:
+      type: object
+      description: Standard error response used across all APIs
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Functional or technical error code
+        text:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: User-friendly error message
+        developerText:
+          type: string
+          minLength: 1
+          maxLength: 70
+          description: Detailed technical message for debugging
+        moreInfo:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Additional information or documentation link
+    DMDisputeCaseSummary:
+      description: Objet racine - Evenement de synthèse d'un dossier de contestation émetteur
+      type: object
+      properties:
+        id:
+          description: Dispute Case reference<br>Identifiant du dossier de Contestation attribué par le Processeur
+          type: string
+          example: E102071801051900
+          pattern: ^[0-9A-Za-z]{16}$
+        qualification:
+          anyOf:
+            - $ref: '#/components/schemas/Qualification'
+            - type: 'null'
+        condition:
+          anyOf:
+            - $ref: '#/components/schemas/Condition'
+            - type: 'null'
+        creationDateTime:
+          description: Creation date time<br>Date  et heure de création du dossier (AAAA-MM-JJTHH:MM:SS) en UTC
+          type:
+            - string
+            - 'null'
+          format: date-time
+          example: '2025-07-28T15:04:34'
+        localDateTime:
+          description: Date Time in local region<br>Date  et heure de contestation (AAAA-MM-JJTHH:MM:SS) en UTC
+          type:
+            - string
+            - 'null'
+          format: date-time
+          example: '2025-07-28T15:04:34'
+        closureDateTime:
+          description: Closure date time<br>Date  et heure de clôture du dossier (AAAA-MM-JJTHH:MM:SS) en UTC
+          type:
+            - string
+            - 'null'
+          format: date-time
+          example: '2025-10-28T15:04:34'
+        reopeningDateTime:
+          description: Reopening date time<br>Date  et heure de dernière ré-ouverture du dossier (AAAA-MM-JJTHH:MM:SS) en UTC
+          type:
+            - string
+            - 'null'
+          format: date-time
+          example: '2025-08-03T10:04:34'
+        psdTypology:
+          description: Payment Service Directive typology <br>Typologie DSP (directive des services de paiement) du dossier
+          type:
+            - string
+            - 'null'
+          example: OTHE
+          enum:
+            - AUTH
+            - BAEX
+            - OTHE
+            - UNAU
+          x-enumDescriptions:
+            AUTH: Authorised
+            BAEX: Bad execution
+            OTHE: Other
+            UNAU: Unauthorised
+        caseAdvancementCode:
+          description: Case Advancement Code<br>indique le code d'avancement du dossier
+          type:
+            - string
+            - 'null'
+          example: CLOS
+          enum:
+            - ANLY
+            - CLOS
+            - COMP
+            - DERM
+            - INCO
+            - PURG
+            - RECA
+            - REOP
+          x-enumDescriptions:
+            ANLY: Analysed
+            CLOS: Closed
+            COMP: Complete
+            DERM: Decided recovery methods
+            INCO: Incomplete
+            PURG: Purge
+            RECA: Acquirer recovered
+            REOP: Reopened
+        withoutAnalysysIndicator:
+          description: >-
+            Indicator specifying that the dispute case should not be analysed<br>indique si, après la prise de décision,
+            le dossier doit faire l'objet d'une analyse (true), ou pas (false), par une utilisateur SMC. Si l'indicateur
+            est à non, la suite de l'analyse est prise en charge par le batch d'emission des CRE.
+          type:
+            - boolean
+            - 'null'
+          example: false
+        scoringEligibilityIndicator:
+          description: >-
+            Indicator used to determine whether the case must be submitted to a prescore calculation<br>Indicateur
+            permettant de déterminer si le dossier doit être soumis à un calcul de prescore
+          type: boolean
+          example: true
+        scoringStatus:
+          anyOf:
+            - $ref: '#/components/schemas/ScoringStatus2'
+            - type: 'null'
+        insuredIndicator:
+          description: >-
+            Insured indicator<br>indique si le porteur est assuré (true) ou non (false). Si cette information est non
+            renseignée (le booleen est non alimenté)
+          type:
+            - boolean
+            - 'null'
+          example: true
+        refundDecisionCode:
+          description: Decision of the dispute<br>Décision sur l'analyse du dossier
+          type:
+            - string
+            - 'null'
+          example: RFDB
+          enum:
+            - DERM
+            - NORE
+            - PARE
+            - RFDB
+          x-enumDescriptions:
+            DERM: Decided recovery methods
+            NORE: Non refundable
+            PARE: Partially refundable
+            RFDB: Refundable
+        issuer:
+          description: objet contenant les informations liées à la banque émettrice
+          type: object
+          additionalProperties: false
+          properties:
+            institutionId:
+              description: Issuer institution Id<br>Code de la banque émetteur du dossier de contestation
+              type:
+                - string
+                - 'null'
+              example: '10207'
+              maxLength: 5
+              minLength: 1
+            institutionName:
+              description: Issuer institution Name<br>Libellé de la banque émetteur du dossier de contestation
+              type:
+                - string
+                - 'null'
+              example: BP Rives de Paris
+              maxLength: 35
+              minLength: 1
+        card:
+          $ref: '#/components/schemas/Card'
+        insurance:
+          description: objet contenant les informations liées à l'assurance
+          type: object
+          additionalProperties: false
+          properties:
+            insuranceContractLabel:
+              description: >-
+                Insurance contract label<br>Libellé du forfait associé à la carte (ex : Forfait Liaison, Satellis
+                Essentiel, Satellis Intégral, Formule individuelle CONFORT )
+              type:
+                - string
+                - 'null'
+              example: Bouquet liberté
+              maxLength: 255
+              minLength: 1
+            responsibilityLevel:
+              description: Cardholder responsability level<br>Niveau de responsabilité du porteur
+              type:
+                - string
+                - 'null'
+              example: EXCL
+              enum:
+                - EXCL
+                - NRSP
+                - RESP
+              x-enumDescriptions:
+                EXCL: Exclusion (insurance not applicable)
+                NRSP: Not Responsible
+                RESP: Responsible (insurance applicable)
+            maxAnnualInsuranceAmount:
+              description: Max annual insurance amount<br>Montant annuel maximum de l'assurance signé et devise
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '2000.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            maxSinisterInsuranceAmount:
+              description: Max insurance amount per sinister<br>Montant maximum de l'assurance par sinistre signé et devise
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '1500.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            excessAmount:
+              description: Excess amount<br>Montant de la franchise  signé et devise
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '50.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+        accountingSummary:
+          description: objet contenant la synthèse comptable
+          type: object
+          additionalProperties: false
+          properties:
+            totalAmount:
+              description: Total amount<br>Montant total signé et devise du dossier
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '-169.80'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            accountingTotalAmount:
+              description: Accounting total amount<br>Montant comptable du dossier signé et devise
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '0.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            clientSettlementTotalAmount:
+              description: Settlement Total Amount<br>Montant signé et devise du règlement client
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '129.90'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            creditReserveSettlementTotalAmount:
+              description: >-
+                Settlement Total Amount<br>Montant signé et devise du règlement effectué sur le contrat de réserve de
+                crédit du client
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '0.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            acquirerRecoveryTotalAmount:
+              description: >-
+                Total Amount<br>Montant recouvré  signé et devise de l'acquéreur (somme des montants pris en charge par
+                l'établissement, par NPS et par le porteur)
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '89.90'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            chargebackTotalAmount:
+              description: Total Amount<br>Montant signé et devise des impayés
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '89.90'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            presentmentTotalAmount:
+              description: Total Amount<br>Montant signé et devise des représentations
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '0.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            recourseTotalAmount:
+              description: Total Amount<br>Montant signé et devise des recours
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '0.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            insuranceRecoveryTotalAmount:
+              description: Total Amount<br>Montant signé et devise recouvré par l'assurance
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '0.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            establishmentRecoveryTotalAmount:
+              description: Total Amount<br>Montant signé et devise pris en charge par l'établissement
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '40.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            npsRecoveryTotalAmount:
+              description: Total Amount<br>Montant signé et devise pris en charge par NPS
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '0.00'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            cardholderRecoveryTotalAmount:
+              description: Total Amount<br>Montant signé et devise pris en charge par le porteur
+              type:
+                - object
+                - 'null'
+              example:
+                amount: '-39.90'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+        settlementList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des règlements du dossier
+            properties:
+              refundNature:
+                anyOf:
+                  - $ref: '#/components/schemas/RefundNature'
+                  - type: 'null'
+              totalAmount:
+                description: Total Amount<br>Montant signé et devise du règlement
+                type:
+                  - object
+                  - 'null'
+                example:
+                  amount: '40.00'
+                  currency: '978'
+                properties:
+                  amount:
+                    type: string
+                    pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  currency:
+                    type: string
+                    pattern: ^[0-9]{3}$
+                required:
+                  - amount
+                  - currency
+              feesAmount:
+                description: Fees Amount<br>Montant signé et devise de la commission
+                type:
+                  - object
+                  - 'null'
+                example:
+                  feesAmount: '0.00'
+                  currency: '978'
+                properties:
+                  feesAmount:
+                    type: string
+                    pattern: ^\-?[0-9]{1,5}(\.?[0-9]{0,10})?$
+                  currency:
+                    type: string
+                    pattern: ^[0-9]{3}$
+                required:
+                  - feesAmount
+                  - currency
+              accoutingDateTime:
+                description: Accounting Date Time<br>Date et heure comptable du règlement (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-29T00:00:00'
+              localDateTime:
+                description: Date Time in local region<br>Date et heure de valeur du règlement (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              statusLabel:
+                description: Label of the settlement status<br>Libellé du statut du règlement
+                type:
+                  - string
+                  - 'null'
+                example: Transmis établissement
+                maxLength: 255
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        transactionList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des transactions rattachées au dossier
+            properties:
+              identification:
+                description: objet contenant les informations pour l'identification de la transaction
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  reference:
+                    description: Transaction Reference<br>Identifiant unique de transaction attribué par le Processeur (COIDOP)
+                    type:
+                      - string
+                      - 'null'
+                    example: R3079017501428448
+                    maxLength: 35
+                    minLength: 1
+                  localDateTime:
+                    description: Date Time in local region<br>Date et heure de la transaction (AAAA-MM-JJTHH:MM:SS) en UTC
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                    example: '2025-07-26T15:04:34'
+              clearingDate:
+                description: Expected Date of Clearing<br>Date de compensation (AAAA-MM-JJ) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-27'
+              grossAmount:
+                description: (Brut) amount of the transaction<br>Montant brut signé et devise
+                type:
+                  - object
+                  - 'null'
+                example:
+                  amount: '-39.90'
+                  currency: '978'
+                properties:
+                  amount:
+                    type: string
+                    pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  currency:
+                    type: string
+                    pattern: ^[0-9]{3}$
+                required:
+                  - amount
+                  - currency
+              feesAmount:
+                description: Fees Amount<br>Montant des frais signé et devise
+                type:
+                  - object
+                  - 'null'
+                example:
+                  feesAmount: '0.00'
+                  currency: '978'
+                properties:
+                  feesAmount:
+                    type: string
+                    pattern: ^\-?[0-9]{1,5}(\.?[0-9]{0,10})?$
+                  currency:
+                    type: string
+                    pattern: ^[0-9]{3}$
+                required:
+                  - feesAmount
+                  - currency
+              merchantName:
+                description: Merchant Name used by all acquisition services.<br>Raison sociale du commerçant
+                type:
+                  - string
+                  - 'null'
+                example: Pizza WEB
+                maxLength: 70
+                minLength: 1
+              refundIndicator:
+                description: Refund indicator<br>indique si la transaction est remboursée (true/false)
+                type:
+                  - boolean
+                  - 'null'
+                example: false
+              nonrefundReasonCode:
+                description: >-
+                  Code reason of the nonrefund of the dispute<br>Code motif Banque de France de raison du refus de
+                  remboursement
+                type:
+                  - string
+                  - 'null'
+                example: HAB
+                pattern: ^[0-9A-Za-z]{3}$
+              nonrefundReasonLabel:
+                description: Resaon of the nonrefund of the dispute<br>indique la raison du refus de remboursement
+                type:
+                  - string
+                  - 'null'
+                example: Escroquerie commerçant - HAB
+                maxLength: 255
+                minLength: 1
+              nonrefundReasonTechnicalInternalId:
+                description: >-
+                  Technical internal reference of the nonrefund of the dispute<br>Identifiant technique interne du motif
+                  de refus de remboursement
+                type:
+                  - string
+                  - 'null'
+                example: '5001'
+                pattern: ^[0-9]{1,19}$
+              recoveryMode:
+                description: Recovey mode of the dispute<br>Mode de recouvrement
+                type:
+                  - string
+                  - 'null'
+                example: ACQU
+                enum:
+                  - ACQU
+                  - AUTA
+                  - CLDE
+                  - INSU
+                  - ISSU
+                  - NORE
+                x-enumDescriptions:
+                  ACQU: Acquirer
+                  AUTA: Automatic acquirer
+                  CLDE: Client debit
+                  INSU: Insurance
+                  ISSU: Issuer
+                  NORE: Non recovered
+              context:
+                description: objet contenant le contexte de la transaction
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  operationNature:
+                    description: Disputed operation type label<br>Type de transaction
+                    type:
+                      - string
+                      - 'null'
+                    example: TRIN
+                    enum:
+                      - ANTR
+                      - TRIN
+                    x-enumDescriptions:
+                      ANTR: Transaction cancellation
+                      TRIN: 'Initial transaction : captured'
+                  transactionNature:
+                    description: Nature of transaction<br>Nature de la transaction
+                    type:
+                      - string
+                      - 'null'
+                    example: PUGS
+                    enum:
+                      - AICE
+                      - ATMW
+                      - AVFI
+                      - CACP
+                      - CARE
+                      - CRED
+                      - FIMA
+                      - FTCR
+                      - FTDE
+                      - FTWC
+                      - MACA
+                      - PCSB
+                      - PUGS
+                      - QCAR
+                      - QUCA
+                      - VMAA
+                      - WCDI
+                    x-enumDescriptions:
+                      AICE: 'Authorisation to issue a certificate - cf CB2A 1.6 Value : 15'
+                      ATMW: 'ATM withdrawal  -  cf CBAE 1.5 Value : 01'
+                      AVFI: 'Available funds inquiry  - cf CBAE 1.5 Value : 30'
+                      CACP: 'Card capture - cf CBAE 1.5 Value : 14'
+                      CARE: 'Card return - cf CBAE 1.5 Value : 37'
+                      CRED: 'Credit - CBAE 1.5 Value : 20'
+                      FIMA: File Management
+                      FTCR: 'Funds transfer, credit - cf CBAE 1.5 Value : 42'
+                      FTDE: 'Funds transfer, debit  - cf CBAE 1.5 Value : 41'
+                      FTWC: >-
+                        Financial transaction without cash dispensing (e.g. bank transfer request ) - cf CB2A 1.6 Value
+                        : 10
+                      MACA: 'Manual cash - CBAE 1.5 Value : 17'
+                      PCSB: Purchase with cashback
+                      PUGS: 'Purchase of goods or  services : Cf CBAE 1.5 Value : 00'
+                      QCAR: 'Quasi-cash refund - cf CBAE 1.5 Value : 28'
+                      QUCA: 'Quasi-cash - cf CBAE 1.5 Value : 11'
+                      VMAA: 'VMAAS eligibility inquiry - cf CB2A 1.6 Value : 39'
+                      WCDI: 'Balance Inquiry - copy - cf CB2A 1.6 Value : 36'
+                  schemeNature:
+                    description: Scheme nature<br>Réseau de compensation de la transaction
+                    type:
+                      - string
+                      - 'null'
+                    example: VISA
+                    enum:
+                      - CBFR
+                      - INTR
+                      - MACD
+                      - VISA
+                    x-enumDescriptions:
+                      CBFR: CB
+                      INTR: INTRA
+                      MACD: MasterCard
+                      VISA: VISA
+                  eeaIndicator:
+                    description: EEA (espace economic area) indicator<br>Indicateur EEE
+                    type:
+                      - boolean
+                      - 'null'
+                    example: true
+                  acceptanceModeLabel:
+                    description: Acceptance mode label<br>Mode d'acceptation de la transaction (re-calculé par le processeur)
+                    type:
+                      - string
+                      - 'null'
+                    example: Internet sécurisé (50)
+                    maxLength: 255
+                    minLength: 1
+                  manualIndicator:
+                    description: >-
+                      Manual indicator<br>indique que la transaction a été ajoutée via une saisie manuelle (et non pas
+                      par une recherche - cas d'une transaction non disponible dans l'historique)<br>false: Transaction 
+                      non saisie manuellement<br>true: Transaction saisie manuellement
+                    type:
+                      - boolean
+                      - 'null'
+                    example: false
+                  scoringEligibilityIndicator:
+                    description: >-
+                      Indicator used to determine whether the transaction must be submitted to a prescore
+                      calculation<br>Indicateur permettant de déterminer si la transaction doit être soumise à un calcul
+                      de prescore
+                    type: boolean
+                    example: true
+                  disputePrescore:
+                    description: objet contenant les information préscore de la transaction
+                    type:
+                      - object
+                      - 'null'
+                    additionalProperties: false
+                    properties:
+                      scoringStatus:
+                        anyOf:
+                          - $ref: '#/components/schemas/ScoringStatus'
+                          - type: 'null'
+                      scoreLabelling:
+                        anyOf:
+                          - $ref: '#/components/schemas/ScoreLabelling'
+                          - type: 'null'
+                      labellingDateTime:
+                        description: Labelling date time<br>Date de labélisation (AAAA-MM-JJTHH:MM:SS) en UTC
+                        type:
+                          - string
+                          - 'null'
+                        format: date-time
+                        example: '2025-07-28T15:04:34'
+                required:
+                  - scoringEligibilityIndicator
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        eventList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des evenemenents litiges associées au dossier
+            properties:
+              transactionReference:
+                description: Transaction Reference<br>Identifiant unique de transaction attribué par le Processeur (COIDOP)
+                type:
+                  - string
+                  - 'null'
+                example: R3079017501428448
+                maxLength: 35
+                minLength: 1
+              localDateTime:
+                description: Date of the event<br>date de l'évenement (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-30T15:04:34'
+              statusCode:
+                description: Stautus code of the event<br>Code statut de l'évenement
+                type:
+                  - string
+                  - 'null'
+                example: TERM
+                enum:
+                  - TBPR
+                  - TERM
+                  - WAIT
+                x-enumDescriptions:
+                  TBPR: To be processed
+                  TERM: Terminated
+                  WAIT: Waiting
+              eventProcessingNatureCode:
+                description: Event processing nature code.<br>Code de l'évènement litige
+                type:
+                  - string
+                  - 'null'
+                example: TIMP
+                maxLength: 4
+                minLength: 4
+              eventProcessingNature:
+                description: >-
+                  Event processing nature, text explaination of the step in  processing data.<br>Libelllé de l'évènement
+                  litige
+                type:
+                  - string
+                  - 'null'
+                example: 'Traitement d''un impayé porteur '
+                maxLength: 50
+                minLength: 1
+              amount:
+                description: Amount of the event<br>Montant signé et devise de la transaction
+                type:
+                  - object
+                  - 'null'
+                example:
+                  amount: '39.90'
+                  currency: '978'
+                properties:
+                  amount:
+                    type: string
+                    pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                  currency:
+                    type: string
+                    pattern: ^[0-9]{3}$
+                required:
+                  - amount
+                  - currency
+              schemeNature:
+                anyOf:
+                  - $ref: '#/components/schemas/SchemeNature2'
+                  - type: 'null'
+              additionalData:
+                description: Additional data<br>Information complementaire sur l'évenement
+                type:
+                  - object
+                  - 'null'
+                example:
+                  value: 'Informations complementaires... '
+                properties:
+                  value:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 3000
+                    minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        taskList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des tâches du dossier
+            properties:
+              creationDateTime:
+                description: Task creation date time<br>Date et heure de création de la tâche SMC  (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              user:
+                description: Smc user<br>Opérateur lié à la tâche
+                type:
+                  - string
+                  - 'null'
+                example: '"0000cib\user"'
+                maxLength: 255
+                minLength: 1
+              label:
+                description: Task label<br>Libellé de la tâche
+                type:
+                  - string
+                  - 'null'
+                example: Compléter
+                maxLength: 255
+                minLength: 1
+              status:
+                description: Task statut code<br>Statut de la tâche
+                type:
+                  - string
+                  - 'null'
+                example: WAIT
+                enum:
+                  - TBPR
+                  - TERM
+                  - WAIT
+                x-enumDescriptions:
+                  TBPR: To be processed
+                  TERM: Terminated
+                  WAIT: Waiting
+              advancement:
+                description: Task Advancement<br>Avancement de la tâche
+                type:
+                  - string
+                  - 'null'
+                example: En attente préscore
+                maxLength: 255
+                minLength: 1
+              additionalData:
+                description: Additional data<br>Information complementaire sur la tâche
+                type:
+                  - object
+                  - 'null'
+                example:
+                  value: 'Informations complementaires... '
+                properties:
+                  value:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 3000
+                    minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        commentList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des commentaires du dossier
+            properties:
+              creationDateTime:
+                description: Creation comment date time<br>Date et heure du commentaire (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              user:
+                description: Smc user<br>Utilisateur ayant saisi le commentaire
+                type:
+                  - string
+                  - 'null'
+                example: HORS NPS User
+                maxLength: 255
+                minLength: 1
+              disputeComment:
+                description: Dispute Comment<br>Commentaire
+                type:
+                  - string
+                  - 'null'
+                example: Le porteur va renvoyer le PV
+                maxLength: 3000
+                minLength: 1
+              screenLabel:
+                description: Screen label<br>Ecran de saisie du commentaire
+                type:
+                  - string
+                  - 'null'
+                example: Compléter
+                maxLength: 255
+                minLength: 1
+              recipient:
+                description: Destinataire du commentaire
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  jurisdiction:
+                    description: >-
+                      The jurisdiction as determined by the pricing tool according to the Scheme
+                      specifications.<br><br>Juridiction destinataire du commentaire
+                    type:
+                      - string
+                      - 'null'
+                    example: '"Juridiction …'''
+                    maxLength: 50
+                    minLength: 1
+                  user:
+                    description: Smc user<br>Destinataire du commentaire
+                    type:
+                      - string
+                      - 'null'
+                    example: User ...
+                    maxLength: 255
+                    minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        documentList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des documents du dossier
+            properties:
+              attachedDate:
+                description: Attachement date<br>Date d'attachement du document dans le dossier (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:14:34'
+              typeLabel:
+                description: Document type label <br>Libellé associé au type du document
+                type:
+                  - string
+                  - 'null'
+                example: Justificatif d'analyse
+                maxLength: 255
+                minLength: 1
+              fileName:
+                description: Document name<br>Nom complet du document (sans chemin d'accès)
+                type:
+                  - string
+                  - 'null'
+                example: ProcesVerbal.pdf
+                maxLength: 255
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        auditTrailTransactionList:
+          type: array
+          items:
+            type: object
+            description: Liste des pistes d'audit
+            properties:
+              identification:
+                description: Objet contenant les informations d'identification de la transaction concernée par la piste d'audit
+                type: object
+                additionalProperties: false
+                properties:
+                  reference:
+                    description: 'Transaction Reference<br>Référence de la transaction (origine : processeur)'
+                    type:
+                      - string
+                      - 'null'
+                    example: R20250719FOND1029
+                    maxLength: 35
+                    minLength: 1
+                  localDateTime:
+                    description: Date Time in local region<br>Date et heure de la transaction (AAAA-MM-JJTHH:MM:SS) en UTC
+                    type: string
+                    format: date-time
+                    example: '2025-07-28T19:04:34'
+                required:
+                  - localDateTime
+              disputeCaseId:
+                description: 'Dispute Case reference<br>Identifiant du dossier de contestation - origine : processeur'
+                type: string
+                example: S102072507285324
+                pattern: ^[0-9A-Za-z]{16}$
+              auditTrail:
+                description: Objet contenant les données piste d'audit associées à la transaction
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  numberOfSecurePayments:
+                    description: >-
+                      Number of autorised operation<br>Nombre de transactions sécurisées (i.e :  validées sur le 
+                      téléphone) comptabilisées au cours des X derniers mois
+                    type:
+                      - string
+                      - 'null'
+                    example: '36'
+                    pattern: ^[0-9]{1,5}$
+                  numberOfSecurePaymentsDuration:
+                    description: >-
+                      Duration used to count the number of autorised operation<br>Période surveillée pour le nombre de
+                      transactions remontées au cours des X derniers mois
+                    type:
+                      - string
+                      - 'null'
+                    example: P2M4DT11H9M8S
+                  numberOfUndisputedSecurePayments:
+                    description: >-
+                      Count of undisputed operation<br>Nombre de transactions, sécurisées, non contestées au cours des X
+                      derniers mois
+                    type:
+                      - string
+                      - 'null'
+                    example: '34'
+                    pattern: ^[0-9]{1,5}$
+                  numberOfUndisputedSecurePaymentsDuration:
+                    description: >-
+                      Duration used to count the number of undisputed operation<br>Période surveillée pour le nombre de
+                      transactions non contestées au cours des X derniers mois
+                    type:
+                      - string
+                      - 'null'
+                    example: P2M4DT11H9M8S
+                  strongAuthenticationFamiliarity:
+                    description: >-
+                      Familiarity Authentication indicateur<br>Score de familiarisation du porteur avec le parcours et
+                      les outils de sécurisation de la banque
+                    type:
+                      - string
+                      - 'null'
+                    example: '3'
+                    pattern: ^[0-9]{1}$
+                  lastPostalAddressChangeDateTime:
+                    description: >-
+                      Date/time of last postal address change before disputed payment<br>Date/heure
+                      (AAAA-MM-JJThh:mm:ss) en UTC du dernier changement d'adresse avant la contestation
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                    example: '2025-06-28T15:04:34'
+                  lastPostalAddressDuration:
+                    description: >-
+                      Duration between the date of postal address change and the date of the disputed
+                      transaction<br>Intervalle de durée  entre le dernier changement d'adresse et la contestation -
+                      P(n)Y(n)M(n)DT(n)H(n)M(n)S en ISO8601
+                    type:
+                      - string
+                      - 'null'
+                    example: P30DT11H9M8S
+                  numberOfAdvisorCalls:
+                    description: >-
+                      Number of phone calls with an advisor in the 2 months preceding disputed payment<br>Nombre
+                      d'appels conseillers dans les 2 derniers mois précédant la contestation
+                    type:
+                      - string
+                      - 'null'
+                    example: '3'
+                    pattern: ^[0-9]{1,2}$
+                  numberOfCallCenterCalls:
+                    description: >-
+                      Number of CRC phone calls in the 2 months preceding the disputed payment<br>Nombre d'appels CRC
+                      dans les 2 derniers mois précédant la contestation
+                    type:
+                      - string
+                      - 'null'
+                    example: '1'
+                    pattern: ^[0-9]{1,2}$
+                  otpPhoneNumber:
+                    description: PhoneNumber receiving SMS<br>Numero recevant les otp SMS
+                    type:
+                      - string
+                      - 'null'
+                    example: '+33602030405'
+                    pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+              phoneNumberList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  properties:
+                    phoneNumber:
+                      type:
+                        - string
+                        - 'null'
+                      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                    phoneUsage:
+                      anyOf:
+                        - $ref: '#/components/schemas/PhoneUsage'
+                        - type: 'null'
+                    securedPhoneIndicator:
+                      type:
+                        - boolean
+                        - 'null'
+                  description: >-
+                    Phone number with usage and security tag<br>Numéro de téléphone / Usage / Indicateur ''téléphone
+                    sécurisé'' caracterisant un téléphone  dont les premières connexions sont réussies.
+                  example:
+                    phoneNumber: '+33602030405'
+                    phoneUsage: PRIV
+                    securedPhoneIndicator: true
+              walletCardEnrolmentList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: Liste des enrôlements carte dans des wallets de paiement mobile
+                  properties:
+                    isPaymentWallet:
+                      description: >-
+                        Indicates whether this wallet corresponds to the one used for the payment associated with the
+                        transaction<br>Indique si ce wallet correspond à celui utilisé lors du paiement associé à la
+                        transaction
+                      type: boolean
+                      example: 'true'
+                    walletType:
+                      description: >-
+                        Wallet Provider, Apple Pay, Samsung Pay, etc …<br>Indique le type de wallet dans lequel la carte
+                        a été enrôlée
+                      type: string
+                      example: APAY
+                      enum:
+                        - APAY
+                        - CPAY
+                        - GPAY
+                        - GRAY
+                        - MAMA
+                        - MTOK
+                        - OPAY
+                        - RECP
+                        - SPAY
+                        - WPAY
+                      x-enumDescriptions:
+                        APAY: Apple Pay
+                        CPAY: Click To Pay
+                        GPAY: GooglePay
+                        GRAY: Garmin Pay
+                        MAMA: Masterpass by Mastercard
+                        MTOK: Merchant scheme tokenization indicator
+                        OPAY: Open Payment
+                        RECP: Remote commerce programs
+                        SPAY: Samsung Pay
+                        WPAY: Wero Pay
+                    enrolmentChannel:
+                      description: >-
+                        Indicates the channel through which the card was enrolled into the digital wallet.<br>Indique le
+                        canal par lequel la carte a été enrôlée dans le wallet numérique<br>APBA : enrolment from the
+                        banking application<br>APWA : enrolment from the wallet application
+                      type:
+                        - string
+                        - 'null'
+                      example: APBA
+                      enum:
+                        - APBA
+                        - APWA
+                      x-enumDescriptions:
+                        APBA: enrolment from the banking application
+                        APWA: enrolment from the wallet application
+                    phoneNumber:
+                      description: >-
+                        Phone number with usage and security tag<br>Indique le numéro de telephone utilisé lors de
+                        l'enrôlement
+                      type:
+                        - object
+                        - 'null'
+                      example:
+                        phoneNumber: '+33602030405'
+                        phoneUsage: PRIV
+                        securedPhoneIndicator: true
+                      properties:
+                        phoneNumber:
+                          type:
+                            - string
+                            - 'null'
+                          pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                        phoneUsage:
+                          anyOf:
+                            - $ref: '#/components/schemas/PhoneUsage'
+                            - type: 'null'
+                        securedPhoneIndicator:
+                          type:
+                            - boolean
+                            - 'null'
+                    authenticationMean:
+                      description: >-
+                        Strong authentication method used for the enrolment of the card into a digital wallet<br>Moyen
+                        d’authentification forte utilisé lors de l’enrôlement de la carte dans un wallet<br>OTHE :
+                        OTHER<br>DKEY : DIGITAL_KEY<br>OTPW : OTP<br>CYPA : CYBER_PASS<br>CERT : CERTIFICATE
+                      type: string
+                      example: DKEY
+                      enum:
+                        - CERT
+                        - CYPA
+                        - DKEY
+                        - OTHE
+                        - OTPW
+                      x-enumDescriptions:
+                        CERT: Certificate
+                        CYPA: Cyber pass
+                        DKEY: Digital key
+                        OTHE: Other
+                        OTPW: OTP
+                    dateTime:
+                      description: >-
+                        Date and time when the card was enrolled into the digital wallet<br>Date et heure de
+                        l'enrôlement de la carte dans le wallet (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type: string
+                      format: date-time
+                      example: '2025-06-28T15:04:34'
+                    authenticationMethod:
+                      description: >-
+                        Indicates the technical method of strong authentication used during the card enrolment into the
+                        digital wallet<br>Méthode d'authentification forte utilisée pour l'enrôlement<br>CODE :
+                        CODE<br>BIOM : BIOMETRIC
+                      type:
+                        - string
+                        - 'null'
+                      example: BIOM
+                      enum:
+                        - BIOM
+                        - CODE
+                      x-enumDescriptions:
+                        BIOM: Biometric
+                        CODE: Code
+                    isSuccessful:
+                      description: >-
+                        Indicates whether the strong authentication process for the card enrollment into the digital
+                        wallet was completed successfully<br>Indicateur permettant d'indiquer si l'authentification
+                        utilisée pour l'enrôlement a été réalisée avec succès
+                      type:
+                        - boolean
+                        - 'null'
+                      example: 'true'
+                    enrolmentValidationMessage:
+                      description: >-
+                        Message associated with the validation of the card enrollment into a digital wallet<br>Message
+                        associé à la validation de l’enrôlement de la carte dans un wallet numérique
+                      type:
+                        - string
+                        - 'null'
+                      example: Validation de l’enrôlement de la carte réussie
+                      maxLength: 255
+                      minLength: 1
+                    device:
+                      description: >-
+                        Informations décrivant le terminal utilisé pour effectuer l’enrôlement de la carte dans un
+                        wallet
+                      type:
+                        - object
+                        - 'null'
+                      additionalProperties: false
+                      properties:
+                        id:
+                          description: >-
+                            Technical identifier of the device, enabling its unique identification within the
+                            system<br>Identifiant technique du terminal utilisé, permettant de l’identifier de manière
+                            unique dans le système
+                          type:
+                            - string
+                            - 'null'
+                          example: A8F5F167F44F4964E6C998DEE827110C
+                          pattern: ^[0-9A-Za-z]{1,64}$
+                        friendlyName:
+                          description: Terminal name<br>Nom affecté à l'appareil par l'utilisateur
+                          type:
+                            - string
+                            - 'null'
+                          example: Mon Galaxy
+                          maxLength: 255
+                          minLength: 1
+                        deviceTechnicalName:
+                          description: Technical name of the device<br>Nom technique de l'appareil
+                          type:
+                            - string
+                            - 'null'
+                          example: Galaxy S23 Ultra (SM-S918B)
+                          maxLength: 255
+                          minLength: 1
+                        trustTerminalIndicator:
+                          description: Trust terminal indicator<br>Indicateur terminal de confiance (true / false)
+                          type:
+                            - boolean
+                            - 'null'
+                          example: true
+                        operatingSystem:
+                          description: Terminal operating system<br>OS (système d'exploitation) de l'appareil
+                          type:
+                            - string
+                            - 'null'
+                          example: Android X.xx
+                          maxLength: 255
+                          minLength: 1
+                        ipAddress:
+                          description: IP Address<br>Adresse IP associée au terminal utilisé lors de l’opération
+                          type:
+                            - string
+                            - 'null'
+                          example: 123.456.7.89
+                          maxLength: 45
+                          minLength: 4
+                        city:
+                          description: City associated with the device<br>Ville associée au terminal utilisé lors de l’opération
+                          type:
+                            - string
+                            - 'null'
+                          example: Charenton-Le-Pont
+                          maxLength: 70
+                          minLength: 1
+                        type:
+                          description: Device type<br>Type d'appareil<br>La nomenclature sera definie ulteieurement
+                          type:
+                            - string
+                            - 'null'
+                          example: '00'
+                          maxLength: 2
+                          minLength: 1
+                    onlineBankingConnection:
+                      description: >-
+                        Informations relatives à la connexion à la banque en ligne associée à l’enrôlement de la carte
+                        dans un wallet
+                      type:
+                        - object
+                        - 'null'
+                      additionalProperties: false
+                      properties:
+                        dateTime:
+                          description: >-
+                            Banking connection date time<br>Date et heure de la connexion à la banque en ligne
+                            (AAAA-MM-JJTHH:MM:SS) en UTC
+                          type:
+                            - string
+                            - 'null'
+                          format: date-time
+                          example: '2025-06-28T15:04:34'
+                        isSuccessful:
+                          description: >-
+                            Was the connection successful ?<br>Indicateur permettant d'indiquer si la connexion a été
+                            réalisée avec succès
+                          type:
+                            - boolean
+                            - 'null'
+                          example: 'true'
+                        authenticationMethod:
+                          anyOf:
+                            - $ref: '#/components/schemas/AuthenticationMethod'
+                            - type: 'null'
+                        device:
+                          anyOf:
+                            - $ref: '#/components/schemas/Device'
+                            - type: 'null'
+                  additionalProperties: false
+                  required:
+                    - isPaymentWallet
+                    - walletType
+                    - authenticationMean
+                    - dateTime
+              threeDS:
+                description: Informations relatives à l’étape d’authentification via l’ACS (Access Control Server)
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  authenticationDateTime:
+                    description: >-
+                      Date and time of the authentication<br>Date et heure de l’authentification de la transaction
+                      (AAAA-MM-JJTHH:MM:SS) en UTC
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                    example: '2025-06-28T15:04:34'
+                  device:
+                    description: Informations décrivant le terminal utilisé lors de l’authentification de la transaction via l’ACS
+                    type:
+                      - object
+                      - 'null'
+                    additionalProperties: false
+                    properties:
+                      id:
+                        description: >-
+                          Technical identifier of the device, enabling its unique identification within the
+                          system<br>Identifiant technique du terminal utilisé, permettant de l’identifier de manière
+                          unique dans le système
+                        type:
+                          - string
+                          - 'null'
+                        example: A8F5F167F44F4964E6C998DEE827110C
+                        pattern: ^[0-9A-Za-z]{1,64}$
+                      friendlyName:
+                        description: Terminal name<br>Nom affecté à l'appareil par l'utilisateur
+                        type:
+                          - string
+                          - 'null'
+                        example: Mon Galaxy
+                        maxLength: 255
+                        minLength: 1
+                      deviceTechnicalName:
+                        description: Technical name of the device<br>Nom technique de l'appareil
+                        type:
+                          - string
+                          - 'null'
+                        example: Galaxy S23 Ultra (SM-S918B)
+                        maxLength: 255
+                        minLength: 1
+                      trustTerminalIndicator:
+                        description: Trust terminal indicator<br>Indicateur terminal de confiance (true / false)
+                        type:
+                          - boolean
+                          - 'null'
+                        example: true
+                      operatingSystem:
+                        description: Terminal operating system<br>OS (système d'exploitation) de l'appareil
+                        type:
+                          - string
+                          - 'null'
+                        example: Android X.xx
+                        maxLength: 255
+                        minLength: 1
+                      ipAddress:
+                        description: IP Address<br>Adresse IP associée au terminal utilisé lors de l’opération
+                        type:
+                          - string
+                          - 'null'
+                        example: 123.456.7.89
+                        maxLength: 45
+                        minLength: 4
+                      city:
+                        description: City associated with the device<br>Ville associée au terminal utilisé lors de l’opération
+                        type:
+                          - string
+                          - 'null'
+                        example: Charenton-Le-Pont
+                        maxLength: 70
+                        minLength: 1
+                      type:
+                        description: Device type<br>Type d'appareil<br>La nomenclature sera definie ulteieurement
+                        type:
+                          - string
+                          - 'null'
+                        example: '00'
+                        maxLength: 2
+                        minLength: 1
+              awareness:
+                description: Objet avec le niveau de sensibilitation du client aux outils d'authentification
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  score:
+                    description: Fraud indicator<br>Sensibilisation - indicateur de fraude
+                    type:
+                      - string
+                      - 'null'
+                    example: '1'
+                    pattern: ^[0-9A-Za-z]{1}$
+                  duration:
+                    description: >-
+                      Period of fraud indicator evaluation<br>Intervalle de durée sur lequel est évalué le score
+                      indicateur de fraude - P(n)Y(n)M(n)DT(n)H(n)M(n)S en ISO8601
+                    type:
+                      - string
+                      - 'null'
+                    example: P2M30DT11H9M8S
+                  numberOfMobileConnections:
+                    description: Count of in-app connexion<br>Nombre de connexions mobiles du client
+                    type:
+                      - string
+                      - 'null'
+                    example: '1'
+                    pattern: ^[0-9]{1,2}$
+                  numberOfWebConnections:
+                    description: Count of browser-based conexion<br>Nombre de connexions web du client
+                    type:
+                      - string
+                      - 'null'
+                    example: '3'
+                    pattern: ^[0-9]{1,2}$
+                  numberOfConnectedPeriods:
+                    description: >-
+                      Number of 15-day periods in which the user has logged in at least once.<br>Nombre de périodes de
+                      15 jours au cours desquelles le client s’est connecté au moins une fois
+                    type:
+                      - string
+                      - 'null'
+                    example: '2'
+                    pattern: ^[0-9]{1,3}$
+              lastPaymentList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: Objet contenant les informations sur les derniers paiements
+                  properties:
+                    localDateTime:
+                      description: Date Time in local region<br>Date et heure du paiement  (AAAA-MM-JJTHH:MM:SS)  en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-07-28T17:04:34'
+                    transactionCategory:
+                      description: Category of transaction<br>Catégorie du paiement
+                      type:
+                        - string
+                        - 'null'
+                      example: CARD
+                      enum:
+                        - CARD
+                        - TRFR
+                      x-enumDescriptions:
+                        CARD: Card
+                        TRFR: Transfer
+                    reference:
+                      description: 'Transaction Reference<br>Référence de la transaction (origine : processeur)'
+                      type:
+                        - string
+                        - 'null'
+                      example: R20250719FOND1029
+                      maxLength: 35
+                      minLength: 1
+                    receivingParty:
+                      description: Merchand Name or beneficiary<br>Nom du destinataire du paiement (marchand ou bénéficiaire)
+                      type:
+                        - string
+                        - 'null'
+                      example: Foodles
+                      maxLength: 40
+                      minLength: 1
+                    totalAmount:
+                      description: Total Amount<br>Montant et devise du paiement
+                      type:
+                        - object
+                        - 'null'
+                      example:
+                        amount: '-50.5'
+                        currency: '978'
+                      properties:
+                        amount:
+                          type: string
+                          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                        currency:
+                          type: string
+                          pattern: ^[0-9]{3}$
+                      required:
+                        - amount
+                        - currency
+                  additionalProperties: false
+              alert:
+                description: Objet contenant les détails de l'alerte fraude
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  dateTime:
+                    description: Alert date time<br>Date et heure de l'alerte (AAAA-MM-JJTHH:MM:SS) en UTC
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                    example: '2025-07-28T17:04:34'
+                  message:
+                    description: Message content<br>Message d'alerte
+                    type:
+                      - string
+                      - 'null'
+                    example: Alerte - Paiement CB pays inhabituel
+                    maxLength: 255
+                    minLength: 1
+                  recipientEmailAddress:
+                    description: email that received the message<br>Adresse e-mail du contact recevant l'alerte
+                    type:
+                      - string
+                      - 'null'
+                    format: email
+                    example: adresse@mail.com
+              customerAnswer:
+                description: Objet contenant les informations de la réponse client à une levée de doute
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  dateTime:
+                    description: Date of customer answer<br>Date et heure de la confirmation client (AAAA-MM-JJThh:mm:ss) en UTC
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                    example: '2025-07-29T09:04:34'
+                  channel:
+                    description: Communication channel<br>Canal de communication de la confirmation client
+                    type:
+                      - string
+                      - 'null'
+                    example: CALL
+                    enum:
+                      - CALL
+                      - EMAI
+                      - PHON
+                      - PMAI
+                      - PMAO
+                      - PMAU
+                      - SMSE
+                    x-enumDescriptions:
+                      CALL: Call
+                      EMAI: Email
+                      PHON: Phone (unspecified)
+                      PMAI: Postal mail
+                      PMAO: Mail (other address)
+                      PMAU: Mail (usual address)
+                      SMSE: Sms
+                  status:
+                    description: Statut of Customer answer for the doubt removal <br>Réponse du client pour la levée de doute
+                    type:
+                      - string
+                      - 'null'
+                    example: FRAU
+                    enum:
+                      - FRAU
+                      - VALI
+                    x-enumDescriptions:
+                      FRAU: Fraud
+                      VALI: Valid
+              authenticationEnrolmentList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: Liste des derniers enrôlements aux moyens d’authentification forte du client
+                  properties:
+                    enrolmentChannel:
+                      description: >-
+                        Indicates the channel through which the customer’s authentication device enrollment was
+                        performed<br>Indique le canal via lequel l’enrôlement du dispositif d’authentification du client
+                        a été réalisé
+                      type:
+                        - string
+                        - 'null'
+                      example: MAIL
+                      enum:
+                        - CALL
+                        - INAP
+                        - MAIL
+                        - OTHR
+                        - WEBB
+                      x-enumDescriptions:
+                        CALL: Call Center
+                        INAP: In-App Banking
+                        MAIL: Postal Mail
+                        OTHR: Other
+                        WEBB: Web Banking
+                    lastEnrolmentDateTime:
+                      description: Last enrolments date time<br>Date des derniers enrôlements (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-05-29T09:04:34'
+                    lastEnrolmentPeriod:
+                      description: Time since last enrolment<br>Période depuis le dernier enrôlement
+                      type:
+                        - string
+                        - 'null'
+                      example: P2M1DT11H9M8S
+                    oldness:
+                      description: >-
+                        Score defining time since last enrollment prior to disputed payment<br>Score représentatif du
+                        délai depuis  le dernier enrôlement avant la contestation
+                      type:
+                        - string
+                        - 'null'
+                      example: '2'
+                      pattern: ^[0-9A-Za-z]{1}$
+                    isSuccessful:
+                      description: >-
+                        Was the enrolment successful ?<br>Indicateur permettant de déterminer si l'enrolement a réussi
+                        (tue/false)
+                      type:
+                        - boolean
+                        - 'null'
+                      example: true
+                    phoneNumber:
+                      description: Phone used for enrolment<br>Numéro de téléphone utilisé lors de l'enrolement carte
+                      type:
+                        - string
+                        - 'null'
+                      example: '+33602030405'
+                      pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                    email:
+                      description: >-
+                        Email used in case of OTP mail enrollment.<br>Adresse mail utilisée lors du processus
+                        d'enrolement (dans le cas d'un OTP par mail)
+                      type:
+                        - string
+                        - 'null'
+                      format: email
+                      example: marie.dupont@somedomainname.fr
+                    theoricalActivationDateTime:
+                      description: >-
+                        Estimated date of end of enrolment process on the device<br>Date estimée de fin de procédure
+                        d'enrolement sur l'appareil (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-06-28T15:04:34'
+                    realActivationDateTime:
+                      description: >-
+                        Actual date of completion of the enrolment process on the device<br>Date réelle de fin de
+                        procédure d'enrolement sur l'appareil (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-06-28T15:04:34'
+                    device:
+                      description: Objet contenant les informations du terminal enrôlé
+                      type:
+                        - object
+                        - 'null'
+                      additionalProperties: false
+                      properties:
+                        id:
+                          description: >-
+                            Technical identifier of the device, enabling its unique identification within the
+                            system<br>Identifiant technique du terminal utilisé, permettant de l’identifier de manière
+                            unique dans le système
+                          type:
+                            - string
+                            - 'null'
+                          example: A8F5F167F44F4964E6C998DEE827110C
+                          pattern: ^[0-9A-Za-z]{1,64}$
+                        friendlyName:
+                          description: Terminal name<br>Nom affecté à l'appareil par l'utilisateur
+                          type:
+                            - string
+                            - 'null'
+                          example: Mon Galaxy
+                          maxLength: 255
+                          minLength: 1
+                        deviceTechnicalName:
+                          description: Technical name of the device<br>Nom technique de l'appareil
+                          type:
+                            - string
+                            - 'null'
+                          example: Galaxy S23 Ultra (SM-S918B)
+                          maxLength: 255
+                          minLength: 1
+                        trustTerminalIndicator:
+                          description: Trust terminal indicator<br>Indicateur terminal de confiance (true / false)
+                          type:
+                            - boolean
+                            - 'null'
+                          example: true
+                        operatingSystem:
+                          description: Terminal operating system<br>OS (système d'exploitation) de l'appareil
+                          type:
+                            - string
+                            - 'null'
+                          example: Android X.xx
+                          maxLength: 255
+                          minLength: 1
+                        ipAddress:
+                          description: IP Address<br>Adresse IP lors de l'enrôlement
+                          type:
+                            - string
+                            - 'null'
+                          example: 123.456.7.89
+                          maxLength: 45
+                          minLength: 4
+                        city:
+                          description: City associated with the device<br>Ville de l'enrôlement
+                          type:
+                            - string
+                            - 'null'
+                          example: Charenton-Le-Pont
+                          maxLength: 70
+                          minLength: 1
+                        type:
+                          description: Device type<br>Type d'appareil<br>La nomenclature sera definie ulteieurement
+                          type:
+                            - string
+                            - 'null'
+                          example: '00'
+                          maxLength: 2
+                          minLength: 1
+                  additionalProperties: false
+              notificationList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: Liste des informations sur les notifications
+                  properties:
+                    dateTime:
+                      description: Date and time of the notification<br>Date/heure de la notification  (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-05-29T09:04:34'
+                    channel:
+                      description: Communication channel of the notification<br>Canal de réception de la notification
+                      type:
+                        - string
+                        - 'null'
+                      example: SMSE
+                      enum:
+                        - EMAI
+                        - SMSE
+                      x-enumDescriptions:
+                        EMAI: Email
+                        SMSE: Sms
+                    subject:
+                      description: >-
+                        Triggering event of the notification <br>Evénement à l'origine de la notification  (temporary
+                        password, forgotten password, etc.)
+                      type:
+                        - string
+                        - 'null'
+                      example: forgotten password
+                      maxLength: 255
+                      minLength: 1
+                    clientSubscriptionId:
+                      description: Client subscription identifier<br>Identifiant d'abonnement client
+                      type:
+                        - string
+                        - 'null'
+                      example: '12345678'
+                      pattern: ^[0-9A-Za-z]{1,255}$
+                    status:
+                      description: Status<br>Statut de la notification (OK, KO)
+                      type:
+                        - string
+                        - 'null'
+                      example: OK
+                      pattern: ^[0-9A-Za-z]{1,20}$
+                    recipientContactInformation:
+                      description: >-
+                        E-mail address or phone number which received the notification<br>E-mail ou n° de téléphone qui
+                        a recu la notification
+                      type:
+                        - object
+                        - 'null'
+                      example:
+                        email: adresse@mail.com
+                        phone: '+33602030405'
+                      properties:
+                        email:
+                          type:
+                            - string
+                            - 'null'
+                          format: email
+                        phone:
+                          type:
+                            - string
+                            - 'null'
+                          pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                  additionalProperties: false
+              callList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: Liste des appels échangés avec le CRC ou le conseiller
+                  properties:
+                    callerId:
+                      description: Caller identification<br>Identifiant de l'appelant
+                      type:
+                        - string
+                        - 'null'
+                      example: '12345678'
+                      pattern: ^[0-9A-Za-z]{1,20}$
+                    dateTime:
+                      description: Call date time<br>Date/heure de l'appel CRC  (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-05-28T09:04:34'
+                    callerNature:
+                      description: 'Caller type: agent or advisor<br>Nature de l''appelant : opérateur crc ou conseiller'
+                      type:
+                        - string
+                        - 'null'
+                      example: ADVI
+                      enum:
+                        - ADVI
+                        - CLCE
+                      x-enumDescriptions:
+                        ADVI: Advisor
+                        CLCE: Call center
+                  additionalProperties: false
+              onlineBankingEventList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: >-
+                    Liste des évenements banque en ligne  dans lesquels les paramètres de paiement ont été modifiés par
+                    le client
+                  properties:
+                    dateTime:
+                      description: Date of event<br>Date de l'évenement banque en ligne  (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-05-28T09:04:34'
+                    nature:
+                      description: Type of event (unlocking/increase limit)<br>Nature de l'evenement banque en ligne
+                      type:
+                        - string
+                        - 'null'
+                      example: CLRA
+                      enum:
+                        - CLRA
+                        - CLRE
+                        - FPLO
+                        - FPUL
+                        - RPLO
+                        - RPUL
+                        - WDLO
+                        - WDUN
+                      x-enumDescriptions:
+                        CLRA: Card limit raised
+                        CLRE: Card limit reduced
+                        FPLO: Foreign payment locked
+                        FPUL: Foreign payment unlocked
+                        RPLO: Remote payment locked
+                        RPUL: Remote payment unlocked
+                        WDLO: Withdrawal locked
+                        WDUN: Withdrawal unlocked
+                  additionalProperties: false
+              paymentAuthenticationList:
+                type:
+                  - array
+                  - 'null'
+                items:
+                  type: object
+                  description: Liste des authentifications de paiements
+                  properties:
+                    disputeLink:
+                      description: >-
+                        Link between payment and dispute<br>Description permettant de déterminer si le paiement est en
+                        lien avec la contestation<br>DISP : DISPUTE<br>BEDI : LAST_BEFORE_DISPUTE
+                      type:
+                        - string
+                        - 'null'
+                      example: DISP
+                      enum:
+                        - BEDI
+                        - DISP
+                      x-enumDescriptions:
+                        BEDI: Last before dispute
+                        DISP: Dispute
+                    dateTime:
+                      description: >-
+                        Date time on which the payment was authenticated.<br>Date et heure auxquelles le paiement a été
+                        authentifié (AAAA-MM-JJTHH:MM:SS) en UTC
+                      type:
+                        - string
+                        - 'null'
+                      format: date-time
+                      example: '2025-05-29T09:04:34'
+                    mean:
+                      description: >-
+                        Strong authentication mean used by the customer to authorise the transacton.<br>Authentification
+                        forte utilisée par le client afin d'autoriser la transaction<br>OTHE : OTHER<br>DKEY :
+                        DIGITAL_KEY<br>OTPW : OTP<br>CYPA : CYBER_PASS<br>CERT : CERTIFICATE
+                      type:
+                        - string
+                        - 'null'
+                      example: OTPW
+                      enum:
+                        - CERT
+                        - CYPA
+                        - DKEY
+                        - OTHE
+                        - OTPW
+                      x-enumDescriptions:
+                        CERT: Certificate
+                        CYPA: Cyber pass
+                        DKEY: Digital key
+                        OTHE: Other
+                        OTPW: OTP
+                    method:
+                      anyOf:
+                        - $ref: '#/components/schemas/AuthenticationMethod'
+                        - type: 'null'
+                    isSuccessful:
+                      description: >-
+                        Was the payment authentification successful ?<br>Indicateur permettant d'indiquer si
+                        l'authentification de paiement a été réalisée avec succès
+                      type:
+                        - boolean
+                        - 'null'
+                      example: true
+                    device:
+                      description: Objet contenant les informations du device
+                      type:
+                        - object
+                        - 'null'
+                      additionalProperties: false
+                      properties:
+                        id:
+                          description: >-
+                            Technical identifier of the device, enabling its unique identification within the
+                            system<br>Identifiant technique du terminal utilisé, permettant de l’identifier de manière
+                            unique dans le système
+                          type: string
+                          example: A8F5F167F44F4964E6C998DEE827110C
+                          pattern: ^[0-9A-Za-z]{1,64}$
+                        friendlyName:
+                          description: Terminal name<br>Nom affecté à l'appareil par l'utilisateur
+                          type:
+                            - string
+                            - 'null'
+                          example: Mon Galaxy
+                          maxLength: 255
+                          minLength: 1
+                        deviceTechnicalName:
+                          description: Technical name of the device<br>Nom technique de l'appareil
+                          type:
+                            - string
+                            - 'null'
+                          example: Galaxy S23 Ultra (SM-S918B)
+                          maxLength: 255
+                          minLength: 1
+                        trustTerminalIndicator:
+                          description: Trust terminal indicator<br>Indicateur terminal de confiance (true / false)
+                          type:
+                            - boolean
+                            - 'null'
+                          example: true
+                        operatingSystem:
+                          description: Terminal operating system<br>OS (système d'exploitation) de l'appareil
+                          type:
+                            - string
+                            - 'null'
+                          example: Android X.xx
+                          maxLength: 255
+                          minLength: 1
+                        ipAddress:
+                          description: IP Address<br>Adresse IP associée au terminal utilisé lors de l’opération
+                          type:
+                            - string
+                            - 'null'
+                          example: 123.456.7.89
+                          maxLength: 45
+                          minLength: 4
+                        city:
+                          description: City associated with the device<br>Ville associée au terminal utilisé lors de l’opération
+                          type:
+                            - string
+                            - 'null'
+                          example: Charenton-Le-Pont
+                          maxLength: 70
+                          minLength: 1
+                        type:
+                          description: Device type<br>Type d'appareil<br>La nomenclature sera definie ulteieurement
+                          type: string
+                          example: '00'
+                          maxLength: 2
+                          minLength: 1
+                      required:
+                        - id
+                        - type
+                  additionalProperties: false
+              lastOnlineBankingConnection:
+                description: Connexion bancaire en ligne la plus proche de la date de paiement contesté
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  dateTime:
+                    description: >-
+                      Banking connection date time<br>Date et heure de la derniere connexion (AAAA-MM-JJTHH:MM:SS) en
+                      UTC
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                  isSuccessful:
+                    description: >-
+                      Was the connection successful ?<br>Indicateur permettant d'indiquer si la connexion a été réalisée
+                      avec succès
+                    type:
+                      - boolean
+                      - 'null'
+                  authenticationMethod:
+                    anyOf:
+                      - $ref: '#/components/schemas/AuthenticationMethod'
+                      - type: 'null'
+                  device:
+                    anyOf:
+                      - $ref: '#/components/schemas/Device'
+                      - type: 'null'
+              lastPersonalInformationChange:
+                description: Détail des informations modifiées par l'utilisateur
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  changeDateTime:
+                    description: Date time of the change<br>Date et heure de la modification (AAAA-MM-JJTHH:MM:SS) en UTC
+                    type:
+                      - string
+                      - 'null'
+                    format: date-time
+                    example: '2025-06-28T15:04:34'
+                  channel:
+                    description: >-
+                      Indicates the channel through which the customer’s authentication device enrollment was
+                      performed<br>Indique le canal via lequel la modification a été réalisée
+                    type:
+                      - string
+                      - 'null'
+                    example: MAIL
+                    enum:
+                      - CALL
+                      - INAP
+                      - MAIL
+                      - OTHR
+                      - WEBB
+                    x-enumDescriptions:
+                      CALL: Call Center
+                      INAP: In-App Banking
+                      MAIL: Postal Mail
+                      OTHR: Other
+                      WEBB: Web Banking
+                  email:
+                    description: >-
+                      email address<br>Adresse e-mail modifiée (alimenté uniquement si le changement concerne une
+                      modification de l'adresse mail)
+                    type:
+                      - string
+                      - 'null'
+                    format: email
+                    example: some.email@example.com
+                  phoneNumber:
+                    description: >-
+                      phone number<br>Numéro de télephone modifié (alimenté uniquement si le changement concerne une
+                      modification du numéro)
+                    type:
+                      - string
+                      - 'null'
+                    example: '+33602030405'
+                    pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                  device:
+                    description: Objet contenant les informations du device
+                    type:
+                      - object
+                      - 'null'
+                    additionalProperties: false
+                    properties:
+                      id:
+                        description: >-
+                          Technical identifier of the device, enabling its unique identification within the
+                          system<br>Identifiant technique du terminal utilisé, permettant de l’identifier de manière
+                          unique dans le système
+                        type: string
+                        example: A8F5F167F44F4964E6C998DEE827110C
+                        pattern: ^[0-9A-Za-z]{1,64}$
+                      friendlyName:
+                        description: Terminal name<br>Nom affecté à l'appareil par l'utilisateur
+                        type:
+                          - string
+                          - 'null'
+                        example: Mon Galaxy
+                        maxLength: 255
+                        minLength: 1
+                      deviceTechnicalName:
+                        description: Technical name of the device<br>Nom technique de l'appareil
+                        type:
+                          - string
+                          - 'null'
+                        example: Galaxy S23 Ultra (SM-S918B)
+                        maxLength: 255
+                        minLength: 1
+                      trustTerminalIndicator:
+                        description: Trust terminal indicator<br>Indicateur terminal de confiance (true / false)
+                        type:
+                          - boolean
+                          - 'null'
+                        example: true
+                      operatingSystem:
+                        description: Terminal operating system<br>OS (système d'exploitation) de l'appareil
+                        type:
+                          - string
+                          - 'null'
+                        example: Android X.xx
+                        maxLength: 255
+                        minLength: 1
+                      ipAddress:
+                        description: IP Address<br>Adresse IP associée au terminal utilisé lors de l’opération
+                        type:
+                          - string
+                          - 'null'
+                        example: 123.456.7.89
+                        maxLength: 45
+                        minLength: 4
+                      city:
+                        description: City associated with the device<br>Ville associée au terminal utilisé lors de l’opération
+                        type:
+                          - string
+                          - 'null'
+                        example: Charenton-Le-Pont
+                        maxLength: 70
+                        minLength: 1
+                      type:
+                        description: Device type<br>Type d'appareil<br>La nomenclature sera definie ulteieurement
+                        type:
+                          - string
+                          - 'null'
+                        example: '00'
+                        maxLength: 2
+                        minLength: 1
+                    required:
+                      - id
+              consistencyScore:
+                description: >-
+                  Authentication method usage consistency score.<br>Score déterminant la cohérence de l'utilisateur dans
+                  l'utilisation de la méthode d'authentification <br>BIOB : le client a utilisé la biométrie pour
+                  authentifier le paiement contesté, comme pour tous les autres paiements précédents.<br>BIOC : le
+                  client a utilisé la biométrie pour authentifier le paiement contesté, tandis que certains paiements
+                  précédents ont été validés par code.<br>CODE : Le client a utilisé le code pour authentifier le
+                  paiement contesté (l'opération précédente avec le code n'a pas été contestée).<br>CODB : Le client a
+                  utilisé le code pour authentifier le paiement contesté et a validé le paiement précédant celui qu'il
+                  conteste à l'aide de la biométrie.<br>CODC : Le client a utilisé le code pour authentifier le paiement
+                  contesté et a validé le paiement précédant celui qu'il conteste à l'aide du même code.
+                type:
+                  - string
+                  - 'null'
+                example: BIOB
+                enum:
+                  - BIOB
+                  - BIOC
+                  - CODB
+                  - CODC
+                  - CODE
+                x-enumDescriptions:
+                  BIOB: >-
+                    The customer used biometrics to authenticate the disputed payment, just like all the other previous
+                    payments.
+                  BIOC: >-
+                    The customer used biometrics to authenticate the disputed payment, while some previous payments were
+                    validated by code.
+                  CODB: >-
+                    The customer used the code to authenticate the disputed payment and validated the payment preceding
+                    the one they are disputing with biometrics.
+                  CODC: >-
+                    The customer used the code to authenticate the disputed payment and validated the payment preceding
+                    the one they are disputing with the PIN, which has been disputed.
+                  CODE: >-
+                    The customer used the code to authenticate the disputed payment (previous operation with code was
+                    not disputed).
+              strengthScore:
+                description: >-
+                  Authentication method robustness score.<br>Score déterminant la robustesse de l'authentification forte
+                  en fonction des moyens utilisés.<br>TTBI : avec le terminal sécurisé et la biométrie.<br>BIOO : avec
+                  la biométrie uniquement.<br>TTPI : avec le terminal sécurisé et le code PIN.<br>PINO : avec le code
+                  PIN uniquement.<br>CRDM : avec la méthode du lecteur de carte.<br>TTSM : avec le terminal sécurisé et
+                  le SMS.<br>SMSO : avec le SMS uniquement.<br>OTHR : tous les autres cas.
+                type: string
+                example: TTBI
+                enum:
+                  - BIOO
+                  - CRDM
+                  - OTHR
+                  - PINO
+                  - SMSO
+                  - TTBI
+                  - TTPI
+                  - TTSM
+                x-enumDescriptions:
+                  BIOO: with biometrics only
+                  CRDM: with the card reader method
+                  OTHR: all other cases
+                  PINO: with the PIN code only
+                  SMSO: with SMS only
+                  TTBI: with the trusted terminal and biometrics
+                  TTPI: with the trusted terminal and the PIN code
+                  TTSM: with the trusted terminal and SMS
+              isUsualIpAddress:
+                description: >-
+                  Is true, if the ip address of the disputed transaction has already been used for at least two
+                  non-disputed transactions.<br>Indicateur permettant d'indiquer si l'adresse ip associée à la
+                  transaction contestée a déjà été utilisée pour au moins deux transactions non contestées
+                type:
+                  - boolean
+                  - 'null'
+                example: true
+            additionalProperties: false
+            required:
+              - identification
+              - disputeCaseId
+              - strengthScore
+        goodwillGestureData:
+          description: Objets contenant les données de geste commercial
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          properties:
+            goodwillGestureIndicator:
+              description: Eligibility indicator<br>Indicateur geste commercial  (true /false)
+              type: boolean
+              example: true
+            totalAmount:
+              description: Total amount<br>Montant et devise du geste commercial
+              type: object
+              example:
+                amount: '-20.5'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            goodwillGestureDecisionReason:
+              description: Gesture Reason<br>Motif du geste commercial (texte libre)
+              type:
+                - string
+                - 'null'
+              example: Client premium sans antecedent sur 40 ans
+              maxLength: 255
+              minLength: 1
+          required:
+            - goodwillGestureIndicator
+            - totalAmount
+      additionalProperties: false
+      required:
+        - id
+        - scoringEligibilityIndicator
+        - issuer
+        - card
+        - insurance
+        - accountingSummary
+        - auditTrailTransactionList
+      title: DMDisputeCaseSummary
+    PhoneUsage:
+      type: string
+      enum:
+        - BUSI
+        - PRIV
+      x-enumDescriptions:
+        BUSI: Business
+        PRIV: Private
+    AuthenticationMethod:
+      description: >-
+        Method used for the strong authentication<br>Méthode d'authentification forte utilisée<br>CODE : CODE<br>BIOM :
+        BIOMETRIC
+      type: string
+      example: BIOM
+      enum:
+        - BIOM
+        - CODE
+      x-enumDescriptions:
+        BIOM: Biometric
+        CODE: Code
+    Device:
+      description: Objet contenant les informations du device
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          description: >-
+            Technical identifier of the device, enabling its unique identification within the system<br>Identifiant
+            technique du terminal utilisé, permettant de l’identifier de manière unique dans le système
+          type:
+            - string
+            - 'null'
+          example: A8F5F167F44F4964E6C998DEE827110C
+          pattern: ^[0-9A-Za-z]{1,64}$
+        friendlyName:
+          description: Terminal name<br>Nom affecté à l'appareil par l'utilisateur
+          type:
+            - string
+            - 'null'
+          example: Mon Galaxy
+          maxLength: 255
+          minLength: 1
+        deviceTechnicalName:
+          description: Technical name of the device<br>Nom technique de l'appareil
+          type:
+            - string
+            - 'null'
+          example: Galaxy S23 Ultra (SM-S918B)
+          maxLength: 255
+          minLength: 1
+        trustTerminalIndicator:
+          description: Trust terminal indicator<br>Indicateur terminal de confiance (true / false)
+          type:
+            - boolean
+            - 'null'
+          example: true
+        operatingSystem:
+          description: Terminal operating system<br>OS (système d'exploitation) de l'appareil
+          type:
+            - string
+            - 'null'
+          example: Android X.xx
+          maxLength: 255
+          minLength: 1
+        ipAddress:
+          description: IP Address<br>Adresse IP associée au terminal utilisé lors de l’opération
+          type:
+            - string
+            - 'null'
+          example: 123.456.7.89
+          maxLength: 45
+          minLength: 4
+        city:
+          description: City associated with the device<br>Ville associée au terminal utilisé lors de l’opération
+          type:
+            - string
+            - 'null'
+          example: Charenton-Le-Pont
+          maxLength: 70
+          minLength: 1
+        type:
+          description: Device type<br>Type d'appareil<br>La nomenclature sera definie ulteieurement
+          type:
+            - string
+            - 'null'
+          example: '00'
+          maxLength: 2
+          minLength: 1
+    ScoringStatus:
+      description: >-
+        Transaction scoring status<br>Indicateur statut préscore au niveau de l'opération<br>SCGR : Score green
+        (Non-suspicious)<br>SCOR  : Score orange (With moderate suspicion)<br>SCPU : Score purple (Unscored)<br>SCRE :
+        Scrore red (With high suspicion)
+      type: string
+      example: SCGR
+      enum:
+        - SCGR
+        - SCOR
+        - SCPU
+        - SCRE
+      x-enumDescriptions:
+        SCGR: Score green (Non-suspicious)
+        SCOR: Score orange (With moderate suspicion)
+        SCPU: Score purple (Unscored)
+        SCRE: Scrore red (With high suspicion)
+    ScoreLabelling:
+      description: >-
+        Labelling of the scored transaction<br>Labélisation du préscore<br>LBPD : Pending labelling (no color)<br>LBGR :
+        Green labelling (Non-suspicious)<br>LBRE : Red labelling (Suspicious)<br>LBPU : Purple labelling (Unlabeled)
+      type: string
+      example: LBGR
+      enum:
+        - LBGR
+        - LBPD
+        - LBPU
+        - LBRE
+      x-enumDescriptions:
+        LBGR: Green labelling (Non-suspicious)
+        LBPD: Pending labelling (no color)
+        LBPU: Purple labelling (Unlabeled)
+        LBRE: Red labelling (Suspicious)
+    RefundNature:
+      description: Refund nature of the dispute<br>Type d’acteur concerné par le règlement
+      type: string
+      example: CLNT
+      enum:
+        - CLNT
+        - ESFI
+        - ESTB
+        - INSU
+        - PROC
+      x-enumDescriptions:
+        CLNT: Client
+        ESFI: Establishment financing
+        ESTB: Establishment
+        INSU: Insurance
+        PROC: Processor
+    SchemeNature2:
+      description: Scheme nature<br>caractérise le réseau de la transaction
+      type: string
+      example: VISA
+      enum:
+        - CBFR
+        - INTR
+        - MACD
+        - VISA
+      x-enumDescriptions:
+        CBFR: CB
+        INTR: INTRA
+        MACD: MasterCard
+        VISA: VISA
+    Qualification:
+      description: Dispute case qualification<br>Qualification du dossier
+      type: string
+      example: NAUT
+      enum:
+        - DCOM
+        - NAUT
+        - OPWE
+        - REGU
+      x-enumDescriptions:
+        DCOM: Dispute - Commercial
+        NAUT: Operation not authorized by the cardhoder
+        OPWE: Operation wrongly executed.
+        REGU: Regularization
+    Condition:
+      description: Dispute case condition<br>caractérise la nature de la contestation
+      type: string
+      example: CEWT
+      enum:
+        - ABUS
+        - ACLO
+        - AJAC
+        - ARBC
+        - CACO
+        - CAEX
+        - CEWT
+        - CLST
+        - CNDL
+        - COMU
+        - CSUS
+        - DEMS
+        - DIFF
+        - DINV
+        - DUPL
+        - FAID
+        - INAM
+        - NEXC
+        - PDWD
+        - SCWV
+        - UNWD
+      x-enumDescriptions:
+        ABUS: Abusive Use
+        ACLO: Closed Account
+        AJAC: Account jacking
+        ARBC: issuer ATM regulation before claim
+        CACO: Counterfeit card
+        CAEX: Expired card
+        CEWT: Card extorted with threats
+        CLST: Lost Card
+        CNDL: Card not delivered to the cardholder
+        COMU: Multiple counterfeiting
+        CSUS: Suspended card
+        DEMS: Defect in merchandise/service
+        DIFF: Differed fee
+        DINV: Disputed invoice
+        DUPL: Duplicate processing
+        FAID: False identity
+        INAM: Incorrect amount
+        NEXC: Non-existant cardholder
+        PDWD: Partially distributed withdrawal
+        SCWV: Stolen card without violence
+        UNWD: Undistributed withdrawal
+    ScoringStatus2:
+      description: >-
+        Transaction scoring status<br>Indicateur statut préscore au niveau du dossier<br>SCGR : Score green
+        (Non-suspicious)<br>SCOR  : Score orange (With moderate suspicion)<br>SCPU : Score purple (Unscored)<br>SCRE :
+        Scrore red (With high suspicion)
+      type: string
+      example: SCGR
+      enum:
+        - SCGR
+        - SCOR
+        - SCPU
+        - SCRE
+      x-enumDescriptions:
+        SCGR: Score green (Non-suspicious)
+        SCOR: Score orange (With moderate suspicion)
+        SCPU: Score purple (Unscored)
+        SCRE: Scrore red (With high suspicion)
+    Card:
+      description: objet contenant les informations liées à la carte
+      type: object
+      additionalProperties: false
+      properties:
+        encryptedPrimaryAccountNumber:
+          description: >-
+            encrypted pan<br>Numéro de carte (PAN) chiffré.<br>Le chiffrement respecte le standard JWE. Une fois
+            déchiffrée la donnée représente un PAN, sous forme d'une chaine de 16 à 19 caractères numériques.
+          type:
+            - string
+            - 'null'
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.dyt0CoTl4WoVjAHI9Q.wSKhl6d_9rhM3NrXuJttkao.k_CwSKhwcCI6IktZSI6
+          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$
+        primaryAccountNumberId:
+          description: Primary Account Number ID<br>Identifiant de substitution du PAN (PAN Id)
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        maskedPrimaryAccountNumber:
+          description: Masked Primary Account Number<br>Numéro de carte (PAN) caviardé
+          type: string
+          example: 1234 45XX XXXX 1234
+          maxLength: 30
+          minLength: 1
+        productCode:
+          description: Product Code<br>Code produit carte défini au niveau du CMS
+          type: string
+          example: 2I
+          maxLength: 50
+          minLength: 1
+      required:
+        - primaryAccountNumberId
+        - maskedPrimaryAccountNumber
+        - productCode
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Unique identifier of the event. Used to identify technical duplicates.
+      schema:
+        type: string
+        format: uuid
+      example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: >-
+        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+        schema evolution gracefully.
+      schema:
+        type: string
+      example: '1.0'
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
+  headers:
+    EchoRequestId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    EchoCorrelationId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    EchoInstitutionId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    EchoUserId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    EchoUserContextId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    ProcessingRouteId:
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      required: false
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+  responses:
+    Error400:
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error401:
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error403:
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error405:
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error406:
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error409:
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error422:
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error429:
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error500:
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error502:
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error503:
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error504:
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+webhooks:
+  dispute-case-summary:
+    post:
+      operationId: disputeCaseSummary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DMDisputeCaseSummary'
+      responses:
+        '204':
+          description: Event acquitté par le partenaire (No Content).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      summary: >-
+        This endpoint sends a notification containing a summary of an issuer dispute case (CNT-EM26)
+        (dispute-case-summary)
+      tags:
+        - Dispute Case
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/XEventId'
+        - name: X-Event-Type
+          in: header
+          required: true
+          description: The type of the event.
+          schema:
+            type: string
+            maxLength: 36
+          example: dispute-case-summary
+        - $ref: '#/components/parameters/XEventVersion'
+        - $ref: '#/components/parameters/XOriginalRequestId'
+        - $ref: '#/components/parameters/XOriginalCorrelationId'
+        - $ref: '#/components/parameters/OriginalIdempotencyKey'
+tags:
+  - name: Dispute Case
+    description: Notification related to a dispute case
+  - name: CRC Case
+    description: Notification related to a CRC (Customer Relations Center) case

@@ -1,0 +1,817 @@
+openapi: 3.1.1
+info:
+  title: Notifications Connector API - OpenAPI 3.0
+  version: 1.7.0
+  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  contact:
+    name: Estreem
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.15.xlsx
+  x-socle-version: 0.1.0
+  x-socle-type: events
+components:
+  schemas:
+    StandardError:
+      type: object
+      description: Standard error response used across all APIs
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Functional or technical error code
+        text:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: User-friendly error message
+        developerText:
+          type: string
+          minLength: 1
+          maxLength: 70
+          description: Detailed technical message for debugging
+        moreInfo:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Additional information or documentation link
+    DMOperationDecision:
+      description: >-
+        Objet racine - Evenement des décisions prises sur l'analyse ou sur le mode recouvrement des opérations d'un
+        dossier de contestation
+      type: object
+      properties:
+        disputeCase:
+          description: Dossier de contestation
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              description: Dispute Case reference<br>Identifiant du dossier de Contestation attribué par le Processeur
+              type: string
+              example: S102072507285324
+              pattern: ^[0-9A-Za-z]{16}$
+            refundDecisionCode:
+              description: Decision of the dispute<br>Décision sur l'analyse du dossier
+              type: string
+              example: NORE
+              enum:
+                - DERM
+                - NORE
+                - PARE
+                - RFDB
+              x-enumDescriptions:
+                DERM: Decided recovery methods
+                NORE: Non refundable
+                PARE: Partially refundable
+                RFDB: Refundable
+            decisionDateTime:
+              description: Decision date time<br>Date et heure de la décision (AAAA-MM-JJTHH:MM:SS) en UTC
+              type: string
+              format: date-time
+              example: '2025-07-28T15:04:34'
+            scoringEligibilityIndicator:
+              description: >-
+                Indicator used to determine whether the case must be submitted to a prescore calculation<br>Indicateur
+                permettant de déterminer si le dossier doit être soumis à un calcul de prescore
+              type: boolean
+              example: true
+            scoringStatus:
+              anyOf:
+                - $ref: '#/components/schemas/ScoringStatus2'
+                - type: 'null'
+          required:
+            - id
+            - refundDecisionCode
+            - decisionDateTime
+            - scoringEligibilityIndicator
+        cardholderInsuredIndicator:
+          description: Insured indicator<br>Indicateur porteur assuré
+          type:
+            - boolean
+            - 'null'
+          example: true
+        insurance:
+          description: Données relatives à l'assurance
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          properties:
+            cardPackageCode:
+              description: Card Package Code<br>Code forfait carte
+              type:
+                - string
+                - 'null'
+              example: Bouquet liberté
+              maxLength: 255
+              minLength: 1
+            contractNumber:
+              description: Insurance Contract Number<br>Numéro de contrat assurance
+              type:
+                - string
+                - 'null'
+              example: '979394605'
+              maxLength: 255
+              minLength: 1
+            subscriptionDateTime:
+              description: >-
+                Insurance subscriptiuon date (YYYY-MM-DDThh:mm:ss)<br>Date de souscription à l'assurance
+                (AAAA-MM-JJTHH:MM:SS) en UTC
+              type:
+                - string
+                - 'null'
+              format: date-time
+              example: '2025-07-28T15:04:34'
+        transactionAnalysisList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des opérations carte contestées
+            properties:
+              identification:
+                description: Données d'identification de la transaction
+                type: object
+                additionalProperties: false
+                properties:
+                  reference:
+                    description: >-
+                      Transaction Reference<br>Identifiant unique de transaction attribué par le Processeur (COIDOP) et
+                      fourni dans les événements alimentant les historiques
+                    type: string
+                    example: R20250719FOND1029
+                    maxLength: 35
+                    minLength: 1
+                required:
+                  - reference
+              totalAmount:
+                $ref: '#/components/schemas/TotalAmount'
+              refundIndicator:
+                description: Refund indicator<br>indique si la transaction est remboursée (true/false)
+                type:
+                  - boolean
+                  - 'null'
+                example: false
+              nonrefundReasonCode:
+                description: >-
+                  Code reason of the nonrefund of the dispute<br>Code motif Banque de France de raison du refus de
+                  remboursement
+                type:
+                  - string
+                  - 'null'
+                example: HAB
+                pattern: ^[0-9A-Za-z]{3}$
+              nonrefundReasonLabel:
+                description: Resaon of the nonrefund of the dispute<br>indique la raison du refus de remboursement
+                type:
+                  - string
+                  - 'null'
+                example: Escroquerie commerçant - HAB
+                maxLength: 255
+                minLength: 1
+              nonrefundReasonTechnicalInternalId:
+                description: >-
+                  Technical internal reference of the nonrefund of the dispute<br>Identifiant technique interne du motif
+                  de refus de remboursement
+                type:
+                  - string
+                  - 'null'
+                example: '5001'
+                pattern: ^[0-9]{1,19}$
+              recoveryMode:
+                description: Recovey mode of the dispute<br>Mode de recouvrement
+                type:
+                  - string
+                  - 'null'
+                example: NORE
+                enum:
+                  - ACQU
+                  - AUTA
+                  - CLDE
+                  - INSU
+                  - ISSU
+                  - NORE
+                x-enumDescriptions:
+                  ACQU: Acquirer
+                  AUTA: Automatic acquirer
+                  CLDE: Client debit
+                  INSU: Insurance
+                  ISSU: Issuer
+                  NORE: Non recovered
+              context:
+                description: Contexte de la transaction analysée
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  manualIndicator:
+                    description: >-
+                      Manual indicator<br>indique que la transaction a été ajoutée via une saisie manuelle (et non pas
+                      par une recherche - cas d'une transaction non disponible dans l'historique)<br>false: Transaction 
+                      non saisie manuellement<br>true: Transaction saisie manuellement
+                    type: boolean
+                    example: false
+                  scoringEligibilityIndicator:
+                    description: >-
+                      Indicator used to determine whether the transaction must be submitted to a prescore
+                      calculation<br>Indicateur permettant de déterminer si la transaction doit être soumise à un calcul
+                      de prescore
+                    type: boolean
+                    example: true
+                  disputePrescore:
+                    description: Données préscore du dossier de contestation
+                    type:
+                      - object
+                      - 'null'
+                    additionalProperties: false
+                    properties:
+                      scoringStatus:
+                        anyOf:
+                          - $ref: '#/components/schemas/ScoringStatus'
+                          - type: 'null'
+                      scoreLabelling:
+                        anyOf:
+                          - $ref: '#/components/schemas/ScoreLabelling'
+                          - type: 'null'
+                      labellingDateTime:
+                        description: Labelling date time<br>Date de labélisation (AAAA-MM-JJTHH:MM:SS) en UTC
+                        type:
+                          - string
+                          - 'null'
+                        format: date-time
+                        example: '2025-07-28T15:04:34'
+                required:
+                  - manualIndicator
+                  - scoringEligibilityIndicator
+            additionalProperties: false
+            required:
+              - identification
+              - totalAmount
+          maxItems: 100
+          minItems: 1
+      additionalProperties: false
+      required:
+        - disputeCase
+      title: DMOperationDecision
+    ScoringStatus:
+      description: >-
+        Transaction scoring status<br>Indicateur statut préscore au niveau de l'opération<br>SCGR : Score green
+        (Non-suspicious)<br>SCOR  : Score orange (With moderate suspicion)<br>SCPU : Score purple (Unscored)<br>SCRE :
+        Scrore red (With high suspicion)
+      type: string
+      example: SCGR
+      enum:
+        - SCGR
+        - SCOR
+        - SCPU
+        - SCRE
+      x-enumDescriptions:
+        SCGR: Score green (Non-suspicious)
+        SCOR: Score orange (With moderate suspicion)
+        SCPU: Score purple (Unscored)
+        SCRE: Scrore red (With high suspicion)
+    ScoreLabelling:
+      description: >-
+        Labelling of the scored transaction<br>Labélisation du préscore<br>LBPD : Pending labelling (no color)<br>LBGR :
+        Green labelling (Non-suspicious)<br>LBRE : Red labelling (Suspicious)<br>LBPU : Purple labelling (Unlabeled)
+      type: string
+      example: LBGR
+      enum:
+        - LBGR
+        - LBPD
+        - LBPU
+        - LBRE
+      x-enumDescriptions:
+        LBGR: Green labelling (Non-suspicious)
+        LBPD: Pending labelling (no color)
+        LBPU: Purple labelling (Unlabeled)
+        LBRE: Red labelling (Suspicious)
+    TotalAmount:
+      description: Total Amount<br>Montant et devise de la transaction
+      type: object
+      example:
+        amount: '-20.50'
+        currency: '978'
+      properties:
+        amount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - amount
+        - currency
+    ScoringStatus2:
+      description: >-
+        Transaction scoring status<br>Indicateur statut préscore au niveau du dossier<br>SCGR : Score green
+        (Non-suspicious)<br>SCOR  : Score orange (With moderate suspicion)<br>SCPU : Score purple (Unscored)<br>SCRE :
+        Scrore red (With high suspicion)
+      type: string
+      example: SCGR
+      enum:
+        - SCGR
+        - SCOR
+        - SCPU
+        - SCRE
+      x-enumDescriptions:
+        SCGR: Score green (Non-suspicious)
+        SCOR: Score orange (With moderate suspicion)
+        SCPU: Score purple (Unscored)
+        SCRE: Scrore red (With high suspicion)
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Unique identifier of the event. Used to identify technical duplicates.
+      schema:
+        type: string
+        format: uuid
+      example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: >-
+        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+        schema evolution gracefully.
+      schema:
+        type: string
+      example: '1.0'
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
+  headers:
+    EchoRequestId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    EchoCorrelationId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    EchoInstitutionId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    EchoUserId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    EchoUserContextId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    ProcessingRouteId:
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      required: false
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+  responses:
+    Error400:
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error401:
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error403:
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error405:
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error406:
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error409:
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error422:
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error429:
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error500:
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error502:
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error503:
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error504:
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+webhooks:
+  dispute-case-operations-decisions:
+    post:
+      operationId: disputeCaseOperationsDecision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DMOperationDecision'
+      responses:
+        '204':
+          description: Event acquitté par le partenaire (No Content).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      summary: >-
+        This endpoint sends a notification of decisions made on the analysis or on the recovery method of operations in
+        a dispute case (CNT-EM15) (dispute-case-operations-decisions)
+      tags:
+        - Dispute Case
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/XEventId'
+        - name: X-Event-Type
+          in: header
+          required: true
+          description: The type of the event.
+          schema:
+            type: string
+            maxLength: 36
+          example: dispute-case-operations-decisions
+        - $ref: '#/components/parameters/XEventVersion'
+        - $ref: '#/components/parameters/XOriginalRequestId'
+        - $ref: '#/components/parameters/XOriginalCorrelationId'
+        - $ref: '#/components/parameters/OriginalIdempotencyKey'
+tags:
+  - name: Dispute Case
+    description: Notification related to a dispute case
+  - name: CRC Case
+    description: Notification related to a CRC (Customer Relations Center) case

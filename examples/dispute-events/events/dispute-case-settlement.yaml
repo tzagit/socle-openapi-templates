@@ -1,0 +1,9 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-settlement
+x-summary: >-
+  This endpoint sends a notification of the validation or rejection of a settlement created automatically or manually
+  (CNT-EM18)
+x-operation-id: disputeCaseSettlement
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/DMSettlement'

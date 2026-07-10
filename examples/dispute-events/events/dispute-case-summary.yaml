@@ -1,0 +1,7 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-summary
+x-summary: This endpoint sends a notification containing a summary of an issuer dispute case (CNT-EM26)
+x-operation-id: disputeCaseSummary
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/DMDisputeCaseSummary'

@@ -1,0 +1,1343 @@
+openapi: 3.1.1
+info:
+  title: Notifications Connector API - OpenAPI 3.0
+  version: 1.7.0
+  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  contact:
+    name: Estreem
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.15.xlsx
+  x-socle-version: 0.1.0
+  x-socle-type: events
+components:
+  schemas:
+    StandardError:
+      type: object
+      description: Standard error response used across all APIs
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Functional or technical error code
+        text:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: User-friendly error message
+        developerText:
+          type: string
+          minLength: 1
+          maxLength: 70
+          description: Detailed technical message for debugging
+        moreInfo:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Additional information or documentation link
+    DMCrcCaseSummary:
+      description: Objet racine - Evenement de synthèse d'un dossier CRC
+      type: object
+      properties:
+        crcCaseId:
+          description: CRC case reference<br>Identifiant du dossier CRC attribué par le Processeur
+          type: string
+          example: T101072304189878
+          pattern: ^[0-9A-Za-z]{16}$
+        totalAmount:
+          $ref: '#/components/schemas/TotalAmount2'
+        issuer:
+          description: Informations sur la banque émettrice
+          type: object
+          additionalProperties: false
+          properties:
+            institutionId:
+              description: Issuer institution Id<br>Code de la banque émetteur du dossier CRC
+              type: string
+              example: '10107'
+              maxLength: 5
+              minLength: 1
+            institutionName:
+              description: Issuer institution Name<br>Libellé de la banque émetteur du dossier CRC
+              type:
+                - string
+                - 'null'
+              example: BRED
+              maxLength: 35
+              minLength: 1
+          required:
+            - institutionId
+        card:
+          description: Informations carte
+          type: object
+          additionalProperties: false
+          properties:
+            encryptedPrimaryAccountNumber:
+              description: >-
+                encrypted pan<br>Numéro de carte (PAN) chiffré.<br>Le chiffrement respecte le standard JWE. Une fois
+                déchiffrée la donnée représente un PAN, sous forme d'une chaine de 16 à 19 caractères numériques.
+              type:
+                - string
+                - 'null'
+              example: >-
+                eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.dyt0CoTl4WoVjAHI9Q.wSKhl6d_9rhM3NrXuJttkao.k_CwSKhwcCI6IktZSI6
+              pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$
+            primaryAccountNumberId:
+              description: Primary Account Number ID<br>Identifiant de substitution du PAN (PAN Id)
+              type: string
+              format: uuid
+              example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+            maskedPrimaryAccountNumber:
+              description: Masked Primary Account Number<br>Numéro de carte (PAN) caviardé
+              type: string
+              example: 1234 45XX XXXX 1234
+              maxLength: 30
+              minLength: 1
+            productCode:
+              description: Product Code<br>Code produit carte défini au niveau du CMS
+              type: string
+              example: 2I
+              maxLength: 50
+              minLength: 1
+            internalEntityId:
+              description: 'branch code<br>Code agence du porteur - origine : banque'
+              type:
+                - string
+                - 'null'
+              example: '00307'
+              pattern: ^[0-9A-Za-z]{1,5}$
+            internalEntityName:
+              description: 'Branch name<br>Libellé de l''agence du porteur - origine : banque'
+              type:
+                - string
+                - 'null'
+              example: BRED Boulogne
+              maxLength: 100
+              minLength: 1
+            expiryDate:
+              description: Expiry date<br>Date d'expiration de la carte (AAAA-MM)
+              type:
+                - string
+                - 'null'
+              example: 2028-07
+              pattern: ^([0-9]{4})-(1[0-2]|0[1-9])$
+            productClassLabel:
+              description: label of card product<br>Libelé produit carte
+              type:
+                - string
+                - 'null'
+              example: CBI Visa Plus
+              maxLength: 50
+              minLength: 1
+          required:
+            - primaryAccountNumberId
+            - maskedPrimaryAccountNumber
+            - productCode
+        cardholder:
+          description: Informations liées au porteur de carte
+          type: object
+          additionalProperties: false
+          properties:
+            civility:
+              description: cardholder title<br>Civilité du porteur de carte
+              type: string
+              example: MIST
+              maxLength: 16
+              minLength: 1
+            firstName:
+              description: first name<br>Nom du porteur de carte
+              type: string
+              example: DUPOND
+              maxLength: 70
+              minLength: 1
+            lastName:
+              description: last name<br>Prénom du porteur de carte
+              type: string
+              example: Jean
+              maxLength: 70
+              minLength: 1
+            postalAddress:
+              description: Postal Address<br>Adresse postale du porteur de carte
+              type:
+                - object
+                - 'null'
+              example:
+                buildingNumber: '1'
+                streetName: rue de Rivoli
+                postCode: '75001'
+                townName: Paris
+                countryName: France
+              properties:
+                addressCategory:
+                  type:
+                    - string
+                    - 'null'
+                  enum:
+                    - ADDR
+                    - BIZZ
+                    - DLVY
+                    - HOME
+                    - MLTO
+                    - PBOX
+                  x-enumDescriptions:
+                    ADDR: Postal Address is the complete postal address.
+                    BIZZ: Business Address is the business address.
+                    DLVY: ON board sale
+                    HOME: Residential Address is the home address.
+                    MLTO: MailTo Address is the address to which mail is
+                    PBOX: POBox Address is a postal office (PO) box.
+                buildingNumber:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 16
+                  minLength: 1
+                countryCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[0-9]{3}$
+                countryName:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                countrySubdivisionMajorCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[A-Z]{2,3}$
+                countrySubdivisionMajorName:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 50
+                  minLength: 1
+                countrySubdivisionMinorCode:
+                  type:
+                    - string
+                    - 'null'
+                  pattern: ^[A-Z]{2,3}$
+                countrySubdivisionMinorName:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 50
+                  minLength: 1
+                department:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                floor:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                postalAddressAdditionalData:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                postalAddressID:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 36
+                  minLength: 1
+                postBox:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 16
+                  minLength: 1
+                postCode:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 16
+                  minLength: 1
+                room:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                streetName:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                subDepartment:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                townName:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+                townNameLocation:
+                  type:
+                    - string
+                    - 'null'
+                  maxLength: 70
+                  minLength: 1
+          required:
+            - civility
+            - firstName
+            - lastName
+        advisor:
+          description: Informations liées au conseiller
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          properties:
+            email:
+              description: advisor email address<br>Email du conseiller
+              type:
+                - string
+                - 'null'
+              format: email
+              example: adresse@mail.com
+            phoneNumber:
+              description: Phone number<br>Numéro de téléphone du conseiller (avec indicatif téléphonique international)
+              type:
+                - string
+                - 'null'
+              example: '+33602030405'
+              pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+            name:
+              description: Advisor last name<br>Nom du conseiller
+              type:
+                - string
+                - 'null'
+              example: DUJEAN
+              maxLength: 70
+              minLength: 1
+        claimer:
+          description: Informations sur le réclamant
+          type:
+            - object
+            - 'null'
+          additionalProperties: false
+          properties:
+            email:
+              description: email address<br>Email de l'appelant
+              type:
+                - string
+                - 'null'
+              format: email
+              example: adresse@mail.com
+            phoneList:
+              type:
+                - array
+                - 'null'
+              items:
+                type: object
+                description: Liste des téléphones du réclamant
+                properties:
+                  number:
+                    description: phone number<br>Numéro de téléphone de l'appelant (avec indicatif téléphonique international)
+                    type:
+                      - string
+                      - 'null'
+                    example: '+33602030405'
+                    pattern: ^\+(\d{1,3})[-\s]?(\d{1,3})[-\s]?(\d{6,10})$
+                  type:
+                    anyOf:
+                      - $ref: '#/components/schemas/Type'
+                      - type: 'null'
+                additionalProperties: false
+              maxItems: 10
+              minItems: 1
+        callList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: List des appels
+            properties:
+              number:
+                description: Call count number<br>Numéro de l'appel
+                type:
+                  - string
+                  - 'null'
+                example: '1'
+                pattern: ^[0-9]{1,5}$
+              dateTime:
+                description: Date Time in local region<br>Date et heure d'appel (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              user:
+                description: Smc user<br>Opérateur
+                type:
+                  - string
+                  - 'null'
+                example: 0000user
+                maxLength: 255
+                minLength: 1
+              incomingCallIndicator:
+                description: >-
+                  Is an incoming call<br>Sens de l'appel. Si l'appel est entrant, l'indicateur est à true, si l'appel
+                  est sortant, l'indicateur est à false.
+                type:
+                  - boolean
+                  - 'null'
+                example: true
+              reason:
+                description: Reason of the call<br>Motif de l'appel
+                type:
+                  - string
+                  - 'null'
+                example: DISP
+                enum:
+                  - DISP
+                  - FRAL
+                  - OSCP
+                x-enumDescriptions:
+                  DISP: Dispute
+                  FRAL: Fraud alert
+                  OSCP: Out of scope
+              subReason:
+                description: Subreason of the call<br>Sous motif d'appel
+                type:
+                  - string
+                  - 'null'
+                example: DWCI
+                enum:
+                  - 3DSA
+                  - ACIN
+                  - ACQC
+                  - ATMD
+                  - BEXI
+                  - CADI
+                  - CBTI
+                  - CNCE
+                  - CNPF
+                  - CODI
+                  - DSTR
+                  - DWCI
+                  - FFRR
+                  - FRAL
+                  - INFO
+                  - INQR
+                  - INSI
+                  - JREQ
+                  - OPPR
+                  - PEER
+                  - RMIN
+                  - TRCK
+                x-enumDescriptions:
+                  3DSA: 3DS cardholder authentification
+                  ACIN: Account inquiry
+                  ACQC: Acquirer call
+                  ATMD: ATM cash deposit
+                  BEXI: Bug/exceptional incident
+                  CADI: Cardholder dispute
+                  CBTI: CB technical issue
+                  CNCE: Cardholder not CE
+                  CNPF: CE not PFM
+                  CODI: Commercial dispute
+                  DSTR: Dispute tracking
+                  DWCI: Dispute withdrawn following CRC information
+                  FFRR: Fraud related fees reimbursement request
+                  FRAL: Fraud alert
+                  INFO: Information
+                  INQR: Inquiry (check / transfer / direct debit / private card)
+                  INSI: Insurance information
+                  JREQ: Juridical requisition
+                  OPPR: Opposition request
+                  PEER: Peer
+                  RMIN: Reminder
+                  TRCK: Tracking
+              result:
+                description: Result of the call<br>Résultat de l'appel
+                type:
+                  - string
+                  - 'null'
+                example: PNDG
+                enum:
+                  - ICNB
+                  - MSGI
+                  - OTHR
+                  - PNDG
+                  - RESO
+                  - RWIF
+                  - RWOA
+                  - RWOF
+                  - TBPR
+                  - UNRC
+                x-enumDescriptions:
+                  ICNB: Incorrect number
+                  MSGI: Messaging
+                  OTHR: Other
+                  PNDG: Pending
+                  RESO: Resolved
+                  RWIF: Resolved with fraud
+                  RWOA: Resolved without further action required
+                  RWOF: Resolved without fraud
+                  TBPR: To be processed
+                  UNRC: Unreachable
+              fraudAlertReference:
+                description: Reference of the alert CRC<br>Numéro de l'alerte fraude associée
+                type:
+                  - string
+                  - 'null'
+                example: '266540'
+                pattern: ^[0-9A-Za-z]{1,255}$
+              disputeDataId:
+                description: Dispute Case reference<br>N° dossier de contestation associé
+                type:
+                  - string
+                  - 'null'
+                example: E175151801051900
+                pattern: ^[0-9A-Za-z]{16}$
+              caseAdvancementCode:
+                description: Case Advancement Code<br>Avancement du dossier de contestation associé
+                type:
+                  - string
+                  - 'null'
+                example: CLOS
+                enum:
+                  - ANLY
+                  - CLOS
+                  - COMP
+                  - DERM
+                  - INCO
+                  - PURG
+                  - RECA
+                  - REOP
+                x-enumDescriptions:
+                  ANLY: Analysed
+                  CLOS: Closed
+                  COMP: Complete
+                  DERM: Decided recovery methods
+                  INCO: Incomplete
+                  PURG: Purge
+                  RECA: Acquirer recovered
+                  REOP: Reopened
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        authorisationList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des authorisations
+            properties:
+              authorisedLocalDateTime:
+                description: >-
+                  Local date and time, authorisation request<br>Date  heure de l'autorisation (AAAA-MM-JJTHH:MM:SS) en
+                  UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              authorisedAmount:
+                anyOf:
+                  - $ref: '#/components/schemas/AuthorisedAmount'
+                  - type: 'null'
+              merchantName:
+                description: Merchant Name used by all acquisition services.<br>Libellé du commerçant
+                type:
+                  - string
+                  - 'null'
+                example: Pizza Web
+                maxLength: 70
+                minLength: 1
+              authorisationResponse:
+                anyOf:
+                  - $ref: '#/components/schemas/AuthorisationResponse'
+                  - type: 'null'
+              countryName:
+                description: Official Country Name<br>Pays de l'autorisation
+                type:
+                  - string
+                  - 'null'
+                example: FRANCE
+                maxLength: 100
+                minLength: 1
+              merchantCategoryCodeLabel:
+                description: Merchant Category Code Label<br>Libellé du type d'activité du commercant
+                type:
+                  - string
+                  - 'null'
+                example: RESTAURANTS
+                maxLength: 255
+                minLength: 1
+              regulatoryAndTechnicalEnvironmentLabel:
+                description: Regulatory and technical environment Label<br>Libellé de l'environnement technique et réglementaire
+                type:
+                  - string
+                  - 'null'
+                example: Paiement de proximité
+                maxLength: 255
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        mailList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: List des courriers
+            properties:
+              dateTime:
+                description: Mail Date Time<br>Date et heure du courrier (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              documentTypeLabel:
+                description: Document type label<br>Libellé du type de courrier
+                type:
+                  - string
+                  - 'null'
+                example: courrier injoignable
+                maxLength: 255
+                minLength: 1
+              modelLabel:
+                description: Model label<br>Libellé du modèle du courrier
+                type:
+                  - string
+                  - 'null'
+                example: Porteur injoignable
+                maxLength: 200
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        commentList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des commentaires
+            properties:
+              creationDateTime:
+                description: Creation comment date time<br>Date et heure du commentaire (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:04:34'
+              user:
+                description: Smc user<br>Utilisateur ayant saisi le commentaire
+                type:
+                  - string
+                  - 'null'
+                example: 0000user
+                maxLength: 255
+                minLength: 1
+              crcComment:
+                description: CRC case comment<br>Commentaire
+                type:
+                  - string
+                  - 'null'
+                example: |-
+                  "Porteur toujours en possession de sa carte : oui
+                  Porteur à l'origine des transactions : non
+                  Situation Client : pas a l'origine"
+                maxLength: 3000
+                minLength: 1
+              screenLabel:
+                description: Screen label<br>Ecran de saisie du commentaire
+                type:
+                  - string
+                  - 'null'
+                example: Traiter Appel
+                maxLength: 255
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        documentList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des documents
+            properties:
+              attachedDate:
+                description: Attachement date<br>Date d'attachement du document dans le dossier (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:14:34'
+              typeLabel:
+                description: Document type label <br>Libellé associé au type du document
+                type:
+                  - string
+                  - 'null'
+                example: Justificatif d'analyse
+                maxLength: 255
+                minLength: 1
+              fileName:
+                description: Document name<br>Nom complet du document (sans chemin d'accès)
+                type:
+                  - string
+                  - 'null'
+                example: ProcesVerbal.pdf
+                maxLength: 255
+                minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+        taskList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: Liste des tâches
+            properties:
+              creationDateTime:
+                description: Task creation date time<br>Date et heure de création de la tâche SMC  (AAAA-MM-JJTHH:MM:SS) en UTC
+                type:
+                  - string
+                  - 'null'
+                format: date-time
+                example: '2025-07-28T15:14:34'
+              label:
+                description: Task label<br>Libellé de la tâche
+                type:
+                  - string
+                  - 'null'
+                example: Gérer opérations
+                maxLength: 255
+                minLength: 1
+              user:
+                description: Smc user<br>Opérateur lié à la tâche
+                type:
+                  - string
+                  - 'null'
+                example: 0000user
+                maxLength: 255
+                minLength: 1
+              status:
+                description: Task statut status code<br>Statut de la tâche
+                type:
+                  - string
+                  - 'null'
+                example: TERM
+                enum:
+                  - TBPR
+                  - TERM
+                  - WAIT
+                x-enumDescriptions:
+                  TBPR: To be processed
+                  TERM: Terminated
+                  WAIT: Waiting
+              advancement:
+                description: Task Advancement<br>Avancement de la tâche
+                type:
+                  - string
+                  - 'null'
+                example: Appel réalisé
+                maxLength: 255
+                minLength: 1
+              additionalData:
+                description: Additional Data<br>Information complémentaire sur la tâche
+                type:
+                  - object
+                  - 'null'
+                example:
+                  value: 28/07/2025
+                properties:
+                  value:
+                    type:
+                      - string
+                      - 'null'
+                    maxLength: 3000
+                    minLength: 1
+            additionalProperties: false
+          maxItems: 100
+          minItems: 1
+      additionalProperties: false
+      required:
+        - crcCaseId
+        - totalAmount
+        - issuer
+        - card
+        - cardholder
+      title: DMCrcCaseSummary
+    Type:
+      description: phone usage type<br>Type de téléphone de l'appelant (privé ou professionnel)
+      type: string
+      example: PRIV
+      enum:
+        - BUSI
+        - PRIV
+      x-enumDescriptions:
+        BUSI: Business
+        PRIV: Private
+    AuthorisedAmount:
+      description: Authorised Amount<br>Montant signé et devise de l'autorisation en euro (978) et dans la devise d'origine
+      type: object
+      example:
+        amount: '40.00'
+        currency: '978'
+        originalAmount: '40.00'
+        originalCurrency: '978'
+      properties:
+        amount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+        originalAmount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        originalCurrency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - amount
+        - currency
+        - originalAmount
+        - originalCurrency
+    AuthorisationResponse:
+      description: Authorisation response<br>Réponse de la banque à l'autorisation
+      type: string
+      example: APPR
+      enum:
+        - APPR
+        - DECL
+        - RFPU
+        - UNKW
+      x-enumDescriptions:
+        APPR: Approved
+        DECL: Declined
+        RFPU: Reserved for private use
+        UNKW: Unkown
+    TotalAmount2:
+      description: Total Amount<br>Montant signé et devise du dossier CRC
+      type: object
+      example:
+        amount: '40.00'
+        currency: '978'
+      properties:
+        amount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - amount
+        - currency
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Unique identifier of the event. Used to identify technical duplicates.
+      schema:
+        type: string
+        format: uuid
+      example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: >-
+        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+        schema evolution gracefully.
+      schema:
+        type: string
+      example: '1.0'
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
+  headers:
+    EchoRequestId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    EchoCorrelationId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    EchoInstitutionId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    EchoUserId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    EchoUserContextId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    ProcessingRouteId:
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      required: false
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+  responses:
+    Error400:
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error401:
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error403:
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error405:
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error406:
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error409:
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error422:
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error429:
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error500:
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error502:
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error503:
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error504:
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+webhooks:
+  crc-case-summary:
+    post:
+      operationId: crcCaseSummary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DMCrcCaseSummary'
+      responses:
+        '204':
+          description: Event acquitté par le partenaire (No Content).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      summary: This endpoint sends a notification containing a summary of a CRC case (CNT-EM27 (crc-case-summary)
+      tags:
+        - CRC Case
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/XEventId'
+        - name: X-Event-Type
+          in: header
+          required: true
+          description: The type of the event.
+          schema:
+            type: string
+            maxLength: 36
+          example: crc-case-summary
+        - $ref: '#/components/parameters/XEventVersion'
+        - $ref: '#/components/parameters/XOriginalRequestId'
+        - $ref: '#/components/parameters/XOriginalCorrelationId'
+        - $ref: '#/components/parameters/OriginalIdempotencyKey'
+tags:
+  - name: Dispute Case
+    description: Notification related to a dispute case
+  - name: CRC Case
+    description: Notification related to a CRC (Customer Relations Center) case

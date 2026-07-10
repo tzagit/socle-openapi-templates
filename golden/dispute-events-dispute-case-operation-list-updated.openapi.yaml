@@ -1,0 +1,1216 @@
+openapi: 3.1.1
+info:
+  title: Notifications Connector API - OpenAPI 3.0
+  version: 1.7.0
+  description: Example of Notifications connector exposed by the Bank to receive events full or notifications sent by Estreem
+  contact:
+    name: Estreem
+    url: https://estreem.eu
+    email: support@estreem.eu
+  x-dictionary-version: _DICO_ESTREEM_v21.15.xlsx
+  x-socle-version: 0.1.0
+  x-socle-type: events
+components:
+  schemas:
+    StandardError:
+      type: object
+      description: Standard error response used across all APIs
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Functional or technical error code
+        text:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: User-friendly error message
+        developerText:
+          type: string
+          minLength: 1
+          maxLength: 70
+          description: Detailed technical message for debugging
+        moreInfo:
+          type: string
+          minLength: 1
+          maxLength: 256
+          description: Additional information or documentation link
+    DMUpdatedCase:
+      description: Objet racine - Evenement de mise à jour d'un dossier de contestation
+      type: object
+      properties:
+        disputeCase:
+          description: objet contenant les informations liées au dossier de contestation
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              description: Dispute Case reference<br>Identifiant du dossier de Contestation attribué par le Processeur
+              type: string
+              example: S102072507285324
+              pattern: ^[0-9A-Za-z]{16}$
+            localDateTime:
+              description: Date Time in local region<br>Date de contestation (AAAA-MM-JJTHH:MM:SS) en UTC
+              type:
+                - string
+                - 'null'
+              format: date-time
+              example: '2025-07-28T15:04:34'
+            updateDateTime:
+              description: Update date time<br>Date de modification du dossier (AAAA-MM-JJTHH:MM:SS) en UTC
+              type: string
+              format: date-time
+              example: '2025-07-28T17:04:34'
+            totalAmount:
+              description: Total amount<br>Montant signé et devise du dossier de contestation
+              type: object
+              example:
+                amount: '50.50'
+                currency: '978'
+              properties:
+                amount:
+                  type: string
+                  pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+                currency:
+                  type: string
+                  pattern: ^[0-9]{3}$
+              required:
+                - amount
+                - currency
+            transactionsCount:
+              description: Transactions count<br>Nombre d'opérations rattachées au dossier
+              type: string
+              example: '3'
+              pattern: ^[0-9]{1,19}$
+          required:
+            - id
+            - updateDateTime
+            - totalAmount
+            - transactionsCount
+        issuer:
+          description: objet contenant les informations liées à la banque émettrice
+          type: object
+          additionalProperties: false
+          properties:
+            institutionId:
+              description: Issuer institution Id<br>Code de la banque émetteur du dossier de contestation
+              type: string
+              example: '10207'
+              maxLength: 5
+              minLength: 1
+          required:
+            - institutionId
+        card:
+          $ref: '#/components/schemas/Card'
+        cardholder:
+          $ref: '#/components/schemas/Cardholder'
+        addedTransactionList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: liste des opérations carte rattachées au dossier
+            properties:
+              identification:
+                description: données d'identification de la transaction
+                type: object
+                additionalProperties: false
+                properties:
+                  reference:
+                    description: Transaction Reference<br>Identifiant unique de transaction attribué par le Processeur (COIDOP)
+                    type:
+                      - string
+                      - 'null'
+                    example: R20250719FOND1029
+                    maxLength: 35
+                    minLength: 1
+                  localDateTime:
+                    description: Date Time in local region<br>Date et heure de la transaction (AAAA-MM-JJTHH:MM:SS) en UTC
+                    type: string
+                    format: date-time
+                    example: '2025-07-19T16:34:28'
+                required:
+                  - localDateTime
+              saleReference:
+                description: Sale Reference Number<br>Référence d'archivage de la transaction (CBAE champ 37)
+                type:
+                  - string
+                  - 'null'
+                example: '888250530747'
+                maxLength: 35
+                minLength: 1
+              totalAmount:
+                $ref: '#/components/schemas/TotalAmount'
+              vrolTransactionReference:
+                description: >-
+                  VISA Resolve Online transaction reference<br>Identifiant transaction VISA (VROL Transaction
+                  Identifier)
+                type:
+                  - string
+                  - 'null'
+                example: '5303140407'
+                pattern: ^[0-9A-Za-z]{1,35}$
+              feesAmount:
+                $ref: '#/components/schemas/FeesAmount'
+              disputeTechnicalInternalId:
+                description: Dispute technical internal reference<br>Identifiant technique de l'opération interne au Processeur
+                type: string
+                example: '13570'
+                pattern: ^[0-9]{1,19}$
+              disputeAuditTrailTransactionEligibilityIndicator:
+                description: >-
+                  Dispute audit trail transaction eligibility indicator<br>indique si la transaction doit être traitée
+                  dans le processus Piste Audit Contestation (PAC) :<br>false: la transaction n'est pas éligible
+                  PAC<br>true: la transaction est éligible PAC
+                type: boolean
+                example: false
+              tokenAuthenticationVerificationValue:
+                description: Token authentification verification value<br>Valeur de contrôle du token
+                type:
+                  - string
+                  - 'null'
+                example: '3485327705659121'
+                pattern: ^([0-9A-F][0-9A-F]){4,40}$
+              cardholderAuthenticationMethod:
+                anyOf:
+                  - $ref: '#/components/schemas/CardholderAuthenticationMethod'
+                  - type: 'null'
+              threeDsMerchantAuthReq:
+                description: ' Merchant request for authentication<br>Souhait Commerçant relatif à l''authentification forte'
+                type:
+                  - string
+                  - 'null'
+                enum:
+                  - AUTD
+                  - AUTQ
+                  - AUTR
+                  - NAAP
+                  - NADS
+                  - NATR
+                  - NAUT
+                  - NAUW
+                  - NPDV
+                x-enumDescriptions:
+                  AUTD: 04-Authentication required
+                  AUTQ: Authentication requested
+                  AUTR: 09-Authentication required
+                  NAAP: 'No authentication: SCA already performed'
+                  NADS: 'No authentication: data share only'
+                  NATR: 'No authentication: transaction risk analysis already performed'
+                  NAUT: No authentication
+                  NAUW: 'No authentication: whitelist'
+                  NPDV: No preference – default value if the data element is absent or not set to a value
+              tokenCategory:
+                anyOf:
+                  - $ref: '#/components/schemas/TokenCategory'
+                  - type: 'null'
+              authorisationCode:
+                description: authorisation identification response<br>Numéro d'autorisation
+                type:
+                  - string
+                  - 'null'
+                example: '146123'
+                pattern: ^[0-9A-Za-z]{1,6}$
+              threeDsProtocolVersion:
+                description: 3DS protocol major version <br>Version de 3DS au format protocolaire (CB2A / CBAE)
+                type:
+                  - string
+                  - 'null'
+                example: '22'
+                pattern: ^[0-9]{1,2}$
+              context:
+                description: données de contexte de la transaction
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  operationNature:
+                    anyOf:
+                      - $ref: '#/components/schemas/OperationNature'
+                      - type: 'null'
+                  transactionNature:
+                    anyOf:
+                      - $ref: '#/components/schemas/TransactionNature'
+                      - type: 'null'
+                  multiAppTop:
+                    anyOf:
+                      - $ref: '#/components/schemas/MultiAppTop'
+                      - type: 'null'
+                  manualIndicator:
+                    description: >-
+                      Manual indicator<br>indique que la transaction a été ajoutée via une saisie manuelle (et non pas
+                      par une recherche - cas d'une transaction non disponible dans l'historique)<br>false: Transaction 
+                      non saisie manuellement<br>true: Transaction saisie manuellement
+                    type: boolean
+                    example: false
+                  scoringEligibilityIndicator:
+                    description: >-
+                      Indicator used to determine whether the transaction must be submitted to a prescore
+                      calculation<br>Indicateur permettant de déterminer si la transaction doit être soumise à un calcul
+                      de prescore
+                    type: boolean
+                    example: true
+                  schemeNature:
+                    $ref: '#/components/schemas/SchemeNature'
+                  ecommerceIndicatorInfo:
+                    description: >-
+                      Information about ecommerce indicator<br>ElectronicCommerceIndicator, prend les valeurs pour
+                      VISA<br>- (blanc)<br>- 1 : Single mail order/telephone order transaction<br>- 2 : Recurring
+                      transaction (valid only for U.S.A. Region <br>acquired Transactions)<br>- 3: Instalment
+                      Transaction<br>- 4: Unknown classification/other mail order<br>- 5: Secure Electronic Commerce
+                      Transaction<br>- 6: -Authenticated Security Transaction at a 3-D <br>Secure-capable merchant and
+                      the merchant <br>attempted cardholder authentication using 3-D <br>Secure<br>- 7: -Authenticated
+                      Security Transaction<br>- 8: -Secure Transaction<br>- 9: For optional Regional use
+                      only<br><br>Pour MasterCard: <br>PDS 0052—Electronic Commerce Security Level Indicator
+                      (valorisation dans la documentation de référence)<br><br>non renseignée pour les transactions
+                      domestiques
+                    type:
+                      - string
+                      - 'null'
+                    example: '8'
+                    maxLength: 20
+                    minLength: 1
+                  regulatoryAndTechnicalEnvironment:
+                    description: >-
+                      Regulatory and technical environment<br>Environnement réglementaire et technique de la
+                      transaction.<br>Renseignée pour les transactions domestiques CB uniquement
+                    type:
+                      - string
+                      - 'null'
+                    example: '70'
+                    pattern: ^[0-9A-Za-z]{2}$
+                  cardDataEntryMode:
+                    anyOf:
+                      - $ref: '#/components/schemas/CardDataEntryMode'
+                      - type: 'null'
+                  electronicCommerceAuthenticationNature:
+                    anyOf:
+                      - $ref: '#/components/schemas/ElectronicCommerceAuthenticationNature'
+                      - type: 'null'
+                  serviceAttribute:
+                    description: Service attribute<br>Type de facture procédure
+                    type:
+                      - string
+                      - 'null'
+                    enum:
+                      - ADCH
+                      - AGRE
+                      - AITC
+                      - AITF
+                      - AITI
+                      - AITP
+                      - ARES
+                      - CCPU
+                      - CCUP
+                      - CDSM
+                      - CHDS
+                      - DBTR
+                      - DREC
+                      - FREC
+                      - GUAR
+                      - INST
+                      - IRES
+                      - MPFP
+                      - NOSH
+                      - PAUT
+                      - PRES
+                      - RPUN
+                      - UNSN
+                    x-enumDescriptions:
+                      ADCH: Additional charges
+                      AGRE: Aggregation
+                      AITC: Acceptor Initiated Transaction following an internet CIT
+                      AITF: Acceptor Initiated Transaction following a face-to-face or an unattended CIT
+                      AITI: Acceptor Initiated Transaction following an internet CIT
+                      AITP: Acceptor Initiated Transaction following a face-to-face or an unattended CIT
+                      ARES: Additionnal Payment or charges
+                      CCPU: Crypto-currency purchase
+                      CCUP: Crypto Currency Purchase
+                      CDSM: Cardholder data storage on merchant file
+                      CHDS: Cardholder data storage on merchant file
+                      DBTR: Debt recovery
+                      DREC: Debt Recovery
+                      FREC: First Recurring
+                      GUAR: Guarantee
+                      INST: Instalment
+                      IRES: Initial Reservation or Pre-authorisation
+                      MPFP: Multiple payment, first payment
+                      NOSH: No-show
+                      PAUT: Pre-authorisation
+                      PRES: Payment after Reservation or Aggregation
+                      RPUN: Recurring payment, unknown sequence number
+                      UNSN: Recurring payment, unknown sequence number (reserved for international incoming flow)
+                  acceptanceModeLabel:
+                    description: Acceptance mode label<br>Mode d'acceptation de la transaction (re-calculé par le processeur)
+                    type:
+                      - string
+                      - 'null'
+                    example: Internet sécurisé (50)
+                    maxLength: 255
+                    minLength: 1
+                  clearingRoute:
+                    anyOf:
+                      - $ref: '#/components/schemas/ClearingRoute'
+                      - type: 'null'
+                  qualifScheme:
+                    anyOf:
+                      - $ref: '#/components/schemas/QualifScheme'
+                      - type: 'null'
+                required:
+                  - manualIndicator
+                  - scoringEligibilityIndicator
+                  - schemeNature
+              merchant:
+                description: données liées au marchand
+                type:
+                  - object
+                  - 'null'
+                additionalProperties: false
+                properties:
+                  merchantName:
+                    description: Merchant Name used by all acquisition services.<br>Raison sociale du commerçant
+                    type: string
+                    example: PIZZA WEB
+                    maxLength: 70
+                    minLength: 1
+                  merchantCategoryCode:
+                    description: Merchant Category Code<br>indique le type d'activité du commerçant
+                    type:
+                      - string
+                      - 'null'
+                    example: '5812'
+                    pattern: ^[0-9]{4}$
+                  officialPostalAddress:
+                    $ref: '#/components/schemas/OfficialPostalAddress'
+                required:
+                  - merchantName
+                  - officialPostalAddress
+            additionalProperties: false
+            required:
+              - identification
+              - totalAmount
+              - feesAmount
+              - disputeTechnicalInternalId
+              - disputeAuditTrailTransactionEligibilityIndicator
+          maxItems: 100
+          minItems: 1
+        deletedTransactionList:
+          type:
+            - array
+            - 'null'
+          items:
+            type: object
+            description: liste des opérations carte détachées du dossier
+            properties:
+              identification:
+                description: données d'identification de la transaction
+                type: object
+                additionalProperties: false
+                properties:
+                  reference:
+                    description: Transaction Reference<br>Identifiant unique de transaction attribué par le Processeur (COIDOP)
+                    type: string
+                    example: R20250719FOND1029
+                    maxLength: 35
+                    minLength: 1
+                required:
+                  - reference
+            additionalProperties: false
+            required:
+              - identification
+          maxItems: 100
+          minItems: 1
+      additionalProperties: false
+      required:
+        - disputeCase
+        - issuer
+        - card
+        - cardholder
+      title: DMUpdatedCase
+    OperationNature:
+      description: Disputed operation type label<br>Nature de la transaction
+      type: string
+      example: TRIN
+      enum:
+        - ANTR
+        - TRIN
+      x-enumDescriptions:
+        ANTR: Transaction cancellation
+        TRIN: 'Initial transaction : captured'
+    TransactionNature:
+      description: Nature of transaction<br>Type de la transaction
+      type: string
+      example: PUGS
+      enum:
+        - AICE
+        - ATMW
+        - AVFI
+        - CACP
+        - CARE
+        - CRED
+        - FIMA
+        - FTCR
+        - FTDE
+        - FTWC
+        - MACA
+        - PCSB
+        - PUGS
+        - QCAR
+        - QUCA
+        - VMAA
+        - WCDI
+      x-enumDescriptions:
+        AICE: 'Authorisation to issue a certificate - cf CB2A 1.6 Value : 15'
+        ATMW: 'ATM withdrawal  -  cf CBAE 1.5 Value : 01'
+        AVFI: 'Available funds inquiry  - cf CBAE 1.5 Value : 30'
+        CACP: 'Card capture - cf CBAE 1.5 Value : 14'
+        CARE: 'Card return - cf CBAE 1.5 Value : 37'
+        CRED: 'Credit - CBAE 1.5 Value : 20'
+        FIMA: File Management
+        FTCR: 'Funds transfer, credit - cf CBAE 1.5 Value : 42'
+        FTDE: 'Funds transfer, debit  - cf CBAE 1.5 Value : 41'
+        FTWC: 'Financial transaction without cash dispensing (e.g. bank transfer request ) - cf CB2A 1.6 Value : 10'
+        MACA: 'Manual cash - CBAE 1.5 Value : 17'
+        PCSB: Purchase with cashback
+        PUGS: 'Purchase of goods or  services : Cf CBAE 1.5 Value : 00'
+        QCAR: 'Quasi-cash refund - cf CBAE 1.5 Value : 28'
+        QUCA: 'Quasi-cash - cf CBAE 1.5 Value : 11'
+        VMAA: 'VMAAS eligibility inquiry - cf CB2A 1.6 Value : 39'
+        WCDI: 'Balance Inquiry - copy - cf CB2A 1.6 Value : 36'
+    MultiAppTop:
+      description: Top Multi Application<br>Type d'opération Débit/Crédit
+      type: string
+      example: CRED
+      enum:
+        - CRED
+        - DEBI
+        - P3FX
+        - PCPT
+        - RNVV
+      x-enumDescriptions:
+        CRED: Credit for cardholder current Account
+        DEBI: Debit for cardholder current Account
+        P3FX: Payment 3X for BNPL
+        PCPT: Cash Payment for BNPL
+        RNVV: Credit Payment for BNPL
+    SchemeNature:
+      description: Scheme nature<br>caractérise le réseau de la transactions contestée
+      type: string
+      example: VISA
+      enum:
+        - CBFR
+        - INTR
+        - MACD
+        - VISA
+      x-enumDescriptions:
+        CBFR: CB
+        INTR: INTRA
+        MACD: MasterCard
+        VISA: VISA
+    CardDataEntryMode:
+      description: Card entry mode<br>Mode de lecture du système d'acceptation (CBAE champ 22)
+      type: string
+      example: CCEC
+      enum:
+        - BRCD
+        - CCEC
+        - CCMD
+        - COFT
+        - EDGR
+        - EDRP
+        - ICCR
+        - MAAR
+        - MAGS
+        - MANE
+        - MFLB
+        - NOTS
+        - OCRD
+        - PVBS
+      x-enumDescriptions:
+        BRCD: Bar code
+        CCEC: Contactless chip transaction using EMV chip data
+        CCMD: Contactless chip transaction using magstripe data
+        COFT: Card-on-File
+        EDGR: EMV downgraded
+        EDRP: Digital Secure Remote Payment using EMV
+        ICCR: Integrated circuit card reader
+        MAAR: Magstripe, after attempt to read chip
+        MAGS: Magstripe
+        MANE: Manual entry
+        MFLB: Manual fallback from an EMV capable terminal
+        NOTS: Not specified
+        OCRD: OCR
+        PVBS: Provided by a server
+    ElectronicCommerceAuthenticationNature:
+      description: >-
+        Electronic commerce transaction authentication type<br>Type de sécurisation du commerce electronique. <br>Ne
+        concerne que les transactions domestiques CB
+      type: string
+      example: ACXX
+      enum:
+        - ACMO
+        - ACNO
+        - ACNS
+        - ACXX
+      x-enumDescriptions:
+        ACMO: Authentication cryptogram issued from a mobile  (CB2A 21)
+        ACNO: No authentication cryptogram  (CB2A 09)
+        ACNS: Legacy – Non-secured electronic commerce transaction (CB2A 08)
+        ACXX: Authentication cryptogram issued from a server (CB2A 20)
+    ClearingRoute:
+      description: >-
+        Identify the transaction clearing route (INTRA or SCHEME).<br>Identifie le canal de compensation de la
+        transaction (INTRA ou SCHEME)
+      type: string
+      example: SCHE
+      enum:
+        - INTR
+        - SCHE
+      x-enumDescriptions:
+        INTR: INTRA
+        SCHE: SCHEME
+    QualifScheme:
+      description: Scheme identification done by qualification.<br>Réseau déterminé lors de la qualification
+      type: string
+      example: MACD
+      enum:
+        - CBFR
+        - MACD
+        - VISA
+      x-enumDescriptions:
+        CBFR: CB
+        MACD: MasterCard
+        VISA: VISA
+    OfficialPostalAddress:
+      description: Localisation du marchand
+      type: object
+      additionalProperties: false
+      properties:
+        countryCode:
+          description: >-
+            Official, main administrative Postal Address<br>Code ISO pays du commerçant de la transaction en format ISO
+            Numérique sur 3 caractères (ISO 3166)
+          type:
+            - string
+            - 'null'
+          example: '250'
+          pattern: ^[0-9]{3}$
+        townName:
+          description: Official, main administrative Postal Address<br>Ville de la localisation du marchand
+          type: string
+          example: 94 SAINT MANDE
+          maxLength: 70
+          minLength: 1
+      required:
+        - townName
+    FeesAmount:
+      description: Fees Amount<br>Montant signé et devise de la commission de service imputée au porteur.
+      type: object
+      example:
+        feesAmount: '00.00'
+        currency: '978'
+      properties:
+        feesAmount:
+          type: string
+          pattern: ^\-?[0-9]{1,5}(\.?[0-9]{0,10})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - feesAmount
+        - currency
+    CardholderAuthenticationMethod:
+      description: Cardholder authentication method<br>Mode d'authentification du porteur
+      type: string
+      example: ESIG
+      enum:
+        - ADVE
+        - ESIG
+        - MSIG
+        - NAUT
+        - OMAM
+        - PIMS
+        - PINE
+      x-enumDescriptions:
+        ADVE: Address verification
+        ESIG: Electronic signature
+        MSIG: Manual signature
+        NAUT: No authentication
+        OMAM: Other manual authentication methods
+        PIMS: PIN + manual signature
+        PINE: PIN
+    TokenCategory:
+      description: Original token type.<br>Type de token
+      type: string
+      example: ECOM
+      enum:
+        - COFL
+        - ECOM
+        - HCEM
+        - QRCD
+        - SCRE
+      x-enumDescriptions:
+        COFL: Card on file
+        ECOM: Ecommerce
+        HCEM: HCE
+        QRCD: QRC
+        SCRE: Secure element
+    TotalAmount:
+      description: Total Amount<br>Montant et devise de la transaction
+      type: object
+      example:
+        amount: '-20.50'
+        currency: '978'
+      properties:
+        amount:
+          type: string
+          pattern: ^\-?[0-9]{1,18}(\.?[0-9]{0,5})?$
+        currency:
+          type: string
+          pattern: ^[0-9]{3}$
+      required:
+        - amount
+        - currency
+    Card:
+      description: objet contenant les informations liées à la carte
+      type: object
+      additionalProperties: false
+      properties:
+        encryptedPrimaryAccountNumber:
+          description: >-
+            encrypted pan<br>Numéro de carte (PAN) chiffré.<br>Le chiffrement respecte le standard JWE. Une fois
+            déchiffrée la donnée représente un PAN, sous forme d'une chaine de 16 à 19 caractères numériques.
+          type:
+            - string
+            - 'null'
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.dyt0CoTl4WoVjAHI9Q.wSKhl6d_9rhM3NrXuJttkao.k_CwSKhwcCI6IktZSI6
+          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$
+        primaryAccountNumberId:
+          description: Primary Account Number ID<br>Identifiant de substitution du PAN (PAN Id)
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        maskedPrimaryAccountNumber:
+          description: Masked Primary Account Number<br>Numéro de carte (PAN) caviardé
+          type: string
+          example: 1234 45XX XXXX 1234
+          maxLength: 30
+          minLength: 1
+        productCode:
+          description: Product Code<br>Code produit carte défini au niveau du CMS
+          type: string
+          example: 2I
+          maxLength: 50
+          minLength: 1
+      required:
+        - primaryAccountNumberId
+        - maskedPrimaryAccountNumber
+        - productCode
+    Cardholder:
+      description: objet contenant les informations liées au porteur de carte
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          description: Cardholder Id<br>Identifiant de la personne détentrice de la carte (attribué par le processeur)
+          type:
+            - string
+            - 'null'
+          example: '995251988'
+          pattern: ^[0-9a-zA-Z\-]{1,36}$
+  parameters:
+    XRequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) assigned to this individual request, used for tracing and debugging
+        across distributed services.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XCorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: >-
+        A universally unique identifier (UUID) that groups multiple related requests belonging to the same logical
+        operation or business transaction, enabling cross-service correlation.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    XInstitutionId:
+      name: X-Institution-Id
+      in: header
+      required: true
+      description: A unique identifier representing the banking institution context (bank code) associated with the request.
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    XUserId:
+      name: X-User-Id
+      in: header
+      required: false
+      description: A unique identifier representing the authenticated user who initiated the action.
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    XUserContextId:
+      name: X-UserContext-Id
+      in: header
+      required: false
+      description: >-
+        A unique identifier representing the user group or organizational context under which the request is being
+        performed.
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    XProcessingRouteId:
+      name: X-Processing-Route-Id
+      in: header
+      required: false
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+    XEventId:
+      name: X-Event-Id
+      in: header
+      required: true
+      description: Unique identifier of the event. Used to identify technical duplicates.
+      schema:
+        type: string
+        format: uuid
+      example: 1c9d4e2f-8a7b-4c3d-9e1f-2a3b4c5d6e7f
+    XEventVersion:
+      name: X-Event-Version
+      in: header
+      required: true
+      description: >-
+        Specifies the version of the JSON schema used to structure the event payload, allowing consumers to handle
+        schema evolution gracefully.
+      schema:
+        type: string
+      example: '1.0'
+    XOriginalRequestId:
+      name: X-Original-Request-Id
+      in: header
+      required: false
+      description: Value of the X-Request-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    XOriginalCorrelationId:
+      name: X-Original-Correlation-Id
+      in: header
+      required: false
+      description: Value of the X-Correlation-Id header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    OriginalIdempotencyKey:
+      name: Original-Idempotency-Key
+      in: header
+      required: false
+      description: Value of the Idempotency-Key header of the original request initiated by the bank.
+      schema:
+        type: string
+        format: uuid
+      example: 9b2e4a17-6c3d-4f2a-b1e8-0d7c5a3f2b91
+  headers:
+    EchoRequestId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+    EchoCorrelationId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: 7d5c2b9e-2f3a-4c1d-8e6f-9a0b1c2d3e4f
+    EchoInstitutionId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 20
+      example: '30004'
+    EchoUserId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 128
+      example: user-42
+    EchoUserContextId:
+      description: Echoes the corresponding request header if provided in the request.
+      required: false
+      schema:
+        type: string
+        maxLength: 4
+      example: u42
+    ProcessingRouteId:
+      description: An identifier indicating the processing route selected by the infrastructure for this message.
+      required: false
+      schema:
+        type: string
+        maxLength: 36
+      example: prod.eu-west-1.silo-1
+  responses:
+    Error400:
+      description: >-
+        Bad request (400). The request contains invalid parameters, malformed syntax, or missing required fields. Check
+        the error details in the response body for specific validation issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error401:
+      description: >-
+        Unauthorized (401). Authentication is required but was not provided or the provided credentials are invalid.
+        Ensure you have included a valid Bearer token in the Authorization header.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error403:
+      description: >-
+        Forbidden (403). The request is authenticated but lacks the necessary permissions to access the requested
+        resource. Contact your administrator to request access.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error405:
+      description: >-
+        Method Not Allowed (405). The HTTP method used is not supported for the requested resource. Check the API
+        documentation for allowed methods on this endpoint.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error406:
+      description: >-
+        Not Acceptable (406). The requested resource is capable of generating only content not acceptable according to
+        the Accept headers sent in the request. Adjust the Accept header to a supported media type.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error409:
+      description: >-
+        Conflict (409). The request conflicts with the current state of the resource (e.g., duplicate entry, resource
+        already exists, or version mismatch). Review the error details for more information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error422:
+      description: >-
+        Unprocessable Entity (422). The request is well-formed but contains semantic errors that prevent processing
+        (e.g., invalid values, unsupported operations). Check the error details for specific issues.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error429:
+      description: >-
+        Too Many Requests (429). Rate limit has been exceeded. Wait before making additional requests. Check response
+        headers for rate limit information.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error500:
+      description: >-
+        Internal Server Error (500). An unexpected error occurred on the server. Please retry the request. If the
+        problem persists, contact support with the X-Request-Id from the response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error502:
+      description: >-
+        Bad Gateway (502). An error occurred while the gateway received an invalid response from an upstream server.
+        Please retry the request. If the problem persists, contact support.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error503:
+      description: >-
+        Service Unavailable (503). The service is temporarily unavailable, likely due to maintenance or high load.
+        Please retry after a few moments.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+    Error504:
+      description: >-
+        Gateway Timeout (504). The gateway did not receive a timely response from an upstream server. The request may or
+        may not have been processed. Please retry with idempotency key to ensure safe retry.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/EchoRequestId'
+        X-Correlation-Id:
+          $ref: '#/components/headers/EchoCorrelationId'
+        X-Institution-Id:
+          $ref: '#/components/headers/EchoInstitutionId'
+        X-User-Id:
+          $ref: '#/components/headers/EchoUserId'
+        X-UserContext-Id:
+          $ref: '#/components/headers/EchoUserContextId'
+        X-Processing-Route-Id:
+          $ref: '#/components/headers/ProcessingRouteId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardError'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+webhooks:
+  dispute-case-operation-list-updated:
+    post:
+      operationId: disputeCaseOperationListUpdated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DMUpdatedCase'
+      responses:
+        '204':
+          description: Event acquitté par le partenaire (No Content).
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/EchoRequestId'
+            X-Correlation-Id:
+              $ref: '#/components/headers/EchoCorrelationId'
+            X-Institution-Id:
+              $ref: '#/components/headers/EchoInstitutionId'
+            X-User-Id:
+              $ref: '#/components/headers/EchoUserId'
+            X-UserContext-Id:
+              $ref: '#/components/headers/EchoUserContextId'
+            X-Processing-Route-Id:
+              $ref: '#/components/headers/ProcessingRouteId'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '405':
+          $ref: '#/components/responses/Error405'
+        '406':
+          $ref: '#/components/responses/Error406'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+        '502':
+          $ref: '#/components/responses/Error502'
+        '503':
+          $ref: '#/components/responses/Error503'
+        '504':
+          $ref: '#/components/responses/Error504'
+      summary: >-
+        This endpoint sends a notification of the addition and/or removal of operations in a dispute case (CNT-EM7)
+        (dispute-case-operation-list-updated)
+      tags:
+        - Dispute Case
+      parameters:
+        - $ref: '#/components/parameters/XRequestId'
+        - $ref: '#/components/parameters/XCorrelationId'
+        - $ref: '#/components/parameters/XInstitutionId'
+        - $ref: '#/components/parameters/XUserId'
+        - $ref: '#/components/parameters/XUserContextId'
+        - $ref: '#/components/parameters/XProcessingRouteId'
+        - $ref: '#/components/parameters/XEventId'
+        - name: X-Event-Type
+          in: header
+          required: true
+          description: The type of the event.
+          schema:
+            type: string
+            maxLength: 36
+          example: dispute-case-operation-list-updated
+        - $ref: '#/components/parameters/XEventVersion'
+        - $ref: '#/components/parameters/XOriginalRequestId'
+        - $ref: '#/components/parameters/XOriginalCorrelationId'
+        - $ref: '#/components/parameters/OriginalIdempotencyKey'
+tags:
+  - name: Dispute Case
+    description: Notification related to a dispute case
+  - name: CRC Case
+    description: Notification related to a CRC (Customer Relations Center) case

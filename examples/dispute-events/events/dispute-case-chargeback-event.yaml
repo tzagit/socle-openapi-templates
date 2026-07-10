@@ -1,0 +1,9 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-chargeback-event
+x-summary: >-
+  This endpoint sends a notification following the integration of a dispute event (examples: unpaid issuance, dispute
+  cancellation, domestic recovery closure with accounting, etc.) (CNT-EM36)
+x-operation-id: disputeCaseChargebackEvent
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/CBDisputeEvent'

@@ -1,0 +1,7 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-operation-list-updated
+x-summary: This endpoint sends a notification of the addition and/or removal of operations in a dispute case (CNT-EM7)
+x-operation-id: disputeCaseOperationListUpdated
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/DMUpdatedCase'

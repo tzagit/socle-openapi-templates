@@ -1,0 +1,7 @@
+# Généré par tools/import.mjs — dé-factorisé depuis un OpenAPI existant.
+x-event-type: dispute-case-advancement-updated
+x-summary: This endpoint sends a notification of dispute case status change (CNT-EM9)
+x-operation-id: disputeCaseAdvancementUpdated
+x-tags:
+  - Dispute Case
+$ref: '#/components/schemas/DMUpdatedCaseAdvancement'
